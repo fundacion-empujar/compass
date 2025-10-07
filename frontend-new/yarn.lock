@@ -14947,6 +14947,18 @@ storybook-addon-mock@^5.0.0:
     storybook "^8.0.8"
     whatwg-fetch "^3.6.19"
 
+storybook-i18n@^2.1.1:
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/storybook-i18n/-/storybook-i18n-2.1.2.tgz#d13b2ba8d805906d49d27dbe03406e52333cd3f0"
+  integrity sha512-jPIxaluHrIS0IChEyhM8G+maTdsIaKukJXzVZ4TneacCETpLq2Lnx9Ni7z2LZhrBvZLQUWXgtMSMGSCwDWYNSQ==
+
+storybook-react-i18next@^2.0.10:
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/storybook-react-i18next/-/storybook-react-i18next-2.1.2.tgz#48db055f6572ad6de9e0dd7b9abbeb3535051447"
+  integrity sha512-M1/sEm+AlZXeSe+9kVW1blM1cCKjgHqxvplrd0n+ehIPEYqJ8NTF/9KW3xWjgQIrteYKkVcabzYxwKxg6MzSMg==
+  dependencies:
+    storybook-i18n "^2.1.1"
+
 storybook@^8.0.8:
   version "8.1.6"
   resolved "https://registry.yarnpkg.com/storybook/-/storybook-8.1.6.tgz#c811b2a377ebc9200afa89fef5e878b3d7c9f781"

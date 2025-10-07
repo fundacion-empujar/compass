@@ -184,7 +184,7 @@ const SocialAuth: React.FC<Readonly<SocialAuthProps>> = ({
           padding={theme.fixedSpacing(theme.tabiyaSpacing.sm)}
           data-testid={DATA_TEST_ID.CONTINUE_WITH_GOOGLE}
         >
-          {t("auth.components.socialAuth.orContinueWith")}
+          {t("or_continue_with")}
         </Typography>
       </Divider>
       <Box width="100%">
@@ -209,7 +209,7 @@ const SocialAuth: React.FC<Readonly<SocialAuthProps>> = ({
             <div style={{ display: "flex", alignItems: "center" }}>
               <GoogleIcon disabled={socialAuthLoading} />
             </div>
-            <Typography variant="body2">{label ?? t("auth.components.socialAuth.loginWithGoogle")}</Typography>
+            <Typography variant="body2">{label ?? t("login_with_google")}</Typography>
           </Button>
           {!isOnline && (
             <Typography
@@ -217,7 +217,7 @@ const SocialAuth: React.FC<Readonly<SocialAuthProps>> = ({
               sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}
               data-testid={DATA_TEST_ID.FIREBASE_FALLBACK_TEXT}
             >
-              {t("auth.components.socialAuth.googleLoginIsNotAvailableWhenOffline")}
+              {t("google_login_is_not_available_when_offline")}
             </Typography>
           )}
         </div>

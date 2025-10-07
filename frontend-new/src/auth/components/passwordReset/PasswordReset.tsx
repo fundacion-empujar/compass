@@ -71,7 +71,7 @@ const ResetPasswordEmailSender: React.FC<ResetPasswordEmailSenderProps> = (
   const handleSendResetEmail = useCallback(async () => {
     setIsLoading(true);
     if(!emailInput) {
-      enqueueSnackbar(t("auth.components.passwordReset.pleaseEnterEmail"), { variant: "warning" });
+      enqueueSnackbar(t("please_enter_email"), { variant: "warning" });
       console.warn("Password reset attempt failed: email input missing.");
       setIsLoading(false);
       return;
@@ -79,12 +79,11 @@ const ResetPasswordEmailSender: React.FC<ResetPasswordEmailSenderProps> = (
     try {
       const authService = FirebaseEmailAuthService.getInstance();
       await authService.resetPassword(emailInput);
-      enqueueSnackbar(t("auth.components.passwordReset.passwordResetEmailSent"), { variant: "success" });
+      enqueueSnackbar(t("password_reset_email_sent"), { variant: "success" });
       setCooldownSeconds(COOLDOWN_SECONDS);
     } catch (error) {
       const message = error instanceof FirebaseError ? getUserFriendlyFirebaseErrorMessage(error) : (error as Error).message;
-      console.error("Password reset request failed:", message, error);
-      enqueueSnackbar(`${t("auth.components.passwordReset.failedToSendResetEmail")}: ${message}`, { variant: "error" });
+      enqueueSnackbar(`${t("failed_to_send_reset_email")}: ${message}`, { variant: "error" });
     } finally {
       setIsLoading(false);
       setDialogOpen(false);
@@ -96,7 +95,7 @@ const ResetPasswordEmailSender: React.FC<ResetPasswordEmailSenderProps> = (
       display: "flex", flexDirection: "column", alignItems: "center", gap: theme.spacing(1), marginTop: theme.spacing(2),
     }}>
       {(cooldownSeconds !== initialCooldownSeconds) && <Typography variant="body2" color="info">
-        {t("auth.components.passwordReset.passwordResetLinkSent")}
+        {t("password_reset_link_sent")}
       </Typography>}
       <Box>
         <CustomLink
@@ -104,7 +103,7 @@ const ResetPasswordEmailSender: React.FC<ResetPasswordEmailSenderProps> = (
           disabled={isLoading || cooldownSeconds > 0 || !isOnline}
           data-testid={DATA_TEST_ID.RESET_LINK}
         >
-          {t("auth.components.passwordReset.forgotPassword")}
+          {t("forgot_password")}
         </CustomLink>
         {cooldownSeconds > 0 && (
           <Typography
@@ -125,10 +124,10 @@ const ResetPasswordEmailSender: React.FC<ResetPasswordEmailSenderProps> = (
         >
           <Box display="flex" justifyContent="space-between" alignItems="start" sx={{ mb: theme.fixedSpacing(theme.tabiyaSpacing.sm) }}>
             <Typography variant="h4" gutterBottom data-testid={DATA_TEST_ID.DIALOG_TITLE}>
-              {t("auth.components.passwordReset.resetPassword")}
+              {t("reset_password")}
             </Typography>
             <PrimaryIconButton
-              title={t("auth.components.passwordReset.closePasswordResetForm")}
+              title={t("close_password_reset_form")}
               onClick={() => setDialogOpen(false)}
               sx={{
                 color: theme.palette.grey[500],
@@ -139,7 +138,7 @@ const ResetPasswordEmailSender: React.FC<ResetPasswordEmailSenderProps> = (
             </PrimaryIconButton>
           </Box>
           <TextField
-            label={t("common.fields.email")}
+            label={t("email")}
             type="email"
             fullWidth
             value={emailInput}
@@ -156,7 +155,7 @@ const ResetPasswordEmailSender: React.FC<ResetPasswordEmailSenderProps> = (
               data-testid={DATA_TEST_ID.SUBMIT}
               onClick={handleSendResetEmail}
             >
-              {t("common.buttons.submit")}
+              {t("submit")}
             </PrimaryButton>
           </DialogActions>
         </Box>

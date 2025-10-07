@@ -25,23 +25,6 @@ import { ChatProvider } from "../src/chat/ChatContext";
 import i18n from "../src/i18n/i18n";
 import { initSentry } from "../src/sentryInit";
 import SnackbarProvider from "../src/theme/SnackbarProvider/SnackbarProvider";
-import { LocalesLabels, Locale } from "../src/i18n/constants";
-
-type StorybookSelectOption = {
-  value: string;
-  title: string;
-};
-
-/**
- * A list of all the locales and their labels in the form of {StorybookSelectOption[]}:
- */
-const localeOptions = Object.entries(LocalesLabels).reduce<StorybookSelectOption[]>((acc, [locale, label]) => {
-  acc.push({
-    value: locale,
-    title: label,
-  });
-  return acc;
-}, []);
 
 const preview: Preview = {
   parameters: {
@@ -94,12 +77,15 @@ const preview: Preview = {
       },
     },
     locale: {
-      name: "Locale",
-      description: "Internationalization locale",
+      name: 'Locale',
+      description: 'Internationalization locale',
       toolbar: {
-        icon: "globe",
-        items: localeOptions,
-        defaultValue: Locale.EN_US,
+        icon: 'globe',
+        items: [
+          { value: 'en', title: 'English' },
+          { value: 'es', title: 'Spanish' },
+          { value: 'fr-fr', title: 'French' },
+        ],
         showName: true,
       },
     },
@@ -145,19 +131,11 @@ export const decorators = [
       }
     }, [sentryEnabled]);
 
-    // Handle language changes
-    useEffect(() => {
-      const handleLanguageChange = (newLocale: string) => {
-        document.dir = i18n.dir(newLocale);
-      };
-
-      i18n.changeLanguage(locale); // switch to toolbar-selected locale
-      i18n.on("languageChanged", handleLanguageChange);
-
-      return () => {
-        i18n.off("languageChanged", handleLanguageChange);
-      };
-    }, [locale]);
+    // When The language changes, set the document direction
+    i18n.on('languageChanged', (locale) => {
+      const direction = i18n.dir(locale);
+      document.dir = direction;
+    });
 
     return (
       <HashRouter>

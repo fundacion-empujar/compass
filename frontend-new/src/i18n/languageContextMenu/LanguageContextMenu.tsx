@@ -4,52 +4,95 @@ import React, { useCallback, useMemo, useState } from "react";
 import { useTheme } from "@mui/material";
 import ContextMenu from "src/theme/ContextMenu/ContextMenu";
 import { useTranslation } from "react-i18next";
-import { Locale, LocalesLabels } from "src/i18n/constants";
-import { parseEnvSupportedLocales } from "src/i18n/languageContextMenu/parseEnvSupportedLocales";
+import { getSupportedLanguages } from "src/envService";
 
 const uniqueId = "f4d06e4b-0e0c-49c7-ad93-924c5ac89070";
 
 export const DATA_TEST_ID = {
-  LANGUAGE_CONTEXT_MENU_SELECT_BUTTON: `language-context-menu-select-button-${uniqueId}`,
-  LANGUAGE_CONTEXT_MENU_ITEM: `language-context-menu-${uniqueId}`,
+  AUTH_LANGUAGE_SELECTOR_BUTTON: `auth-language-selector-${uniqueId}`,
+  AUTH_ENGLISH_SELECTOR_BUTTON: `auth-english-selector-${uniqueId}`,
+  AUTH_SPANISH_SELECTOR_BUTTON: `auth-spanish-selector-${uniqueId}`,
+  AUTH_FRENCH_SELECTOR_BUTTON: `auth-french-selector-${uniqueId}`,
 };
 
-export type LanguageContextMenuProps = {
-  /** If true, removes the margin from the button to allow consistent spacing in different contexts */
-  removeMargin?: boolean;
+export const MENU_ITEM_ID = {
+  AUTH_ENGLISH_SELECTOR: `english-selector-${uniqueId}`,
+  AUTH_SPANISH_SELECTOR: `spanish-selector-${uniqueId}`,
+  AUTH_FRENCH_SELECTOR: `french-selector-${uniqueId}`,
 };
 
-const LanguageContextMenu: React.FC<LanguageContextMenuProps> = ({ removeMargin = false }) => {
-  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+export const MENU_ITEM_TEXT = {
+  ENGLISH: `English`,
+  SPANISH: `Spanish`,
+  SPANISH_ARGENTINA: `Spanish`,
+  FRENCH: `French`,
+};
 
+const LanguageContextMenu = () => {
   const theme = useTheme();
   const { t, i18n } = useTranslation();
 
-  const handleLocaleChange = useCallback(
-    (locale: Locale) => () => {
-      i18n
-        .changeLanguage(locale)
-        .then(() => {
-          console.debug(`Language changed to ${locale}`);
-        })
-        .catch((e) => {
-          console.error(`Failed to change language to ${locale}`, e);
-        });
+  // --- Parse supported languages from environment config
+  let supportedLanguages: string[] = [];
+  try {
+    const configJson = getSupportedLanguages();
+    if (configJson) {
+      supportedLanguages = JSON.parse(configJson);
+    } else {
+      console.log("Language config not available, reverting to default.");
+    }
+  } catch (e) {
+    console.error("Error parsing language config JSON:", e);
+  }
+
+  const changeLanguage = (lng: string) => {
+    i18n.changeLanguage(lng);
+  };
+
+  // --- Define all possible menu items
+  const allMenuItems: MenuItemConfig[] = [
+    {
+      id: MENU_ITEM_ID.AUTH_ENGLISH_SELECTOR,
+      text: MENU_ITEM_TEXT.ENGLISH,
+      disabled: !supportedLanguages.includes("en"),
+      action: () => changeLanguage("en"),
     },
-    [i18n]
-  );
+     {
+      id: MENU_ITEM_ID.AUTH_ENGLISH_SELECTOR + "-ar",
+      text: MENU_ITEM_TEXT.ENGLISH,
+      disabled: !supportedLanguages.includes("en-us"),
+      action: () => changeLanguage("en-us"),
+    },
+    {
+      id: MENU_ITEM_ID.AUTH_SPANISH_SELECTOR,
+      text: MENU_ITEM_TEXT.SPANISH,
+      disabled: !supportedLanguages.includes("es"),
+      action: () => changeLanguage("es"),
+    },
+    {
+      id: MENU_ITEM_ID.AUTH_SPANISH_SELECTOR + "-ar",
+      text: MENU_ITEM_TEXT.SPANISH_ARGENTINA,
+      disabled: !supportedLanguages.includes("es-ar"),
+      action: () => changeLanguage("es-ar"),
+    },
+    {
+      id: MENU_ITEM_ID.AUTH_FRENCH_SELECTOR,
+      text: MENU_ITEM_TEXT.FRENCH,
+      disabled: !supportedLanguages.includes("fr-fr"),
+      action: () => changeLanguage("fr-fr"),
+    },
+  ];
 
-  const supportedLocales = useMemo(() => parseEnvSupportedLocales(), []);
+  // --- Filter out languages that are disabled
+  let visibleMenuItems = allMenuItems.filter(item => !item.disabled);
 
-  const menuOptions = useMemo(() => {
-    return supportedLocales.map((locale) => ({
-      id: `${DATA_TEST_ID.LANGUAGE_CONTEXT_MENU_ITEM}-${locale}`,
-      // TO FIX: proper translation of the text (CAI-119). use LocaleKeys.
-      text: LocalesLabels[locale],
-      disabled: false,
-      action: handleLocaleChange(locale),
-    }));
-  }, [handleLocaleChange, supportedLocales]);
+  // --- Ensure at least English is included if nothing is present
+  if (visibleMenuItems.length === 0) {
+    const englishItem = allMenuItems.find(item => item.text === MENU_ITEM_TEXT.ENGLISH);
+    if (englishItem) visibleMenuItems = [englishItem];
+  }
+
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
   return (
     <>
@@ -61,8 +104,8 @@ const LanguageContextMenu: React.FC<LanguageContextMenuProps> = ({ removeMargin 
           margin: removeMargin ? 0 : theme.tabiyaSpacing.lg,
         }}
         onClick={(event) => setAnchorEl(event.currentTarget)}
-        data-testid={DATA_TEST_ID.LANGUAGE_CONTEXT_MENU_SELECT_BUTTON}
-        title={t("i18n.languageContextMenu.selector")}
+        data-testid={DATA_TEST_ID.AUTH_LANGUAGE_SELECTOR_BUTTON}
+        title={t("language_selector")}
       >
         <LanguageOutlined />
       </PrimaryIconButton>
@@ -71,7 +114,7 @@ const LanguageContextMenu: React.FC<LanguageContextMenuProps> = ({ removeMargin 
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
         notifyOnClose={() => setAnchorEl(null)}
-        items={menuOptions}
+        items={visibleMenuItems}
       />
     </>
   );
