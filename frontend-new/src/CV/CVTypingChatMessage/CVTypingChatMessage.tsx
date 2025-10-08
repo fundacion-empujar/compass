@@ -14,8 +14,8 @@ export const DATA_TEST_ID = {
 
 // Deprecated: UI_TEXT constants replaced by i18n keys. Keep for backwards compatibility in any legacy imports.
 export const UI_TEXT = {
-  UPLOADING_CV: "Please wait while I upload and parse your CV",
-  CV_UPLOADED: "Your CV content is in the text field. Review it and send when ready.",
+  UPLOADING_CV: "cv_typing_uploading", // use t("cv_typing_uploading")
+  CV_UPLOADED: "cv_typing_uploaded_ready",
 };
 
 
@@ -44,15 +44,9 @@ const textVariants = {
 };
 
 const CVTypingChatMessage: React.FC<CVTypingChatMessageProps> = ({ isUploaded = false }) => {
-  const { t, i18n } = useTranslation();
-  const displayTextKey = isUploaded ?  "cv.cvTypingChatMessage.uploadedReady" : "cv.cvTypingChatMessage.uploading";
-  const [displayText, setDisplayText] = useState(t(displayTextKey));
-
-  useEffect(() => {
-    // Update text when language or key changes
-    setDisplayText(t(displayTextKey));
-  }, [displayTextKey, i18n.language, t]);
-
+  const { t } = useTranslation();
+  const displayTextKey = isUploaded ? UI_TEXT.CV_UPLOADED : UI_TEXT.UPLOADING_CV;
+  const displayText = t(displayTextKey);
   const showDots = !isUploaded;
 
   return (
