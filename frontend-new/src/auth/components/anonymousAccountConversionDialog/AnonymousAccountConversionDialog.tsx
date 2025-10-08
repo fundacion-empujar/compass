@@ -141,7 +141,7 @@ const AnonymousAccountConversionDialog: React.FC<AnonymousAccountConversionDialo
     >
       <PrimaryIconButton
         data-testid={DATA_TEST_ID.CLOSE_ICON}
-        title={t("auth.components.anonymousAccountConversionDialog.closeRegistrationForm")}
+        title={t("close_registration_form")}
         onClick={onClose}
         sx={{
           position: "absolute",
@@ -155,21 +155,21 @@ const AnonymousAccountConversionDialog: React.FC<AnonymousAccountConversionDialo
       
       <DialogTitle>
         <Typography variant="h4" component="div" gutterBottom>
-          {t("auth.components.anonymousAccountConversionDialog.registerAccount")}
+          {t("register_account")}
         </Typography>
       </DialogTitle>
       
       <DialogContent>
         <Typography variant="body2" gutterBottom>
-           {t("auth.components.anonymousAccountConversionDialog.registrationInfo")}
+           {t("registration_info")}
         </Typography>
         
-        <HighlightedSpan>{t("auth.components.anonymousAccountConversionDialog.emailWarning")}</HighlightedSpan>
+        <HighlightedSpan>{t("email_warning")}</HighlightedSpan>
         <Box sx={{ mt: 2 }}>
           <TextField
             autoFocus
             fullWidth
-            label={t("common.fields.email")}
+            label={t("email")}
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -182,7 +182,7 @@ const AnonymousAccountConversionDialog: React.FC<AnonymousAccountConversionDialo
           
           <TextField
             fullWidth
-            label={t("common.fields.confirmEmail")}
+            label={t("confirm_email")}
             type="email"
             value={emailConfirmation}
             onChange={(e) => setEmailConfirmation(e.target.value)}
@@ -195,7 +195,7 @@ const AnonymousAccountConversionDialog: React.FC<AnonymousAccountConversionDialo
           
           <PasswordInput
             fullWidth
-            label={t("common.fields.password")}
+            label={t("password")}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             data-testid={DATA_TEST_ID.PASSWORD_INPUT}
@@ -219,7 +219,7 @@ const AnonymousAccountConversionDialog: React.FC<AnonymousAccountConversionDialo
                 size={2 * theme.typography.fontSize}
               />
             ) : (
-              t("common.buttons.register")
+              t("register")
             )}
           </PrimaryButton>
         </Box>

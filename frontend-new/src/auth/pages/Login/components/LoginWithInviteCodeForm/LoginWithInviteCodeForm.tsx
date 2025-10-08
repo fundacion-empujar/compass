@@ -32,7 +32,7 @@ const LoginWithInviteCodeForm: React.FC<Readonly<LoginFormProps>> = ({
   return (
     <TextField
       fullWidth
-      label={t("auth.pages.login.components.loginWithInviteCodeForm.loginCode")}
+      label={t("login_code")}
       variant="outlined"
       value={inviteCode}
       disabled={isDisabled}

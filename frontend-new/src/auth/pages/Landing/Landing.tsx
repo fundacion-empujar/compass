@@ -106,7 +106,7 @@ const Landing: React.FC = () => {
     }
   }, [applicationLoginCode, handleError, handlePostLogin, enqueueSnackbar, t]);
 
-  return (
+ return (
     <>
       <Dialog
         open={true}
@@ -170,7 +170,7 @@ const Landing: React.FC = () => {
             }}
           >
             <AuthHeader
-              title={t("auth.pages.landing.welcomeTitle")}
+              title={t("welcome_back")} // Changed from "Welcome to Compass!" to t("welcome_back")
               subtitle={
                 <>
                   <Typography
@@ -179,10 +179,11 @@ const Landing: React.FC = () => {
                     textAlign="center"
                     paddingBottom={theme.fixedSpacing(theme.tabiyaSpacing.sm)}
                   >
-                    {t("auth.pages.landing.subtitleBold")}
+                    {t("landing_subtitle_bold")} {/* Changed from "Discover your Full Potential" */}
                   </Typography>
                   <Typography variant="body2" textAlign="center">
-                    {t("auth.pages.landing.subtitleBody")}
+                    {t("landing_subtitle_body")}
+                    {/* Changed from long marketing text */}
                   </Typography>
                 </>
               }
@@ -201,7 +202,7 @@ const Landing: React.FC = () => {
                   onClick={() => navigate(routerPaths.LOGIN)}
                   data-testid={DATA_TEST_ID.LANDING_LOGIN_BUTTON}
                 >
-                  {t("common.buttons.login")}
+                  {t("login")} {/* Changed from "Login" */}
                 </PrimaryButton>
                 {!registrationDisabled && (
                   <SecondaryButton
@@ -211,7 +212,7 @@ const Landing: React.FC = () => {
                     onClick={() => navigate(routerPaths.REGISTER)}
                     data-testid={DATA_TEST_ID.LANDING_SIGNUP_BUTTON}
                   >
-                    {t("common.buttons.register")}
+                    {t("register")} {/* Changed from "Register" */}
                   </SecondaryButton>
                 )}
               </Box>
@@ -219,7 +220,7 @@ const Landing: React.FC = () => {
                 <>
                   <Divider textAlign="center" style={{ width: "100%" }} data-testid={DATA_TEST_ID.LANDING_DIVIDER}>
                     <Typography variant="subtitle2" padding={theme.fixedSpacing(theme.tabiyaSpacing.sm)}>
-                      {t("auth.pages.landing.or")}
+                      {t("or")} {/* Changed from "or" */}
                     </Typography>
                   </Divider>
                   <CustomLink
@@ -228,7 +229,7 @@ const Landing: React.FC = () => {
                     disableWhenOffline={true}
                     data-testid={DATA_TEST_ID.LANDING_GUEST_BUTTON}
                   >
-                    {t("auth.pages.landing.continueAsGuest")}
+                    {t("continue_as_guest")} {/* Changed from "Continue as Guest" */}
                   </CustomLink>
                 </>
               )}
@@ -237,7 +238,7 @@ const Landing: React.FC = () => {
         </DialogContent>
       </Dialog>
       <BugReportButton bottomAlign={true} />
-      <Backdrop isShown={isLoading} message={t("auth.pages.landing.loggingYouIn")} />
+      <Backdrop isShown={isLoading} message={t("logging_you_in")} /> {/* Changed from "Logging you in..." */}
     </>
   );
 };

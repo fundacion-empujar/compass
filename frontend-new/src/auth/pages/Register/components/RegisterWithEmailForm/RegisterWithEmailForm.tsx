@@ -100,7 +100,7 @@ const RegisterWithEmailForm: React.FC<Readonly<RegisterFormProps>> = ({
             sx={{ marginTop: theme.tabiyaSpacing.sm, marginBottom: theme.tabiyaSpacing.sm }}
           />
         ) : (
-          t("common.buttons.register")
+           t("register")
         )}
       </PrimaryButton>
     </Box>

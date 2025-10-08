@@ -39,10 +39,10 @@ const VerifyEmail: React.FC = () => {
         height={"80%"}
       >
         <AuthHeader
-          title={t("auth.pages.verifyEmail.registrationThankYou")}
+          title={t("registration_thank_you")}
           subtitle={
             <Typography variant="body2">
-              {t("auth.pages.verifyEmail.verificationEmailSentMessage")}
+              {t("verification_email_sent_message")}
             </Typography>
           }
         />
@@ -54,7 +54,7 @@ const VerifyEmail: React.FC = () => {
           data-testid={DATA_TEST_ID.BACK_TO_LOGIN_BUTTON}
           onClick={handleBackToLogin}
         >
-          {t("common.buttons.backToLogin")}
+          {t("back_to_login")}
         </PrimaryButton>
       </Box>
       <BugReportButton bottomAlign={true} />

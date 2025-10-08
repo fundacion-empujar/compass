@@ -85,7 +85,7 @@ const ResendVerificationEmail: React.FC<ResendVerificationEmailProps> = ({
   return (
     <StyledBox data-testid={DATA_TEST_ID.CONTAINER}>
       <Typography variant="body2" color="error">
-        {t("auth.components.resendVerificationEmail.emailNotVerified")}
+        {t("email_not_verified")}
       </Typography>
       <Box>
         <CustomLink
@@ -93,7 +93,7 @@ const ResendVerificationEmail: React.FC<ResendVerificationEmailProps> = ({
           disabled={isLoading || cooldownSeconds > 0 || !isOnline}
           data-testid={DATA_TEST_ID.RESEND_LINK}
         >
-          {t("auth.components.resendVerificationEmail.resendVerificationEmail")}
+          {t("resend_verification_email")}
         </CustomLink>
         {cooldownSeconds > 0 && (
           <Typography

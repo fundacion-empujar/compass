@@ -93,7 +93,7 @@ const RegistrationCodeFormModal: React.FC<InvitationCodeFormModalProps> = ({ mod
         <Box sx={style}>
           <PrimaryIconButton
             data-testid={DATA_TEST_ID.CLOSE_ICON}
-            title={t("auth.components.registrationCodeFormModal.closeRegistrationCodeForm")}
+            title={t("close_registration_code_form")}
             onClick={onClose}
             sx={{
               position: "absolute",
@@ -105,16 +105,16 @@ const RegistrationCodeFormModal: React.FC<InvitationCodeFormModalProps> = ({ mod
             <CloseIcon />
           </PrimaryIconButton>
           <Typography variant="h4" data-testid={DATA_TEST_ID.MODAL_TITLE}>
-            {t("auth.pages.register.registrationCode")}
+            {t("registration_code")}
           </Typography>
           <Typography variant="body2" data-testid={DATA_TEST_ID.MODAL_SUBTITLE}>
-            {t("auth.pages.register.enterRegistrationCode")}
+            {t("enter_registration_code")}
           </Typography>
           <TextField
             fullWidth
-            label={t("auth.pages.register.registrationCode")}
+            label={t("registration_code")}
             variant="outlined"
-            placeholder={t("auth.pages.register.enterRegistrationCode")}
+            placeholder={t("enter_registration_code")}
             margin="normal"
             required
             onChange={(e) => setRegistrationCode(e.target.value)}
@@ -134,7 +134,7 @@ const RegistrationCodeFormModal: React.FC<InvitationCodeFormModalProps> = ({ mod
                 data-testid={DATA_TEST_ID.PROGRESS_ELEMENT}
               />
             ) : (
-              t("common.buttons.submit")
+              t("submit")
             )}
           </PrimaryButton>
           { Sentry.isInitialized() && <Typography
@@ -144,9 +144,9 @@ const RegistrationCodeFormModal: React.FC<InvitationCodeFormModalProps> = ({ mod
               marginTop: theme.fixedSpacing(theme.tabiyaSpacing.sm),
             }}
           >
-            {t("auth.components.registrationCodeFormModal.noRegistrationCodePrompt")}{" "}
+            {t("no_registration_code_prompt")}{" "}
             <CustomLink onClick={handleOpenRequestModal} data-testid={DATA_TEST_ID.REQUEST_REGISTRATION_CODE_LINK}>
-              {t("auth.components.registrationCodeFormModal.reachOut")}
+              {t("reach_out")}
             </CustomLink>
           </Typography>
           }

@@ -40,13 +40,13 @@ const RequestInvitationCode = ({ invitationCodeType, notifyOnModalOpened }: Prop
   return (
     <>
       <Typography variant="caption" textAlign="center" gutterBottom>
-        {invitationCodeType === InvitationType.LOGIN ? t("auth.components.requestInvitationCode.requestLoginCode") : t("auth.components.registrationCodeFormModal.noRegistrationCodePrompt")}
+        {invitationCodeType === InvitationType.LOGIN ? t("request_login_code") : t("no_registration_code_prompt")}
         &nbsp;
         <CustomLink
           disabled={!isOnline}
           onClick={handleModalOpen}
           data-testid={`${DATA_TEST_ID.REQUEST_INVITATION_CODE_LINK}`}
-        >{t("auth.components.registrationCodeFormModal.reachOut")}</CustomLink>
+        >{t("reach_out")}</CustomLink>
       </Typography>
 
       <RequestInvitationCodeFormModal open={isModalOpen} onClose={() => setIsModalOpen(false)} />

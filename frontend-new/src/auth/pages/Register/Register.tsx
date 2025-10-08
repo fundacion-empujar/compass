@@ -192,19 +192,19 @@ const Register: React.FC = () => {
         width={"100%"}
       >
         <AuthHeader
-          title={t("auth.pages.register.welcomeTitle")}
+          title={t("welcome_to_compass")}
           subtitle={
             <Typography variant="body2" gutterBottom>
-              {t("auth.pages.register.subtitle")}
+              {t("register_subtitle")}
             </Typography>
           }
         />
         {!applicationRegistrationCode && (
           <React.Fragment>
-            <Typography variant="subtitle2">{t("auth.pages.register.enterRegistrationCode")}</Typography>
+            <Typography variant="subtitle2">{t("enter_registration_code")}</Typography>
             <TextField
               fullWidth
-              label={t("auth.pages.register.registrationCode")}
+              label={t("registration_code")}
               variant="outlined"
               required
               value={registrationCode}
@@ -216,7 +216,7 @@ const Register: React.FC = () => {
         {!applicationRegistrationCode && (
           <Divider textAlign="center" style={{ width: "100%" }}>
             <Typography variant="subtitle2" padding={theme.fixedSpacing(theme.tabiyaSpacing.sm)}>
-              {t("auth.pages.register.andEitherContinueWith")}
+              {t("and_either_continue_with")}
             </Typography>
           </Divider>
         )}
@@ -230,18 +230,18 @@ const Register: React.FC = () => {
             postLoginHandler={handlePostLogin}
             isLoading={isLoading}
             disabled={!registrationCode && !applicationRegistrationCode}
-            label={t("auth.pages.register.registerWithGoogle")}
+            label={t("register_with_google")}
             notifyOnLoading={notifyOnSocialLoading}
             registrationCode={registrationCode || applicationRegistrationCode}
           />
         )}
         <Typography variant="caption" data-testid={DATA_TEST_ID.LOGIN_LINK}>
-          {t("auth.pages.register.alreadyHaveAccount")} <CustomLink onClick={() => navigate(routerPaths.LOGIN)}>{t("common.buttons.login")}</CustomLink>
+          {t("already_have_account")} <CustomLink onClick={() => navigate(routerPaths.LOGIN)}>{t("login")}</CustomLink>
         </Typography>
         {!applicationRegistrationCode && <RequestInvitationCode invitationCodeType={InvitationType.REGISTER} />}
       </Box>
       <BugReportButton bottomAlign={true} />
-      <Backdrop isShown={isLoading} message={t("auth.pages.register.registeringYou")} />
+      <Backdrop isShown={isLoading} message={t("registering_you")} />
     </Container>
   );
 };
