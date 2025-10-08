@@ -814,7 +814,7 @@ return {
   return (
     <Suspense fallback={<Backdrop isShown={true} transparent={true} />}>
       {isLoggingOut ? (
-        <Backdrop isShown={isLoggingOut} message={t("chat.chat.backdrop.loggingOut")} />
+        <Backdrop isShown={isLoggingOut} message={t("logging_out")} />
       ) : (
         <ChatProvider
           handleOpenExperiencesDrawer={handleOpenExperiencesDrawer}
@@ -891,17 +891,17 @@ return {
               title={t("chat.chat.startNewConversationDialog.title")}
               content={
                 <>
-                  {t("chat.chat.startNewConversationDialog.content")}
+                  {t("start_new_conversation_content")}
                   <br />
                   <br />
-                  {t("chat.chat.startNewConversationDialog.confirmation")}
+                  {t("are_you_sure_start_new_conversation_content")}
                 </>
               }
               onCancel={() => setNewConversationDialog(false)}
               onConfirm={handleConfirmNewConversation}
               onDismiss={() => setNewConversationDialog(false)}
-              cancelButtonText={t("common.buttons.cancel")}
-              confirmButtonText={t("common.buttons.confirm")}
+              cancelButtonText={t("cancel_button")}
+              confirmButtonText={t("confirm_button")}
             />
           )}
         </ChatProvider>

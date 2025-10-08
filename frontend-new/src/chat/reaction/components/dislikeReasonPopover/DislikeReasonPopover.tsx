@@ -67,7 +67,7 @@ export const DislikeReasonPopover: React.FC<DislikeReasonPopoverProps> = ({
       >
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Typography variant="subtitle1" color={theme.palette.text.secondary} data-testid={DATA_TEST_ID.TITLE}>
-            {t("chat.reaction.components.dislikeReasonPopover.title")}
+            {t("tell_us_what_the_issue_is")}
           </Typography>
           <PrimaryIconButton
             onClick={() => onClose([])} // close without selecting a reason
@@ -79,22 +79,18 @@ export const DislikeReasonPopover: React.FC<DislikeReasonPopoverProps> = ({
           </PrimaryIconButton>
         </Box>
         <Box display="flex" flexDirection="row" flexWrap="wrap" gap={theme.fixedSpacing(theme.tabiyaSpacing.sm)}>
-          {Object.values(DislikeReason).map((reason) => {
-            const label = getDislikeReasonLabel(reason);
-
-            return (
-              <PrimaryButton
-                key={reason}
-                onClick={() => handleReasonClick(reason)}
-                title={label}
-                style={{ color: theme.palette.text.secondary }}
-                data-testid={DATA_TEST_ID.BUTTON}
-                disabled={!isOnline}
-              >
-                {label}
-              </PrimaryButton>
-            );
-          })}
+          {Object.entries(DislikeReasonMessages).map(([enumValue, message]) => (
+            <PrimaryButton
+              key={enumValue}
+              onClick={() => handleReasonClick(enumValue as DislikeReason)}
+              title={t(enumValue.toLowerCase())}
+              style={{ color: theme.palette.text.secondary }}
+              data-testid={DATA_TEST_ID.BUTTON}
+              disabled={!isOnline}
+            >
+              {t(enumValue.toLowerCase())}
+            </PrimaryButton>
+          ))}
         </Box>
       </Box>
     </Popover>

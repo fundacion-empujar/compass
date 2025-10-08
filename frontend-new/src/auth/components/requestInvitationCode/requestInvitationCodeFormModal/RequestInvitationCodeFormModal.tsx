@@ -89,10 +89,10 @@ const RequestInvitationCodeFormModal: React.FC<RequestInvitationFormModalProps> 
       >
         <Box display="flex" justifyContent="space-between" alignItems="start">
           <Typography variant="h4" gutterBottom data-testid={DATA_TEST_ID.MODAL_TITLE}>
-            {t("auth.components.requestInvitationCodeFormModal.requestAccessTitle")}
+            {t("request_access_title")}
           </Typography>
           <PrimaryIconButton
-            title={t("auth.components.requestInvitationCodeFormModal.closeRequestInvitationForm")}
+            title={t("close_request_invitation_form")}
             onClick={onClose}
             sx={{
               color: theme.palette.grey[500],
@@ -103,13 +103,13 @@ const RequestInvitationCodeFormModal: React.FC<RequestInvitationFormModalProps> 
           </PrimaryIconButton>
         </Box>
         <Typography variant="body2" data-testid={DATA_TEST_ID.MODAL_SUBTITLE}>
-          {t("auth.components.requestInvitationCodeFormModal.requestAccessSubtitle")}
+          {t("request_access_subtitle")}
         </Typography>
         <Box component="form" onSubmit={handleSubmit}>
           <TextField
             fullWidth
-            label={t("auth.components.requestInvitationCodeFormModal.name")}
-            placeholder={t("auth.components.requestInvitationCodeFormModal.name")}
+            label={t("name")}
+            placeholder={t("name")}
             type="text"
             variant="outlined"
             margin="normal"
@@ -120,8 +120,8 @@ const RequestInvitationCodeFormModal: React.FC<RequestInvitationFormModalProps> 
           />
           <TextField
             fullWidth
-            label={t("common.fields.email")}
-            placeholder={t("common.fields.email")}
+            label={t("email")}
+            placeholder={t("email")}
             type="email"
             variant="outlined"
             margin="normal"
@@ -132,8 +132,8 @@ const RequestInvitationCodeFormModal: React.FC<RequestInvitationFormModalProps> 
           />
           <TextField
             fullWidth
-            label={t("auth.components.requestInvitationCodeFormModal.message")}
-            placeholder={t("auth.components.requestInvitationCodeFormModal.messagePlaceholder")}
+            label={t("message")}
+            placeholder={t("message_placeholder")}
             variant="outlined"
             margin="normal"
             required
@@ -150,7 +150,7 @@ const RequestInvitationCodeFormModal: React.FC<RequestInvitationFormModalProps> 
             disabled={!name || !email || !message || !isOnline}
             data-testid={DATA_TEST_ID.SUBMIT_BUTTON}
           >
-            {t("common.buttons.submit")}
+            {t("submit")}
           </PrimaryButton>
         </Box>
       </Box>

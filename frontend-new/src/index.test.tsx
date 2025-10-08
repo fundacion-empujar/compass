@@ -92,6 +92,13 @@ jest.mock("./sentryInit", () => {
   };
 });
 
+// mock i18next
+jest.mock("i18next", () => ({
+  use: jest.fn().mockReturnThis(),
+  init: jest.fn().mockReturnThis(),
+  changeLanguage: jest.fn().mockResolvedValue("en"),
+}));
+
 describe("test the application bootstrapping", () => {
   beforeEach(() => {
     (console.error as jest.Mock).mockClear();

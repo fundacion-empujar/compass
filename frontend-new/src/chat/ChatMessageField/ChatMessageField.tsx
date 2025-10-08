@@ -1,5 +1,6 @@
-import React, { KeyboardEvent, MouseEvent, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { Box, IconButton, InputAdornment, styled, TextField, Typography, useTheme } from "@mui/material";
+import React, { useEffect, useContext, useMemo, useState, MouseEvent, KeyboardEvent, useCallback } from "react";
+import { useTranslation } from "react-i18next";
+import { IconButton, InputAdornment, TextField, styled, useTheme, Typography, Box } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
 import AddIcon from "@mui/icons-material/Add";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
@@ -116,6 +117,7 @@ const ChatMessageField: React.FC<ChatMessageFieldProps> = (props) => {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const theme = useTheme();
+  const { t } = useTranslation();
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [message, setMessage] = useState("");
   const [isMobile, setIsMobile] = useState(false);
@@ -427,19 +429,19 @@ const ChatMessageField: React.FC<ChatMessageFieldProps> = (props) => {
   // Placeholder text based on the chat status
   const placeHolder = useMemo(() => {
     if (props.isChatFinished) {
-      return t(PLACEHOLDER_TEXTS.CHAT_FINISHED);
+      return t("chat_finished");
     }
     if (props.isUploadingCv) {
-      return t(PLACEHOLDER_TEXTS.UPLOADING);
+      return t("uploading");
     }
     if (props.aiIsTyping) {
-      return t(PLACEHOLDER_TEXTS.AI_TYPING);
+      return t("ai_typing");
     }
     if (!isOnline) {
-      return t(PLACEHOLDER_TEXTS.OFFLINE);
+      return t("offline");
     }
-    return t(PLACEHOLDER_TEXTS.DEFAULT);
-  }, [props.aiIsTyping, props.isChatFinished, props.isUploadingCv, isOnline, t]);
+    return t("default");
+  }, [props.aiIsTyping, props.isChatFinished, props.isUploadingCv, isOnline]);
 
   // Check if the send button should be disabled
   const sendIsDisabled = useCallback(() => {
@@ -478,13 +480,10 @@ const ChatMessageField: React.FC<ChatMessageFieldProps> = (props) => {
             text: t(MENU_ITEM_TEXT.UPLOAD_CV),
             description:
               props.currentPhase === ConversationPhase.INTRO
-                ? t("chat.chatMessageField.uploadCvIntro")
-                : props.currentPhase === ConversationPhase.COLLECT_EXPERIENCES
-                  ? t("chat.chatMessageField.uploadCvCollectExperiences", {
-                      MAX_FILE_SIZE_MB,
-                      MAX_MARKDOWN_CHARS,
-                    })
-                  : t("chat.chatMessageField.uploadCvOtherPhase"),
+                    ? t("upload_cv_intro")
+                    : props.currentPhase === ConversationPhase.COLLECT_EXPERIENCES
+                    ? t("upload_cv_collect_experiences")
+                    : t("upload_cv_other_phase"),
             icon: <UploadFileIcon />,
             disabled: inputIsDisabled() || props.currentPhase !== ConversationPhase.COLLECT_EXPERIENCES,
             action: handleFileMenuItemClick,
@@ -559,7 +558,7 @@ const ChatMessageField: React.FC<ChatMessageFieldProps> = (props) => {
                         onClick={handlePlusClick}
                         onKeyDown={(event) => event.stopPropagation()}
                         size="small"
-                        title={t("chat.chatMessageField.moreActionsTooltip")}
+                        title={t("chat_message_more_actions")}
                         data-testid={DATA_TEST_ID.CHAT_MESSAGE_FIELD_PLUS_BUTTON}
                       >
                         <AnimatedDotBadge show={showPlusBadge}>
@@ -581,7 +580,7 @@ const ChatMessageField: React.FC<ChatMessageFieldProps> = (props) => {
                   onClick={handleButtonClick}
                   onKeyDown={(event) => event.stopPropagation()}
                   disabled={sendIsDisabled()}
-                  title={t("chat.chatMessageField.sendMessageTooltip")}
+                  title={t("chat_message_send_message")}
                 >
                   <SendIcon
                     data-testid={DATA_TEST_ID.CHAT_MESSAGE_FIELD_SEND_ICON}

@@ -31,8 +31,7 @@ const Timestamp: React.FC<ChatMessageFooterProps> = ({ sentAt }) => {
 
   return (
     <TimeStamp data-testid={DATA_TEST_ID.TIMESTAMP} variant="caption">
-     {t("chat.chatMessage.sent")}           
-     {sentText}
+      {t("sent")} {duration}
     </TimeStamp>
   )
 }

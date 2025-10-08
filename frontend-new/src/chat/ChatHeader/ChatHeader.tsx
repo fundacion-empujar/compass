@@ -213,7 +213,7 @@ const ChatHeader: React.FC<Readonly<ChatHeaderProps>> = ({
       if (shouldPrompt && !notificationShownRef.current) {
         const snackbarKey = enqueueSnackbar(
           <Typography variant="body1">
-            {t("chat.chatHeader.feedbackMessage")}{" "}
+            {t("feedback_message")}{" "}
             <CustomLink
               onClick={async () => {
                 closeSnackbar(snackbarKey);
@@ -221,7 +221,7 @@ const ChatHeader: React.FC<Readonly<ChatHeaderProps>> = ({
               }}
               data-testid={DATA_TEST_ID.CHAT_HEADER_FEEDBACK_LINK}
             >
-              {t("chat.chatHeader.giveFeedback")}
+              {t("give_feedback")}
             </CustomLink>
           </Typography>,
           {
@@ -249,30 +249,28 @@ const ChatHeader: React.FC<Readonly<ChatHeaderProps>> = ({
     handleGiveFeedback,
     timeUntilNotification,
     progressPercentage,
-    t,
+    t
   ]);
 
   const contextMenuItems: MenuItemConfig[] = useMemo(
     () => [
       {
         id: MENU_ITEM_ID.START_NEW_CONVERSATION,
-        text: t("common.buttons.startNewConversation").toLowerCase(),
+        text: t("start_new_conversation").toLowerCase(),
         disabled: !isOnline,
         action: startNewConversation,
       },
-      // Temporarily removed "Settings" menu item; not useful to users at the moment.
-      // Will be added back once it has meaningful functionality.
-      // {
-      //   id: MENU_ITEM_ID.SETTINGS_SELECTOR,
-      //   text: t("common.buttons.settings").toLowerCase(),
-      //   disabled: !isOnline,
-      //   action: () => setIsDrawerOpen(true),
-      // },
+      {
+        id: MENU_ITEM_ID.SETTINGS_SELECTOR,
+        text: t("settings").toLowerCase(),
+        disabled: !isOnline,
+        action: () => setIsDrawerOpen(true),
+      },
       ...(sentryEnabled
         ? [
             {
               id: MENU_ITEM_ID.REPORT_BUG_BUTTON,
-              text: t("feedback.bugReport.reportBug").toLowerCase(),
+              text: t("report_a_bug").toLowerCase(),
               disabled: !isOnline,
               action: () => {
                 const feedback = Sentry.getFeedback();
@@ -292,7 +290,7 @@ const ChatHeader: React.FC<Readonly<ChatHeaderProps>> = ({
         ? [
             {
               id: MENU_ITEM_ID.REGISTER,
-              text: t("common.buttons.register").toLowerCase(),
+              text: t("register").toLowerCase(),
               disabled: !isOnline,
               action: () => setShowConversionDialog(true),
             },
@@ -300,12 +298,12 @@ const ChatHeader: React.FC<Readonly<ChatHeaderProps>> = ({
         : []),
       {
         id: MENU_ITEM_ID.LOGOUT_BUTTON,
-        text: t("common.buttons.logout").toLowerCase(),
+        text: t("logout").toLowerCase(),
         disabled: false,
         action: handleLogout,
       },
     ],
-    [isAnonymous, isOnline, startNewConversation, sentryEnabled, handleLogout, t, feedbackFormLabels]
+    [isAnonymous, isOnline, startNewConversation, sentryEnabled, handleLogout,t]
   );
 
   return (
@@ -338,7 +336,7 @@ const ChatHeader: React.FC<Readonly<ChatHeaderProps>> = ({
           }}
           onClick={handleViewExperiences}
           data-testid={DATA_TEST_ID.CHAT_HEADER_BUTTON_EXPERIENCES}
-          title={t("chat.chatHeader.viewExperiences").toLowerCase()}
+          title={t("view_experiences").toLowerCase()}
           disabled={!isOnline}
         >
           <AnimatedBadge
@@ -355,7 +353,7 @@ const ChatHeader: React.FC<Readonly<ChatHeaderProps>> = ({
             }}
             onClick={handleGiveFeedback}
             data-testid={DATA_TEST_ID.CHAT_HEADER_BUTTON_FEEDBACK}
-            title={t("chat.chatHeader.giveFeedback").toLowerCase()}
+            title={t("give_feedback").toLowerCase()}
             disabled={!isOnline}
           >
             <FeedbackOutlinedIcon data-testid={DATA_TEST_ID.CHAT_HEADER_ICON_FEEDBACK} />
@@ -368,7 +366,7 @@ const ChatHeader: React.FC<Readonly<ChatHeaderProps>> = ({
           }}
           onClick={(event) => setAnchorEl(event.currentTarget)}
           data-testid={DATA_TEST_ID.CHAT_HEADER_BUTTON_USER}
-          title={t("chat.chatHeader.userInfo").toLowerCase()}
+          title={t("user_info").toLowerCase()}
         >
           <img
             src={`${process.env.PUBLIC_URL}/user-icon.svg`}
@@ -395,21 +393,25 @@ const ChatHeader: React.FC<Readonly<ChatHeaderProps>> = ({
         onCancel={handleConfirmLogout}
         onDismiss={() => setShowLogoutConfirmation(false)}
         onConfirm={handleRegister}
-        title={t("chat.chatHeader.beforeYouGo")}
-        confirmButtonText={t("common.buttons.register")}
-        cancelButtonText={t("common.buttons.logout")}
+        title={t("before_you_go")}
+        confirmButtonText={t("register")}
+        cancelButtonText={t("logout")}
         showCloseIcon={true}
         textParagraphs={[
           {
             id: "1",
-            text: <>{t("chat.chatHeader.logoutConfirmationMessage")}</>,
+            text: <>{t("logout_confirmation_message")}</>,
           },
           {
             id: "2",
             text: (
               <>
-                {t("chat.chatHeader.anonymousAccountWarning")}
-                <HighlightedSpan> {t("chat.chatHeader.logoutWarningAnonymous")}</HighlightedSpan>.
+                {t("anonymous_account_warning")}
+                <HighlightedSpan>
+                  {" "}
+                  {t("logout_warning_anonymous")}
+                </HighlightedSpan>
+                .
               </>
             ),
           },
@@ -417,8 +419,7 @@ const ChatHeader: React.FC<Readonly<ChatHeaderProps>> = ({
             id: "3",
             text: (
               <>
-                <HighlightedSpan>{t("chat.chatHeader.createAccountToSaveProgress")}</HighlightedSpan>{" "}
-                {t("chat.chatHeader.continueYourJourneyLater")}
+                <HighlightedSpan>{t("create_an_account_to_save_progress")}</HighlightedSpan> {t("continue_your_journey_later")}
               </>
             ),
           },
