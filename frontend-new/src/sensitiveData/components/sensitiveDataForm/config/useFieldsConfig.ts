@@ -13,25 +13,11 @@ import { DEFAULT_LOCALE } from "src/i18n/constants";
 import { customFetch } from "src/utils/customFetch/customFetch";
 
 // Base path for configs
+const CONFIG_BASE_PATH = "/data/config";
 export const CONFIG_PATH = "/data/config/fields.yaml";
 
-// Resolves a localized value from a map of locales to values.
-const resolveLocale = <T>(value: Record<string, T> | undefined, lang: string, defaultLocale: string): T | undefined => {
-  if (!value) return undefined;
-  return value[lang] ?? value[defaultLocale];
-};
-
-/**
- * A hook to load and expose localized field configurations.
- *
- * - Fetches the YAML config ONCE
- * - Re-parses it when the language changes
- * - Returns validated FieldDefinition objects
- */
 export const useFieldsConfig = () => {
   const { i18n } = useTranslation(); // i18n gives us the active language
-
-  const [rawYaml, setRawYaml] = useState<string | null>(null);
   const [fields, setFields] = useState<FieldDefinition[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
@@ -40,45 +26,34 @@ export const useFieldsConfig = () => {
   useEffect(() => {
     const fetchConfig = async () => {
       try {
-        const response = await customFetch(CONFIG_PATH, {
+        // Build localized path
+        // Example: /data/config/fields_en.yaml
+        const lang = i18n.language || "en";
+        const configPath = `${CONFIG_BASE_PATH}/fields-${lang}.yaml`;
+
+        const response = await customFetch(configPath, {
           expectedStatusCode: [200, 204],
           serviceName: "SensitiveDataService",
           serviceFunction: "useFieldsConfig",
-          failureMessage: `Failed to fetch fields configuration from ${CONFIG_PATH}`,
+          failureMessage: `Failed to fetch fields configuration from ${configPath}`,
           authRequired: false,
           retryOnFailedToFetch: true,
         });
 
-        setRawYaml(await response.text());
+        const yamlText = await response.text();
+        const parsedDefinitions: FieldDefinition[] = parseYamlConfig(yamlText);
+
+        setFields(parsedDefinitions);
       } catch (err) {
         console.error(err);
         setError(err instanceof Error ? err : new Error("Unknown error loading configuration"));
+      } finally {
         setLoading(false);
       }
     };
 
     fetchConfig();
-  }, []);
-
-  // Reparse the config whenever the active language changes. No re-fetching happens here.
-  useEffect(() => {
-    if (!rawYaml) return;
-
-    try {
-      // Clear any previous parsing error before re-parsing on language change
-      setError(null);
-
-      const lang = i18n.language || DEFAULT_LOCALE;
-      const parsedDefinitions = parseYamlConfig(rawYaml, lang, DEFAULT_LOCALE);
-
-      setFields(parsedDefinitions);
-    } catch (err) {
-      console.error(err);
-      setError(err instanceof Error ? err : new Error("Unknown error parsing configuration"));
-    } finally {
-      setLoading(false);
-    }
-  }, [rawYaml, i18n.language]);
+  }, [i18n.language]); // re-run when the language changes
 
   return { fields, loading, error };
 };
@@ -102,74 +77,38 @@ type RawFieldConfig = {
 };
 
 /**
- * Parses the unified, multi-language fields YAML into
- * an array of localized and validated FieldDefinition objects.
- *
- * @param yamlText - Raw YAML string loaded from fields.yaml
- * @param lang - Active language code
- * @param defaultLocale - Fallback language code
+ * Parses a YAML configuration string into a FieldsConfig object.
  */
-export const parseYamlConfig = (yamlText: string, lang: string, defaultLocale: string): FieldDefinition[] => {
+export const parseYamlConfig = (yamlText: string): FieldDefinition[] => {
   try {
     const yamlJson = parse(yamlText) as Record<string, RawFieldConfig>;
 
-    const fieldDefinitions = Object.entries(yamlJson).map(([name, rawField]) => {
-      if (!rawField || typeof rawField !== "object") {
-        throw new ConfigurationError(`Invalid field definition for '${name}'`);
+    const fieldDefinitions = Object.entries(yamlJson).map(
+      ([name, field]: [string, FieldDefinition]) => {
+        switch (field.type) {
+          case FieldType.String:
+            return new StringFieldDefinition({ ...field, name });
+          case FieldType.Enum:
+            return new EnumFieldDefinition({ ...field, name });
+          case FieldType.MultipleSelect:
+            return new MultipleSelectFieldDefinition({ ...field, name });
+          default:
+            throw new Error("Invalid field type");
+        }
       }
-      const field = rawField as RawFieldConfig;
+    );
 
-      // Resolve localized values BEFORE passing to constructors
-      const label = resolveLocale<string>(field.label, lang, defaultLocale);
-
-      if (!label) {
-        throw new ConfigurationError(`Missing label for field '${name}' (lang=${lang})`);
-      }
-
-      const localizedField = {
-        ...field,
-        name,
-        label,
-        questionText: resolveLocale<string | undefined>(field.questionText, lang, defaultLocale),
-        validation: field.validation
-          ? {
-              ...field.validation,
-              errorMessage: resolveLocale<string | undefined>(
-                field.validation.errorMessage,
-                lang,
-                defaultLocale,
-              ),
-            }
-          : undefined,
-        values: resolveLocale<string[]>(field.values, lang, defaultLocale),
-      };
-
-      // Instantiate the correct FieldDefinition subclass.
-      // Each constructor validates its own structure.
-      switch (field.type) {
-        case FieldType.String:
-          return new StringFieldDefinition(localizedField);
-        case FieldType.Enum:
-          return new EnumFieldDefinition(localizedField);
-        case FieldType.MultipleSelect:
-          return new MultipleSelectFieldDefinition(localizedField);
-        default:
-          throw new ConfigurationError(`Invalid field type for '${name}': ${field.type}`);
-      }
-    });
-
-    // Ensure dataKeys are unique
-    const dataKeys = new Set<string>();
+    const dataKeys: Map<string, boolean> = new Map();
     fieldDefinitions.forEach((field) => {
       if (dataKeys.has(field.dataKey)) {
         throw new ConfigurationError(`Duplicate dataKey '${field.dataKey}'`);
       }
-      dataKeys.add(field.dataKey);
+      dataKeys.set(field.dataKey, true);
     });
 
     return fieldDefinitions;
   } catch (error) {
     console.error(error);
-    throw error;
+    throw new Error("Failed to parse fields configuration");
   }
 };

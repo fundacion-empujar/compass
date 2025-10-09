@@ -163,7 +163,13 @@ const ChatHeader: React.FC<Readonly<ChatHeaderProps>> = ({
     try {
       const feedback = Sentry.getFeedback();
       if (feedback) {
-        const form = await feedback.createForm(feedbackFormLabels);
+        const form = await feedback.createForm({
+          formTitle: t("give_general_feedback"),
+          messagePlaceholder: t("feedback_message_placeholder"),
+          submitButtonLabel: t("send_feedback"),
+          successMessageText: t("feedback_success_message"),
+          enableScreenshot: false,
+        });
         form.appendToDom();
         form.open();
         // Set feedback notification as seen when user opens the feedback form
@@ -175,7 +181,7 @@ const ChatHeader: React.FC<Readonly<ChatHeaderProps>> = ({
     } catch (error) {
       console.error("Error creating feedback form:", error);
     }
-  }, [sentryEnabled, feedbackFormLabels]);
+  }, [sentryEnabled,t]);
 
   // Show notification after 30 minutes if conversation is not completed
   useEffect(() => {

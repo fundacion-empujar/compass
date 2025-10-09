@@ -236,7 +236,7 @@ export const Chat: React.FC<Readonly<ChatProps>> = ({
     const authenticationService = AuthenticationServiceFactory.getCurrentAuthenticationService();
     await authenticationService!.logout();
     navigate(routerPaths.LANDING, { replace: true });
-    enqueueSnackbar(t("chat.chat.notifications.logoutSuccess"), { variant: "success" });
+    enqueueSnackbar(t("successfully_logged_out"), { variant: "success" });
     setIsLoggingOut(false);
   }, [enqueueSnackbar, navigate,t]);
 
@@ -707,14 +707,14 @@ return {
     setNewConversationDialog(false);
     setExploredExperiencesNotification(false);
     if (await initializeChat(currentUserId, null)) {
-      enqueueSnackbar(t("chat.chat.notifications.startConversationSuccess"), { variant: "success" });
+      enqueueSnackbar(t("new_conversation_started"), { variant: "success" });
     } else {
       // Add a message to the chat saying that something went wrong
       setMessages([generateSomethingWentWrongMessage()]);
       // Set the conversation as completed to prevent the user from sending any messages
       setConversationCompleted(true);
       // Notify the user that the chat failed to start
-      enqueueSnackbar(t("chat.chat.notifications.startConversationFailed"), { variant: "error" });
+      enqueueSnackbar(t("failed_to_start_conversation"), { variant: "error" });
     }
   }, [enqueueSnackbar, initializeChat, currentUserId,t]);
 
@@ -735,7 +735,7 @@ return {
         // Set the conversation as completed to prevent the user from sending any messages
         setConversationCompleted(true);
         // Notify the user that the chat failed to start
-        enqueueSnackbar(t("chat.chat.notifications.startConversationFailed"), { variant: "error" });
+        enqueueSnackbar(t("failed_to_start_conversation"), { variant: "error" });
       }
       setInitialized(true);
     });
@@ -888,7 +888,7 @@ return {
           {newConversationDialog && (
             <ConfirmModalDialog
               isOpen={newConversationDialog}
-              title={t("chat.chat.startNewConversationDialog.title")}
+              title={t("start_new_conversation_title")}
               content={
                 <>
                   {t("start_new_conversation_content")}
