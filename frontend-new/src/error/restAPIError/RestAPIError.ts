@@ -75,10 +75,11 @@ export const translateUserFriendlyErrorMessage = (
  * @returns {string} a user friendly error message
  */
 
-export const getUserFriendlyErrorMessage = (error: RestAPIError | Error): string => {
+// Returns a user-friendly message key for translation
+export const getUserFriendlyErrorMessageKey = (error: RestAPIError | Error): keyof typeof ErrorConstants.USER_FRIENDLY_ERROR_MESSAGE_KEYS => {
   if (!(error instanceof RestAPIError)) {
     // in case the error is not a RestAPIError, then it is an unexpected error
-    return translateUserFriendlyErrorMessage(ErrorConstants.USER_FRIENDLY_ERROR_I18N_KEYS.UNEXPECTED_ERROR);
+    return "UNEXPECTED_ERROR";
   }
   // All the errors can happen due to a bug in the frontend or backend code.
   // In that case, the users can do little about it, but there might be some cases where a workaround is possible.
@@ -105,7 +106,7 @@ export const getUserFriendlyErrorMessage = (error: RestAPIError | Error): string
       // - disable browser extensions or
       // - restart or try a different browser or
       // - try again later
-      return translateUserFriendlyErrorMessage(ErrorConstants.USER_FRIENDLY_ERROR_I18N_KEYS.SERVER_CONNECTION_ERROR);
+  return "SERVER_CONNECTION_ERROR";
 
     case ErrorConstants.ErrorCodes.API_ERROR:
       if (error.statusCode >= 300 && error.statusCode < 400) {
@@ -116,7 +117,7 @@ export const getUserFriendlyErrorMessage = (error: RestAPIError | Error): string
         // - refresh the page to get the latest version of the app
         // - clear the browser cache to get the latest version of the app
         // - if the problem persists, contact support
-        return translateUserFriendlyErrorMessage(ErrorConstants.USER_FRIENDLY_ERROR_I18N_KEYS.UNABLE_TO_PROCESS_RESPONSE);
+  return "UNABLE_TO_PROCESS_RESPONSE";
       }
       switch (error.statusCode) {
         case StatusCodes.UNAUTHORIZED:
@@ -126,25 +127,25 @@ export const getUserFriendlyErrorMessage = (error: RestAPIError | Error): string
           // - the user's was "logged" out (token expired, user deleted, etc.)
           // What can the user do :
           // - login
-          return translateUserFriendlyErrorMessage(ErrorConstants.USER_FRIENDLY_ERROR_I18N_KEYS.AUTHENTICATION_FAILURE);
+          return "AUTHENTICATION_FAILURE";
         case StatusCodes.FORBIDDEN:
           // The user is not authorized to perform this action.
           // This can happen when:
           // - the user permissions have changed and the UI has not been updated
           // What can the user do:
           // - logout and login again
-          return translateUserFriendlyErrorMessage(ErrorConstants.USER_FRIENDLY_ERROR_I18N_KEYS.PERMISSION_DENIED);
+          return "PERMISSION_DENIED";
         case StatusCodes.NOT_FOUND:
           // This happens when:
           // - the user is using an old version of the app
           // - the resource that the user is trying to access has been deleted
-          return translateUserFriendlyErrorMessage(ErrorConstants.USER_FRIENDLY_ERROR_I18N_KEYS.RESOURCE_NOT_FOUND);
+          return "RESOURCE_NOT_FOUND";
         case StatusCodes.TOO_MANY_REQUESTS:
           // This happens when:
           // - the user is making too many requests in a short time
           // What can the user do:
           // - try again later
-          return translateUserFriendlyErrorMessage(ErrorConstants.USER_FRIENDLY_ERROR_I18N_KEYS.TOO_MANY_REQUESTS);
+          return "TOO_MANY_REQUESTS";
         case StatusCodes.REQUEST_TOO_LONG:
           // This happens when:
           // - the user is sending a payload that exceeds the server's limit
@@ -156,7 +157,7 @@ export const getUserFriendlyErrorMessage = (error: RestAPIError | Error): string
           // - try again later
           // - refresh the page to get the latest version of the app
           // - clear the browser cache to get the latest version of the app
-          return translateUserFriendlyErrorMessage(ErrorConstants.USER_FRIENDLY_ERROR_I18N_KEYS.REQUEST_TOO_LONG);
+      return "REQUEST_TOO_LONG";
       }
       if (error.statusCode >= 400 && error.statusCode < 500) {
         // The server could not or not willing to handle the request
@@ -171,7 +172,7 @@ export const getUserFriendlyErrorMessage = (error: RestAPIError | Error): string
         // - refresh the page to get the latest version of the app
         // - clear the browser cache to get the latest version of the app
         // - try again later
-        return translateUserFriendlyErrorMessage(ErrorConstants.USER_FRIENDLY_ERROR_I18N_KEYS.DATA_VALIDATION_ERROR);
+        return "DATA_VALIDATION_ERROR";
       }
       if (error.statusCode === 500) {
         // Server encountered an unexpected condition.
@@ -179,7 +180,7 @@ export const getUserFriendlyErrorMessage = (error: RestAPIError | Error): string
         // - an unexpected error occurred on the server
         // What can the user do:
         // -  try again later
-        return translateUserFriendlyErrorMessage(ErrorConstants.USER_FRIENDLY_ERROR_I18N_KEYS.UNEXPECTED_ERROR);
+        return "UNEXPECTED_ERROR";
       }
       if (error.statusCode >= 501) {
         // Server encountered an unexpected condition.
@@ -188,7 +189,7 @@ export const getUserFriendlyErrorMessage = (error: RestAPIError | Error): string
         // - some part of the infrastructure is down e.g. the gateway, the database, etc.
         // What can the user do:
         // -  try again later
-        return translateUserFriendlyErrorMessage(ErrorConstants.USER_FRIENDLY_ERROR_I18N_KEYS.SERVICE_UNAVAILABLE);
+        return "SERVICE_UNAVAILABLE";
       }
       break;
 
@@ -200,16 +201,34 @@ export const getUserFriendlyErrorMessage = (error: RestAPIError | Error): string
       // What can the user do:
       // - refresh the page to get the latest version of the app
       // - clear the browser cache to get the latest version of the app
-      return translateUserFriendlyErrorMessage(ErrorConstants.USER_FRIENDLY_ERROR_I18N_KEYS.UNABLE_TO_PROCESS_RESPONSE);
+      return "UNABLE_TO_PROCESS_RESPONSE";
     case ErrorConstants.ErrorCodes.FORBIDDEN:
       if (error.statusCode === 422) {
         // we use a forbidden with an unprocessable entity when the invite code is
-        return translateUserFriendlyErrorMessage(ErrorConstants.USER_FRIENDLY_ERROR_I18N_KEYS.UNABLE_TO_PROCESS_REQUEST);
+        return "UNABLE_TO_PROCESS_REQUEST";
       }
       break;
   }
   // If we get here, then
   // - we messed and don't know what the error is, or
   // - additional error codes where introduced, and we forgot to handle them
-  return translateUserFriendlyErrorMessage(ErrorConstants.USER_FRIENDLY_ERROR_I18N_KEYS.UNEXPECTED_ERROR);
+  return "UNEXPECTED_ERROR";
+};
+
+/**
+ * Translate a user-friendly message key into the current language string.
+ * For non-React call sites or tests.
+ */
+export const translateUserFriendlyErrorMessage = (
+  key: keyof typeof ErrorConstants.USER_FRIENDLY_ERROR_MESSAGE_KEYS,
+): string => {
+  return i18n.t(ErrorConstants.USER_FRIENDLY_ERROR_MESSAGE_KEYS[key]);
+};
+
+/**
+ * Backward-compatible helper: directly returns the localized string for a given error.
+ */
+export const getUserFriendlyErrorMessage = (error: RestAPIError | Error): string => {
+  const key = getUserFriendlyErrorMessageKey(error);
+  return translateUserFriendlyErrorMessage(key);
 };
