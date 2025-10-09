@@ -5,7 +5,7 @@ import i18n from "../../i18n/i18n";
 describe("getUserFriendlyConversationPhaseName", () => {
   test.each([
     [
-      i18n.t("chat.chatProgressbar.phases.initializing"),
+      i18n.t("phase_initializing"),
       {
         phase: ConversationPhase.INITIALIZING,
         percentage: 0,
@@ -14,7 +14,7 @@ describe("getUserFriendlyConversationPhaseName", () => {
       },
     ],
     [
-      i18n.t("chat.chatProgressbar.phases.intro"),
+      i18n.t("phase_intro"),
       {
         phase: ConversationPhase.INTRO,
         percentage: 0,
@@ -23,7 +23,7 @@ describe("getUserFriendlyConversationPhaseName", () => {
       },
     ],
     [
-      `${i18n.t("chat.chatProgressbar.phases.collecting")}: 1/4 ${i18n.t("chat.chatProgressbar.labels.workTypes")}`,
+      `${i18n.t("phase_collecting")}: 1/4 ${i18n.t("work_types")}`,
       {
         phase: ConversationPhase.COLLECT_EXPERIENCES,
         percentage: 0,
@@ -32,7 +32,7 @@ describe("getUserFriendlyConversationPhaseName", () => {
       },
     ],
     [
-      `${i18n.t("chat.chatProgressbar.phases.exploring")}: 1/4 ${i18n.t("chat.chatProgressbar.labels.experiences")}`,
+      `${i18n.t("phase_exploring")}: 1/4 ${i18n.t("experiences")}`,
       {
         phase: ConversationPhase.DIVE_IN,
         percentage: 0,
@@ -41,7 +41,7 @@ describe("getUserFriendlyConversationPhaseName", () => {
       },
     ],
     [
-      i18n.t("chat.chatProgressbar.phases.finished"),
+      i18n.t("phase_finished"),
       {
         phase: ConversationPhase.ENDED,
         percentage: 0,
@@ -71,6 +71,6 @@ describe("getUserFriendlyConversationPhaseName", () => {
     const actual = getUserFriendlyConversationPhaseName(givenConversationPhase);
 
     // THEN it should return the user-friendly name for the UNKNOWN phase.
-    expect(actual).toBe(i18n.t("chat.chatProgressbar.phases.unknown"));
+    expect(actual).toBe(i18n.t("phase_unknown"));
   })
 });

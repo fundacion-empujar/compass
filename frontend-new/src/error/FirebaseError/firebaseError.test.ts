@@ -8,7 +8,7 @@ import {
   FirebaseErrorCodes,
   USER_FRIENDLY_FIREBASE_ERROR_I18N_KEYS,
 } from "src/error/FirebaseError/firebaseError.constants";
-import i18n from "src/i18n/i18n";
+import i18next from "i18next";
 
 describe("FirebaseError", () => {
   describe("FirebaseError class", () => {
@@ -88,13 +88,15 @@ describe("FirebaseError", () => {
     // If the user-friendly message is not found, use the default message
     const testCases = Object.values(FirebaseErrorCodes).map((errorCode) => [
       errorCode,
-        USER_FRIENDLY_FIREBASE_ERROR_I18N_KEYS[errorCode]  ||
-          USER_FRIENDLY_FIREBASE_ERROR_I18N_KEYS[FirebaseErrorCodes.INTERNAL_ERROR],
+      i18next.t(
+        USER_FRIENDLY_FIREBASE_ERROR_MESSAGES[errorCode] ||
+          USER_FRIENDLY_FIREBASE_ERROR_MESSAGES[FirebaseErrorCodes.INTERNAL_ERROR]
+      ),
     ]);
 
     testCases.push([
       "custom-unknown-error-message",
-      USER_FRIENDLY_FIREBASE_ERROR_I18N_KEYS[FirebaseErrorCodes.INTERNAL_ERROR],
+      i18next.t(USER_FRIENDLY_FIREBASE_ERROR_MESSAGES[FirebaseErrorCodes.INTERNAL_ERROR]),
     ]);
 
     test.each(testCases)("should return the user friendly message for error code %s", (errorCode, expected) => {
