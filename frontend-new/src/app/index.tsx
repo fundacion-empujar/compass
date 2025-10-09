@@ -56,7 +56,10 @@ const NotFound: React.FC = () => {
 };
 
 const App = () => {
-
+  const NotFound: React.FC = () => {
+    const { t } = useTranslation();
+    return <ErrorPage errorMessage={t("error_page_not_found")} />;
+  };
 
   const [loading, setLoading] = useState(true);
 
