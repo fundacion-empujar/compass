@@ -105,11 +105,11 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ isOpen, notifyOnClose }) =>
           }}
         >
           <Typography variant="h3" data-testid={DATA_TEST_ID.FEEDBACK_FORM_DIALOG_TITLE}>
-            {t("feedback.overallFeedback.feedbackForm.helpUsImprove")}
+            {t("help_us_improve")}
           </Typography>
           <PrimaryIconButton
             onClick={handleClose}
-            title={t("feedback.overallFeedback.feedbackForm.closeForm")}
+            title={t("close_feedback_form")}
             sx={{ color: theme.palette.text.secondary }}
             data-testid={DATA_TEST_ID.FEEDBACK_FORM_DIALOG_BUTTON}
           >
@@ -128,7 +128,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ isOpen, notifyOnClose }) =>
           <FeedbackFormContent notifySubmit={handleFeedbackSubmit} />
         </DialogContent>
       </Dialog>
-      <Backdrop isShown={isSubmitting} message={t("feedback.overallFeedback.feedbackForm.submittingFeedback")} />
+      <Backdrop isShown={isSubmitting} message={t("submitting_feedback")} />
     </>
   );
 };

@@ -12,7 +12,7 @@ exports[`Landing Page Continue as Guest button should not show guest button when
       class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-disableElevation css-fph7a5-MuiButtonBase-root-MuiButton-root"
       data-testid="bug-report-button-31d2b110-8308-4035-90a6-519e89e7f6fa"
       tabindex="0"
-      title="Report a bug."
+      title="report_a_bugg"
       type="button"
     >
       <span
@@ -225,7 +225,7 @@ exports[`Landing Page Continue as Guest button should not show guest button when
       class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-disableElevation css-fph7a5-MuiButtonBase-root-MuiButton-root"
       data-testid="bug-report-button-31d2b110-8308-4035-90a6-519e89e7f6fa"
       tabindex="0"
-      title="Report a bug."
+      title="report_a_bugg"
       type="button"
     >
       <span
@@ -438,7 +438,7 @@ exports[`Landing Page Continue as Guest button should not show guest button when
       class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-disableElevation css-fph7a5-MuiButtonBase-root-MuiButton-root"
       data-testid="bug-report-button-31d2b110-8308-4035-90a6-519e89e7f6fa"
       tabindex="0"
-      title="Report a bug."
+      title="report_a_bugg"
       type="button"
     >
       <span
@@ -651,7 +651,7 @@ exports[`Landing Page Continue as Guest button should show guest button when app
       class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-disableElevation css-fph7a5-MuiButtonBase-root-MuiButton-root"
       data-testid="bug-report-button-31d2b110-8308-4035-90a6-519e89e7f6fa"
       tabindex="0"
-      title="Report a bug."
+      title="report_a_bugg"
       type="button"
     >
       <span
@@ -864,7 +864,7 @@ exports[`Landing Page Register button should not show register link when registr
       class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-disableElevation css-fph7a5-MuiButtonBase-root-MuiButton-root"
       data-testid="bug-report-button-31d2b110-8308-4035-90a6-519e89e7f6fa"
       tabindex="0"
-      title="Report a bug."
+      title="report_a_bugg"
       type="button"
     >
       <span
@@ -1077,7 +1077,7 @@ exports[`Landing Page Register button should not show register link when registr
       class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-disableElevation css-fph7a5-MuiButtonBase-root-MuiButton-root"
       data-testid="bug-report-button-31d2b110-8308-4035-90a6-519e89e7f6fa"
       tabindex="0"
-      title="Report a bug."
+      title="report_a_bugg"
       type="button"
     >
       <span
@@ -1290,7 +1290,7 @@ exports[`Landing Page Register button should show register link when registratio
       class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-disableElevation css-fph7a5-MuiButtonBase-root-MuiButton-root"
       data-testid="bug-report-button-31d2b110-8308-4035-90a6-519e89e7f6fa"
       tabindex="0"
-      title="Report a bug."
+      title="report_a_bugg"
       type="button"
     >
       <span
@@ -1503,7 +1503,7 @@ exports[`Landing Page Register button should show register link when registratio
       class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-disableElevation css-fph7a5-MuiButtonBase-root-MuiButton-root"
       data-testid="bug-report-button-31d2b110-8308-4035-90a6-519e89e7f6fa"
       tabindex="0"
-      title="Report a bug."
+      title="report_a_bugg"
       type="button"
     >
       <span
