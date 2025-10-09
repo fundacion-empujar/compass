@@ -1,5 +1,5 @@
-import { Suspense, useCallback, useEffect, useState } from "react";
-import { Box, CircularProgress, Container, Typography, useMediaQuery, useTheme } from "@mui/material";
+import { useCallback, useState, useEffect, Suspense } from "react";
+import { Box, CircularProgress, Container, useMediaQuery, useTheme, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { routerPaths } from "src/app/routerPaths";
@@ -400,10 +400,10 @@ const SensitiveDataForm: React.FC = () => {
               }}
             >
               <AuthHeader
-                title={t("sensitiveData.components.sensitiveDataForm.title")}
+                title={t("sensitive_data_title")}
                 subtitle={
                   <>
-                    {t("sensitiveData.components.sensitiveDataForm.subtitle")}
+                    {t("sensitive_data_subtitle")}
                     {isPIIRequired
                       ? " " + t("sensitiveData.components.sensitiveDataForm.unskippableSubtitle")
                       : " " + t("sensitiveData.components.sensitiveDataForm.skippableSubtitle")}
@@ -440,7 +440,7 @@ const SensitiveDataForm: React.FC = () => {
                         setConfirmingReject(true);
                       }}
                     >
-                      {t("common.buttons.noThankYou")}
+                      {t("no_thank_you")}
                     </CustomLink>
                   ) : (
                     <CustomLink
@@ -451,7 +451,7 @@ const SensitiveDataForm: React.FC = () => {
                         setConfirmingSkip(true);
                       }}
                     >
-                      {t("common.buttons.skip")}
+                      {t("skip")}
                     </CustomLink>
                   )}
 
@@ -474,7 +474,7 @@ const SensitiveDataForm: React.FC = () => {
                         data-testid={DATA_TEST_ID.SENSITIVE_DATA_FORM_BUTTON_CIRCULAR_PROGRESS}
                       />
                     ) : (
-                      t("sensitiveData.components.sensitiveDataForm.startConversation")
+                      t("start_conversation")
                     )}
                   </PrimaryButton>
                 </Box>
@@ -483,20 +483,20 @@ const SensitiveDataForm: React.FC = () => {
           </Container>
           <TextConfirmModalDialog
             isOpen={confirmingReject}
-            title={t("common.modal.areYouSure")}
+            title={t("are_you_sure")}
             textParagraphs={[
               {
                 id: "1",
                 text: (
                   <>
-                    {t("sensitiveData.components.sensitiveDataForm.rejectParagraph1")}{" "}
-                    <HighlightedSpan>{t("common.backdrop.loggingYouOut")}</HighlightedSpan>
+                    {t("sensitive_data_reject_paragraph_1")}{" "}
+                    <HighlightedSpan>{t("logging_you_out")}</HighlightedSpan>
                   </>
                 ),
               },
               {
                 id: "2",
-                text: <>{t("common.modal.areYouSureYouWantToExit")}</>,
+                text: <>{t("are_you_sure_you_want_to_exit")}</>,
               },
             ]}
             onCancel={handleRejectProvidingSensitiveData}
@@ -506,25 +506,25 @@ const SensitiveDataForm: React.FC = () => {
             onConfirm={() => {
               setConfirmingReject(false);
             }}
-            cancelButtonText={t("common.buttons.yesExit")}
-            confirmButtonText={t("common.buttons.iWantToStay")}
+            cancelButtonText={t("yes_exit")}
+            confirmButtonText={t("i_want_to_stay")}
           />
           <TextConfirmModalDialog
             isOpen={confirmingSkip}
-            title={t("common.modal.areYouSure")}
+            title={t("are_you_sure")}
             textParagraphs={[
               {
                 id: "1",
                 text: (
-                  <>
-                    {t("sensitiveData.components.sensitiveDataForm.skipParagraph1")}{" "}
-                    <HighlightedSpan>{t("sensitiveData.components.sensitiveDataForm.skipParagraph1Highlighted")}</HighlightedSpan>
+                  <>                  
+                    {t("sensitive_data_skip_paragraph_1")}{" "}
+                    <HighlightedSpan>{t("sensitive_data_skip_paragraph_1_highlighted")}</HighlightedSpan>
                   </>
                 ),
               },
               {
                 id: "2",
-                text: <>{t("sensitiveData.components.sensitiveDataForm.areYouSureYouWantToSkip")}</>,
+                text: <>{t("are_you_sure_you_want_to_skip")}</>,
               },
             ]}
             onCancel={handleSkipProvidingSensitiveData}
@@ -534,10 +534,10 @@ const SensitiveDataForm: React.FC = () => {
             onConfirm={() => {
               setConfirmingSkip(false);
             }}
-            cancelButtonText={t("sensitiveData.components.sensitiveDataForm.yesSkip")}
-            confirmButtonText={t("sensitiveData.components.sensitiveDataForm.shareData")}
+            cancelButtonText={t("yes_skip")}
+            confirmButtonText={t("share_data")}
           />
-          <Backdrop isShown={isSkipping || isRejecting} message={isSkipping ? t("sensitiveData.components.sensitiveDataForm.skipping") : t("common.backdrop.loggingYouOut")} />
+          <Backdrop isShown={isSkipping || isRejecting} message={isSkipping ? t("skipping") : t("logging_you_out")} />
         </>
       )}
     </Suspense>
