@@ -78,10 +78,7 @@ const RestoreExperiencesDrawer: React.FC<RestoreExperiencesDrawerProps> = ({
 
   // Sort all experiences by title
   const sortedExperiences = useMemo(
-    () =>
-      deletedExperiences.toSorted?.(
-        (a, b) => (a.experience_title || "").localeCompare(b.experience_title || "")
-      ) ?? [...deletedExperiences].sort((a, b) => (a.experience_title || "").localeCompare(b.experience_title || "")),
+    () => [...deletedExperiences].sort((a, b) => (a.experience_title || "").localeCompare(b.experience_title || "")),
     [deletedExperiences]
   );
 
