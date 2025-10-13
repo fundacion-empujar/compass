@@ -39,10 +39,10 @@ export const MENU_ITEM_ID = {
 };
 
 export const MENU_ITEM_TEXT = {
-  EDIT: "experiences.experiencesDrawer.components.experiencesDrawerContent.menu.edit",
-  DELETE: "experiences.experiencesDrawer.components.experiencesDrawerContent.menu.delete",
-  REVERT: "experiences.experiencesDrawer.components.experiencesDrawerContent.menu.revert",
-} as const;
+  EDIT: "experiences_menu_edit",
+  DELETE: "experiences_menu_delete",
+  REVERT: "experiences_menu_revert",
+};
 
 interface ExperienceProps {
   experience: Experience;
@@ -93,7 +93,7 @@ const ExperiencesDrawerContent: React.FC<ExperienceProps> = ({ experience, onEdi
 
   const getContextMenuHeaderMessage = () => {
     if (!isExplored) {
-      return t("experiences.experiencesDrawer.components.experiencesDrawerContent.actionsUnavailableUntilExplored");
+      return t("experiences_actions_unavailable_until_explored");
     }
     return undefined;
   };
@@ -144,17 +144,13 @@ const ExperiencesDrawerContent: React.FC<ExperienceProps> = ({ experience, onEdi
             fontWeight="bold"
             data-testid={DATA_TEST_ID.EXPERIENCES_DRAWER_CONTENT_OCCUPATION}
           >
-            {experience.experience_title ? (
-              experience.experience_title
-            ) : (
-              <i>{t("experiences.experiencesDrawer.components.experiencesDrawerContent.untitled")}</i>
-            )}
+            {experience.experience_title ? experience.experience_title : <i>{t("experiences_untitled")}</i>}
           </Typography>
           <Box display="flex" alignItems="center" justifyContent="flex-end">
             <PrimaryIconButton
               onClick={handleMoreClick}
               sx={{ color: theme.palette.common.black }}
-              title={t("experiences.experiencesDrawer.components.experiencesDrawerContent.moreOptionsTitle")}
+              title={t("experiences_more_options_title")}
               data-testid={DATA_TEST_ID.EXPERIENCES_DRAWER_MORE_BUTTON}
             >
               <MoreVertIcon />
@@ -191,11 +187,9 @@ const ExperiencesDrawerContent: React.FC<ExperienceProps> = ({ experience, onEdi
           sx={{ wordBreak: "break-all" }}
           data-testid={DATA_TEST_ID.EXPERIENCES_DRAWER_CONTENT_SKILLS}
         >
-          <b>{t("experiences.experiencesDrawer.components.experiencesDrawerContent.topSkillsLabel")}</b>
+          <b>{t("experiences_top_skills_label")}</b>
         </Typography>
-        <HelpTip icon={<InfoIcon sx={{ padding: 0.1 }} />}>
-          {t("experiences.experiencesDrawer.components.experiencesDrawerContent.topSkillsHelp")}
-        </HelpTip>
+        <HelpTip icon={<InfoIcon sx={{ padding: 0.1 }} />}>{t("experiences_top_skills_help")}</HelpTip>
       </Box>
       <Box
         display="flex"
@@ -206,7 +200,7 @@ const ExperiencesDrawerContent: React.FC<ExperienceProps> = ({ experience, onEdi
         data-testid={DATA_TEST_ID.EXPERIENCES_DRAWER_SKILLS_CONTAINER}
       >
         {formattedSkills.length === 0 ? (
-          <Typography>{t("experiences.experiencesDrawer.components.experiencesDrawerContent.noSkillsYet")}</Typography>
+          <Typography>{t("experiences_no_skills_yet")}</Typography>
         ) : (
           formattedSkills.map((skill) => (
             <Chip

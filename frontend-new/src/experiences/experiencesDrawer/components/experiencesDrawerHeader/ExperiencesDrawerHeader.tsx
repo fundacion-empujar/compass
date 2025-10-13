@@ -35,7 +35,7 @@ const ExperiencesDrawerHeader: React.FC<ExperiencesDrawerHeaderProps> = (props) 
           color: theme.palette.common.black,
           alignSelf: "center",
         }}
-        title={t("experiences.experiencesDrawer.components.experiencesDrawerHeader.closeTitle")}
+        title={t("experiences_header_close_title")}
         onClick={props.notifyOnClose}
         data-testid={DATA_TEST_ID.EXPERIENCES_DRAWER_HEADER_BUTTON}
       >

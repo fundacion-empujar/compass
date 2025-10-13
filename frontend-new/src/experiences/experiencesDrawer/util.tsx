@@ -18,53 +18,23 @@ import SchoolIcon from "@mui/icons-material/School";
 import QuizIcon from "@mui/icons-material/Quiz";
 import i18n from "src/i18n/i18n";
 
-
-/**
- * Centralized error messages with i18n support
- */
-export const ERROR_MESSAGES = {
-  get EXPERIENCE_TITLE() {
-    return i18n.t("experiences.experiencesDrawer.util.errors.experienceTitleMaxLength", {
-      max: EXPERIENCE_TITLE_MAX_LENGTH,
-    });
-  },
-  get COMPANY() {
-    return i18n.t("experiences.experiencesDrawer.util.errors.companyMaxLength", { max: COMPANY_MAX_LENGTH });
-  },
-  get LOCATION() {
-    return i18n.t("experiences.experiencesDrawer.util.errors.locationMaxLength", { max: LOCATION_MAX_LENGTH });
-  },
-  get SUMMARY() {
-    return i18n.t("experiences.experiencesDrawer.util.errors.summaryMaxLength", { max: SUMMARY_MAX_LENGTH });
-  },
-  get TIMELINE_START() {
-    return i18n.t("experiences.experiencesDrawer.util.errors.timelineMaxLength", { max: TIMELINE_MAX_LENGTH });
-  },
-  get TIMELINE_END() {
-    return i18n.t("experiences.experiencesDrawer.util.errors.timelineMaxLength", { max: TIMELINE_MAX_LENGTH });
-  },
-} as const;
-
 export const WORK_TYPE_DESCRIPTIONS = {
   get SELF_EMPLOYMENT() {
-    return i18n.t("experiences.experiencesDrawer.util.workTypeDescription.selfEmployment");
+    return i18n.t("experiences_work_type_description_self_employment");
   },
   get FORMAL_SECTOR_WAGED_EMPLOYMENT() {
-    return i18n.t("experiences.experiencesDrawer.util.workTypeDescription.formalSectorWagedEmployment");
+    return i18n.t("experiences_work_type_description_formal_sector_waged_employment");
   },
   get FORMAL_SECTOR_UNPAID_TRAINEE_WORK() {
-    return i18n.t("experiences.experiencesDrawer.util.workTypeDescription.formalSectorUnpaidTraineeWork");
+    return i18n.t("experiences_work_type_description_formal_sector_unpaid_trainee_work");
   },
   get UNSEEN_UNPAID() {
-    return i18n.t("experiences.experiencesDrawer.util.workTypeDescription.unseenUnpaid");
+    return i18n.t("experiences_work_type_description_unseen_unpaid");
   },
   get UNCATEGORIZED() {
-    return i18n.t("experiences.experiencesDrawer.util.workTypeDescription.uncategorized");
+    return i18n.t("experiences_work_type_description_uncategorized");
   },
 } as const;
-
-
-
 
 export const getWorkTypeTitle = (workType: WorkType | null) => {
   switch (workType) {
