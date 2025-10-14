@@ -140,13 +140,13 @@ const SkillsRankingBriefing: React.FC<Readonly<SkillsRankingBriefingProps>> = ({
           message={
             effortType === EffortType.WORK_BASED ? (
               <Trans
-                i18nKey="features.skillsRanking.components.skillsRankingBriefing.introWorkBased"
+                i18nKey="skillsRanking_briefing_intro_work_based"
                 components={[<strong />]}
                 values={{ jobPlatformUrl: getJobPlatformUrl() }}
               />
             ) : (
               <Trans
-                i18nKey="features.skillsRanking.components.skillsRankingBriefing.introTimeBased"
+                i18nKey="skillsRanking_briefing_intro_time_based"
                 components={[<strong />, <strong />]}
                 values={{ jobPlatformUrl: getJobPlatformUrl() }}
               />
@@ -167,7 +167,7 @@ const SkillsRankingBriefing: React.FC<Readonly<SkillsRankingBriefingProps>> = ({
                 disabled={isReplay || !isOnline || submitted || isTypingVisible}
                 data-testid={DATA_TEST_ID.SKILLS_RANKING_BRIEFING_CONTINUE_BUTTON}
               >
-                {t("common.buttons.continue")}
+                {t("skillsRanking_common_continue_button")}
               </PrimaryButton>
             </Box>
           )}
@@ -203,7 +203,7 @@ const SkillsRankingBriefing: React.FC<Readonly<SkillsRankingBriefingProps>> = ({
           <ChatBubble
             message={
               <Trans
-                i18nKey="features.skillsRanking.components.skillsRankingBriefing.puzzleInstructions"
+                i18nKey="skillsRanking_briefing_puzzle_instructions"
                 components={[<strong />]}
               />
             }
@@ -220,7 +220,7 @@ const SkillsRankingBriefing: React.FC<Readonly<SkillsRankingBriefingProps>> = ({
                 disabled={isReplay || !isOnline || submitted || isTypingVisible}
                 data-testid={DATA_TEST_ID.SKILLS_RANKING_BRIEFING_CONTINUE_BUTTON}
               >
-                {t("common.buttons.continue")}
+                {t("skillsRanking_common_continue_button")}
               </PrimaryButton>
             </Box>
           </ChatBubble>

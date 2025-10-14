@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import ChatBubble from "src/chat/chatMessage/components/chatBubble/ChatBubble";
 import { MessageContainer } from "src/chat/chatMessage/compassChatMessage/CompassChatMessage";
 import { ConversationMessageSender } from "src/chat/ChatService/ChatService.types";
@@ -72,7 +72,7 @@ const SkillsRankingJobMarketDisclosure: React.FC<SkillsRankingJobMarketDisclosur
       await onFinish(newState);
     } catch (error) {
       console.error("Error updating skills ranking state:", error);
-      enqueueSnackbar(t("common.errors.updateState"), {
+      enqueueSnackbar(t("skillsRanking_common_error_update_state"), {
         variant: "error",
       });
     }
@@ -117,9 +117,14 @@ const SkillsRankingJobMarketDisclosure: React.FC<SkillsRankingJobMarketDisclosur
       <Box sx={{ width: "100%" }}>
         <ChatBubble
           message={
-            <>
-              {t("features.skillsRanking.components.skillsRankingDisclosure.skillsRankingMarketDisclosure.message_1")}<strong>{skillsRankingState.score.jobs_matching_rank}%</strong>{t("features.skillsRanking.components.skillsRankingDisclosure.skillsRankingMarketDisclosure.message_2")}{getJobPlatformUrl()}{t("features.skillsRanking.components.skillsRankingDisclosure.skillsRankingMarketDisclosure.message_3")}
-            </>
+            <Trans
+              i18nKey="skillsRanking_marketDisclosure_message"
+              components={{ 0: <strong /> }}
+              values={{
+                jobsMatchingRank: skillsRankingState.score.jobs_matching_rank,
+                jobPlatformUrl: getJobPlatformUrl(),
+              }}
+            />
           }
           sender={ConversationMessageSender.COMPASS}
         />

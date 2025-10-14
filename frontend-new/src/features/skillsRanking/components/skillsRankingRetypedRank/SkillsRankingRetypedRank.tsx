@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import { Box, useTheme } from "@mui/material";
 import PrimaryButton from "src/theme/PrimaryButton/PrimaryButton";
 import ChatBubble from "src/chat/chatMessage/components/chatBubble/ChatBubble";
@@ -80,7 +80,7 @@ const SkillsRankingRetypedRank: React.FC<Readonly<SkillsRankingRetypedRankProps>
       }, getDefaultTypingDurationMs() + 300);
     } catch (err) {
       console.error("Failed to update state:", err);
-      enqueueSnackbar(t("common.errors.generic"), { variant: "error" });
+      enqueueSnackbar(t("skillsRanking_common_error_generic"), { variant: "error" });
     }
   }, [activeSessionId, value, onFinish, enqueueSnackbar, t]);
 
@@ -120,7 +120,7 @@ const SkillsRankingRetypedRank: React.FC<Readonly<SkillsRankingRetypedRankProps>
           await onFinish(newState);
         } catch (err) {
           console.error("Failed to update state:", err);
-          enqueueSnackbar(t("common.errors.generic"), { variant: "error" });
+          enqueueSnackbar(t("skillsRanking_common_error_generic"), { variant: "error" });
         }
               }, getDefaultTypingDurationMs());
 
@@ -142,11 +142,11 @@ const SkillsRankingRetypedRank: React.FC<Readonly<SkillsRankingRetypedRankProps>
           <ChatBubble
             sender={ConversationMessageSender.COMPASS}
             message={
-                <>
-                {t("features.skillsRanking.components.skillsRankingRetypedRank.question_1")}{" "}
-                <strong>{t("features.skillsRanking.components.skillsRankingRetypedRank.question_2")}</strong>{t("features.skillsRanking.components.skillsRankingRetypedRank.question_3")}{" "}
-                {getJobPlatformUrl()}{t("features.skillsRanking.components.skillsRankingRetypedRank.question_4")}
-              </>
+              <Trans
+                i18nKey="skillsRanking_retypedRank_question"
+                components={{ 0: <strong />, 1: <strong /> }}
+                values={{ jobPlatformUrl: getJobPlatformUrl() }}
+              />
             }
           >
             <Box padding={theme.fixedSpacing(theme.tabiyaSpacing.md)}>
@@ -158,7 +158,7 @@ const SkillsRankingRetypedRank: React.FC<Readonly<SkillsRankingRetypedRankProps>
                 }}
                 disabled={submitted || !isOnline || currentPhase !== SkillsRankingPhase.RETYPED_RANK}
                 data-testid={DATA_TEST_ID.SKILLS_RANKING_RETYPED_RANK_SLIDER}
-                aria-label={t("features.skillsRanking.components.skillsRankingRetypedRank.sliderAria")}
+                aria-label={t("skillsRanking_retypedRank_slider_aria")}
               />
 
               <Box mt={theme.spacing(2)} textAlign="right">
@@ -169,7 +169,7 @@ const SkillsRankingRetypedRank: React.FC<Readonly<SkillsRankingRetypedRankProps>
                   }
                   data-testid={DATA_TEST_ID.SKILLS_RANKING_RETYPED_RANK_SUBMIT_BUTTON}
                 >
-                  {t("common.buttons.submit")}
+                  {t("skillsRanking_common_submit_button")}
                 </PrimaryButton>
               </Box>
             </Box>

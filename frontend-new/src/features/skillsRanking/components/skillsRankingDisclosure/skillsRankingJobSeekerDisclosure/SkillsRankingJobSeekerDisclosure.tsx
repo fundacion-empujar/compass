@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import { Box, Typography, useTheme } from "@mui/material";
 import ChatBubble from "src/chat/chatMessage/components/chatBubble/ChatBubble";
 import { MessageContainer } from "src/chat/chatMessage/compassChatMessage/CompassChatMessage";
@@ -48,6 +48,7 @@ const SkillsRankingJobSeekerDisclosure: React.FC<Readonly<SkillsRankingJobSeeker
   const [hasFinished, setHasFinished] = useState(false);
   const scrollRef = useAutoScrollOnChange(showTyping);
 
+  const { t } = useTranslation();
   const handleContinue = useCallback(async () => {
     if (currentPhase !== SkillsRankingPhase.JOB_SEEKER_DISCLOSURE) {
       console.error(
@@ -71,9 +72,9 @@ const SkillsRankingJobSeekerDisclosure: React.FC<Readonly<SkillsRankingJobSeeker
       await onFinish(newSkillsRankingState);
     } catch (error) {
       console.error("Error updating skills ranking state:", error);
-      enqueueSnackbar(t("features.skillsRanking.components.skillsRankingDisclosure.skillsRankingJobSeekerDisclosure.updateError"), { variant: "error" });
+      enqueueSnackbar(t("skillsRanking_common_error_update_state"), { variant: "error" });
     }
-  }, [currentPhase, onFinish, enqueueSnackbar,t]);
+  }, [currentPhase, onFinish, enqueueSnackbar, t]);
 
   useEffect(() => {
     if (isReplay || hasFinished) return;
@@ -99,7 +100,11 @@ const SkillsRankingJobSeekerDisclosure: React.FC<Readonly<SkillsRankingJobSeeker
         <ChatBubble
           sender={ConversationMessageSender.COMPASS}
           message={
-            t("features.skillsRanking.components.skillsRankingDisclosure.skillsRankingJobSeekerDisclosure.pendingMessage", { jobPlatformUrl: getJobPlatformUrl() })
+            <Trans
+              i18nKey="skillsRanking_jobSeekerDisclosure_pending_message"
+              values={{ jobPlatformUrl: getJobPlatformUrl() }}
+              components={{ 0: <strong /> }}
+            />
           }
         />
       );
@@ -110,25 +115,26 @@ const SkillsRankingJobSeekerDisclosure: React.FC<Readonly<SkillsRankingJobSeeker
         sender={ConversationMessageSender.COMPASS}
         message={
           <>
-            {t("features.skillsRanking.components.skillsRankingDisclosure.skillsRankingJobSeekerDisclosure.comparisonPart1_prefix")}
-            <strong>{t("features.skillsRanking.components.skillsRankingDisclosure.skillsRankingJobSeekerDisclosure.comparisonPart1_main", {
-              jobPlatformUrl: getJobPlatformUrl(),
-              groupIndex: jobSeekerComparisonLabels.indexOf(selectedLabel) + 1,
-              groupTotal: jobSeekerComparisonLabels.length
-            })}</strong>
-            <br/>
-            {t("features.skillsRanking.components.skillsRankingDisclosure.skillsRankingJobSeekerDisclosure.comparisonPart2_prefix", {
-              jobPlatformUrl: getJobPlatformUrl()
-            })}
-            <strong>{t("features.skillsRanking.components.skillsRankingDisclosure.skillsRankingJobSeekerDisclosure.comparisonPart2_group", {
-              groupIndex: jobSeekerComparisonLabels.indexOf(selectedLabel) + 1
-            })}</strong>
-            {t("features.skillsRanking.components.skillsRankingDisclosure.skillsRankingJobSeekerDisclosure.comparisonPart2_middle")}
-            <strong>{t("features.skillsRanking.components.skillsRankingDisclosure.skillsRankingJobSeekerDisclosure.comparisonPart2_label", {
-              comparisonLabel: selectedLabel
-            })}</strong>
-            {t("features.skillsRanking.components.skillsRankingDisclosure.skillsRankingJobSeekerDisclosure.comparisonPart2_suffix")}
-            <br/>
+            <Trans
+              i18nKey="skillsRanking_jobSeekerDisclosure_comparison_part1"
+              components={{ 0: <strong /> }}
+              values={{
+                jobPlatformUrl: getJobPlatformUrl(),
+                groupIndex: jobSeekerComparisonLabels.indexOf(selectedLabel) + 1,
+                groupTotal: jobSeekerComparisonLabels.length,
+              }}
+            />
+            <br />
+            <Trans
+              i18nKey="skillsRanking_jobSeekerDisclosure_comparison_part2"
+              components={{ 0: <strong />, 1: <strong /> }}
+              values={{
+                jobPlatformUrl: getJobPlatformUrl(),
+                groupIndex: jobSeekerComparisonLabels.indexOf(selectedLabel) + 1,
+                comparisonLabel: selectedLabel,
+              }}
+            />
+            <br />
           </>
         }
       >
