@@ -15,6 +15,7 @@ from common_libs.llm.generative_models import GeminiGenerativeLLM
 from common_libs.llm.models_utils import LLMConfig, ZERO_TEMPERATURE_GENERATION_CONFIG, JSON_GENERATION_CONFIG, \
     get_config_variation
 from common_libs.retry import Retry
+from app.agent.prompt_template.agent_prompt_template import STD_LANGUAGE_STYLE
 
 _TAGS_TO_FILTER = [
     "system instructions",
@@ -80,7 +81,7 @@ class EntityExtractionTool:
             temperature_config = {}
 
         return GeminiGenerativeLLM(
-            system_instructions=_SYSTEM_INSTRUCTIONS.format(language_style=get_language_style()),
+            system_instructions=_SYSTEM_INSTRUCTIONS.format(language_style=STD_LANGUAGE_STYLE),
             config=LLMConfig(
                 generation_config=ZERO_TEMPERATURE_GENERATION_CONFIG | JSON_GENERATION_CONFIG | {
                     "max_output_tokens": 3000

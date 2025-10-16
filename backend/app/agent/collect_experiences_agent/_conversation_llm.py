@@ -19,7 +19,7 @@ from app.countries import Country
 from common_libs.llm.generative_models import GeminiGenerativeLLM
 from common_libs.llm.models_utils import LLMConfig, LLMResponse, get_config_variation, LLMInput
 from common_libs.retry import Retry
-from app.i18n.translation_service import t, get_i18n_manager
+from app.i18n.translation_service import t
 
 _NO_EXPERIENCE_COLLECTED = "No experience data has been collected yet"
 _FINAL_MESSAGE = "Thank you for sharing your experiences. Let's move on to the next step."
@@ -71,6 +71,22 @@ def _get_incomplete_experiences_instructions(collected_data: list[CollectedData]
     return replace_placeholders_with_indent(instructions_template, 
                                             language_style=STD_LANGUAGE_STYLE,
                                             incomplete_experiences_list=incomplete_experiences_text)
+
+
+def _no_experience_collected_text() -> str:
+    """Return translated text for 'no experience collected yet' with safe fallback."""
+    try:
+        return t("messages", "collect_experiences.no_experience_collected")
+    except Exception:
+        return _NO_EXPERIENCE_COLLECTED
+
+
+def _translate_field(field_key: str) -> str:
+    """Translate a field identifier to a localized label, with safe fallback to the key itself."""
+    try:
+        return t("messages", f"collect_experiences.fields.{field_key}")
+    except Exception:
+        return field_key
 
 
 class ConversationLLMAgentOutput(AgentOutput):
@@ -215,7 +231,11 @@ class _ConversationLLM:
                 (system_instructions if isinstance(system_instructions, str) else "\n".join(system_instructions or [])),
                 llm_input,
             )
-            _didnt_understand = t("messages", "collectExperiences.didNotUnderstand")
+            # i18n: generic fallback when LLM returns empty
+            try:
+                _didnt_understand = t("messages", "collect_experiences.did_not_understand")
+            except Exception:
+                _didnt_understand = "Sorry, I didn't understand that. Can you please rephrase?"
             return ConversationLLMAgentOutput(
                 message_for_user=_didnt_understand,
                 exploring_type_finished=False,
@@ -234,7 +254,11 @@ class _ConversationLLM:
                 logger.warning("The response contains '<END_OF_WORKTYPE>' and additional text: %s", llm_response.text)
             exploring_type_finished = True
             finished = False
-            llm_response.text = t("messages", "collectExperiences.moveToOtherExperiences")
+            # i18n: prompt user to proceed to other experiences
+            try:
+                llm_response.text = t("messages", "collect_experiences.move_to_other_experiences")
+            except Exception:
+                llm_response.text = "Let's move on to other work experiences."
 
         if llm_response.text.find("<END_OF_CONVERSATION>") != -1:
             if llm_response.text != "<END_OF_CONVERSATION>":
@@ -243,8 +267,12 @@ class _ConversationLLM:
                 penalty = get_penalty(conversation_prematurely_ended_penalty_level)
                 error = ValueError(f"LLM response contains '<END_OF_CONVERSATION>' but there are unexplored types: {unexplored_types}")
                 logger.error(error)
-            
-            llm_response.text = t("messages", "collectExperiences.finalMessage")
+
+            # i18n: final message at the end of conversation
+            try:
+                llm_response.text = t("messages", "collect_experiences.final_message")
+            except Exception:
+                llm_response.text = _FINAL_MESSAGE
             exploring_type_finished = False
             finished = True
 
@@ -601,8 +629,10 @@ def _get_missing_fields(collected_data: list[CollectedData], index: int) -> str:
     if experience_data.location is None:
         missing_fields.append("location")
     if len(missing_fields) == 0:
-       return t("messages", "collectExperiences.allFieldsFilled")
-
+        try:
+            return t("messages", "collect_experiences.all_fields_filled")
+        except Exception:
+            return "All fields have been filled."
     # Localize field labels
     return ", ".join([_translate_field(f) for f in missing_fields])
 
@@ -629,22 +659,40 @@ def _get_not_missing_fields(collected_data: list[CollectedData], index: int) -> 
     if experience_data.location is not None:
         not_missing_fields.append("location")
     if len(not_missing_fields) == 0:
-        return t("messages", "collectExperiences.allFieldsNotFilled")
+        try:
+            return t("messages", "collect_experiences.all_fields_not_filled")
+        except Exception:
+            return "All fields are not filled."
     # Localize field labels
     return ", ".join([_translate_field(f) for f in not_missing_fields])
 
 
 def _get_experience_type(work_type: WorkType | None) -> str:
     if work_type == WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT:
-        return t("messages", "collectExperiences.workType.formalWagedDescription")
+        try:
+            return t("messages", "collect_experiences.work_type.formal_waged_description")
+        except Exception:
+            return "working for a company or someone else's business for money"
     elif work_type == WorkType.FORMAL_SECTOR_UNPAID_TRAINEE_WORK:
-        return t("messages", "collectExperiences.workType.unpaidTraineeDescription")
+        try:
+            return t("messages", "collect_experiences.work_type.unpaid_trainee_description")
+        except Exception:
+            return "unpaid work as a trainee for a company or organization"
     elif work_type == WorkType.SELF_EMPLOYMENT:
-        return t("messages", "collectExperiences.workType.selfEmploymentDescription")
+        try:
+            return t("messages", "collect_experiences.work_type.self_employment_description")
+        except Exception:
+            return "running my own business, doing freelance or contract work"
     elif work_type == WorkType.UNSEEN_UNPAID:
-        return t("messages", "collectExperiences.workType.unseenUnpaidDescription")
+        try:
+            return t("messages", "collect_experiences.work_type.unseen_unpaid_description")
+        except Exception:
+            return "unpaid work such as community volunteering, caregiving for own or another family, helping in a household"
     elif work_type is None:
-        return t("messages", "collectExperiences.workType.noneDescription")
+        try:
+            return t("messages", "collect_experiences.work_type.none_description")
+        except Exception:
+            return "no work experience"
     else:
         raise ValueError(t("messages", "collectExperiences.workType.notSupported"))
 

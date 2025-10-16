@@ -17,8 +17,7 @@ from common_libs.llm.generative_models import GeminiGenerativeLLM
 from common_libs.llm.models_utils import LLMConfig, ZERO_TEMPERATURE_GENERATION_CONFIG, JSON_GENERATION_CONFIG, \
     get_config_variation
 from common_libs.retry import Retry
-from app.agent.prompt_template import get_language_style
-from app.i18n.locale_date_format import get_locale_date_format, format_date_value_for_locale
+from app.agent.prompt_template.agent_prompt_template import STD_LANGUAGE_STYLE
 
 _TAGS_TO_FILTER = [
     "system instructions",
@@ -81,12 +80,8 @@ class TemporalAndWorkTypeClassifierTool:
         current_date_formatted = format_date_value_for_locale(canonical_now, locale=None)
         return _SYSTEM_INSTRUCTIONS.format(
             work_type_definitions=WORK_TYPE_DEFINITIONS_FOR_PROMPT,
-            current_date=current_date_formatted,
-            language_style=get_language_style(),
-            date_format_full=date_formats.full,
-            date_format_month_year=date_formats.month_year,
-            date_format_year=date_formats.year_only,
-        )
+            current_date=datetime.now().strftime("%Y/%m"),
+            language_style=STD_LANGUAGE_STYLE)
 
     def _get_llm(self, temperature_config: Optional[dict] = None) -> GeminiGenerativeLLM:
         # if no temperature config provided, use the default one.
