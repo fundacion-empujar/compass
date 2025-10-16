@@ -68,25 +68,9 @@ def _get_incomplete_experiences_instructions(collected_data: list[CollectedData]
             Only move on to exploring new work types after you have gathered all available information for incomplete experiences.
     """)
     
-    return replace_placeholders_with_indent(instructions_template,
-                                            language_style=get_language_style(),
+    return replace_placeholders_with_indent(instructions_template, 
+                                            language_style=STD_LANGUAGE_STYLE,
                                             incomplete_experiences_list=incomplete_experiences_text)
-
-
-def _no_experience_collected_text() -> str:
-    """Return translated text for 'no experience collected yet' with safe fallback."""
-    try:
-        return t("messages", "collectExperiences.noExperienceCollected")
-    except Exception:
-        return _NO_EXPERIENCE_COLLECTED
-
-
-def _translate_field(field_key: str) -> str:
-    """Translate a field identifier to a localized label, with safe fallback to the key itself."""
-    try:
-        return t("messages", f"collectExperiences.fields.{field_key}")
-    except Exception:
-        return field_key
 
 
 class ConversationLLMAgentOutput(AgentOutput):
@@ -487,7 +471,7 @@ class _ConversationLLM:
                 """)
         return replace_placeholders_with_indent(first_time_generative_prompt,
                                                 country_of_user_segment=_get_country_of_user_segment(country_of_user),
-                                                language_style=get_language_style(),
+                                                language_style=STD_LANGUAGE_STYLE,
                                                 question_to_ask=_ask_experience_type_question(exploring_type))
 
 
@@ -529,7 +513,7 @@ def _transition_instructions(*,
         ///    {excluding_experiences}
         """)
         return replace_placeholders_with_indent(_instructions,
-                                                language_style=get_language_style(),
+                                                language_style=STD_LANGUAGE_STYLE,
                                                 exploring_type=_get_experience_type(exploring_type),
                                                 # excluding_experiences=_get_excluding_experiences(exploring_type)
                                                 )
@@ -545,8 +529,8 @@ def _transition_instructions(*,
             
             {language_style}
                                                                   
-            Ask me in {user_language} language: 
-                "Let's recap the information we have collected so far: 
+            Ask me: 
+                "Let's recap the information we have collected so far:
                 {summary_of_experiences}
                 Is there anything you would like to add or change?".
             The summary is in plain text (no Markdown, JSON, or other formats).
@@ -566,8 +550,7 @@ def _transition_instructions(*,
             You must perform the summarization and confirmation step before ending the conversation.
             """)
         return replace_placeholders_with_indent(summarize_and_confirm,
-                                                language_style=get_language_style(),
-                                                user_language=user_language,
+                                                language_style=STD_LANGUAGE_STYLE,
                                                 summary_of_experiences=_get_summary_of_experiences(collected_data),
                                                 duplicate_hint=duplicate_hint)
 
@@ -752,7 +735,7 @@ def _get_explore_experiences_instructions(*,
         return replace_placeholders_with_indent(instructions_template,
                                                 questions_to_ask=questions_to_ask,
                                                 experiences_in_type=experiences_in_type,
-                                                language_style=get_language_style(),
+                                                language_style=STD_LANGUAGE_STYLE,
                                                 # excluding_experiences=excluding_experiences,
                                                 # already_explored_types=already_explored_types,
                                                 # not_explored_types=not_explored_types,
