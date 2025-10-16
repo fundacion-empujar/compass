@@ -45,9 +45,8 @@ window.tabiyaConfig = {
   FRONTEND_DEFAULT_LOCALE: btoa("en-US"),
   FRONTEND_SUPPORTED_LOCALES: btoa(JSON.stringify(["en-US","es-US"])),
 
-  // ################################################################
-  // #       Auth Settings.
-  // ################################################################
+  FRONTEND_SUPPORTED_LANGUAGES: btoa(JSON.stringify(["en-us","es-ar"])),
+
   FRONTEND_DISABLE_LOGIN_CODE: btoa("false"),
   FRONTEND_DISABLE_REGISTRATION: btoa("false"),
   FRONTEND_DISABLE_SOCIAL_AUTH: btoa("false"),
