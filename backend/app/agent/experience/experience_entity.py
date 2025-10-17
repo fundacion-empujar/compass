@@ -185,9 +185,21 @@ class ExperienceEntity(BaseModel, Generic[SkillEntityT]):
         if work_type is None:
             return ""
         # Keys under: messages.experience.work_type.short.<enum_name_lower>
-        key = WorkType.work_type_short_i18n_key(work_type)
-        return t("messages",key)
+        key = f"experience.work_type.short.{work_type.name.lower()}"
+        return ExperienceEntity._tr_or_default(key, WorkType.work_type_short(work_type))
 
+    @staticmethod
+    def _tr_or_default(key: str, default: str, **kwargs) -> str:
+        """Translate a key and fall back to default when missing.
+
+        The translation service returns the key string when missing; we detect that
+        and return the provided default to preserve behavior.
+        """
+        try:
+            s = t("messages", key, **kwargs)
+            return s if s != key else default
+        except Exception:
+            return default
 
     @staticmethod
     def get_structured_summary(*, experience_title: str,
@@ -202,7 +214,7 @@ class ExperienceEntity(BaseModel, Generic[SkillEntityT]):
         else:
             if end_date is not None and end_date != "":
                 # Localize "until {end_date}" pattern
-                _until = t("messages", "experience.until", f"until {end_date}", end_date=end_date)
+                _until = ExperienceEntity._tr_or_default("experience.until", f"until {end_date}", end_date=end_date)
                 date_part = f", {_until}"
             else:
                 date_part = ""
@@ -213,5 +225,7 @@ class ExperienceEntity(BaseModel, Generic[SkillEntityT]):
         if experience_title is not None:
             experience_title_part = experience_title
         else:
-            experience_title_part = t("messages", "experience.noTitleProvidedYet")
+            experience_title_part = ExperienceEntity._tr_or_default(
+                "experience.no_title_provided_yet", "No title provided yet"
+            )
         return experience_title_part + work_type_part + date_part + company_part + location_part + "\n"
