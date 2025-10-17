@@ -77,8 +77,7 @@ class LLMAgentDirector(AbstractAgentDirector):
         """
         Get the new conversation phase based on the agent output and the current phase.
         """
-        if self._state is None:
-            raise RuntimeError("AgentDirectorState must be set before computing the new phase")
+        assert self._state is not None, "AgentDirectorState must be set before computing the new phase"
         current_phase = self._state.current_phase
 
         # ConversationPhase.ENDED is the final phase
@@ -114,14 +113,16 @@ class LLMAgentDirector(AbstractAgentDirector):
         :return: The output from the agent
         """
         try:
-            if self._state is None:
-                raise RuntimeError("AgentDirectorState must be set before executing")
+            assert self._state is not None, "AgentDirectorState must be set before executing"
             first_call: bool = True
             transitioned_to_new_phase: bool = False
             agent_output: AgentOutput | None = None
             while first_call or transitioned_to_new_phase:
-                if self._state.current_phase == ConversationPhase.ENDED:                    
-                    finished_msg = t("messages", "agentDirector.finalMessage","The conversation has finished!")
+                if self._state.current_phase == ConversationPhase.ENDED:
+                    try:
+                        finished_msg = t("messages", "agent_director.final_message")
+                    except Exception:
+                        finished_msg = "The conversation has finished!"
                     agent_output = AgentOutput(
                         message_for_user=finished_msg,
                         finished=True,
@@ -168,7 +169,10 @@ class LLMAgentDirector(AbstractAgentDirector):
         # executing an agent can raise any number of unknown exceptions
         except Exception as e:  # pylint: disable=broad-except
             self._logger.error("Error while executing the agent director: %s", e, exc_info=True)
-            err_msg = t("messages", "agentDirector.errorRetry")
+            try:
+                err_msg = t("messages", "agent_director.error_retry")
+            except Exception:
+                err_msg = "I am facing some difficulties right now, could you please repeat what you said?"
             agent_output = AgentOutput(
                 message_for_user=err_msg,
                 finished=True,
