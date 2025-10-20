@@ -54,8 +54,8 @@ const LanguageContextMenu = () => {
     {
       id: MENU_ITEM_ID.AUTH_ENGLISH_SELECTOR,
       text: MENU_ITEM_TEXT.ENGLISH,
-      disabled: !supportedLanguages.includes("en"),
-      action: () => changeLanguage("en"),
+      disabled: !supportedLanguages.includes("en-gb"),
+      action: () => changeLanguage("en-gb"),
     },
      {
       id: MENU_ITEM_ID.AUTH_ENGLISH_SELECTOR + "-ar",
@@ -66,8 +66,8 @@ const LanguageContextMenu = () => {
     {
       id: MENU_ITEM_ID.AUTH_SPANISH_SELECTOR,
       text: MENU_ITEM_TEXT.SPANISH,
-      disabled: !supportedLanguages.includes("es"),
-      action: () => changeLanguage("es"),
+      disabled: !supportedLanguages.includes("es-es"),
+      action: () => changeLanguage("es-es"),
     },
     {
       id: MENU_ITEM_ID.AUTH_SPANISH_SELECTOR + "-ar",
