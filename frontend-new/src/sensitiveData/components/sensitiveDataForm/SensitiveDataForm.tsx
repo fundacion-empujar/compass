@@ -255,7 +255,7 @@ const SensitiveDataForm: React.FC = () => {
     // Check if the form is valid based on current validation state
     if (!isFormValid(validationErrors)) {
       console.warn("User attempted to submit invalid sensitive data form.");
-      enqueueSnackbar(t("sensitiveData.components.sensitiveDataForm.invalidForm"), { variant: "error" });
+      enqueueSnackbar(t("sensitive_data_invalid_form"), { variant: "error" });
       return;
     }
 
@@ -365,7 +365,7 @@ const SensitiveDataForm: React.FC = () => {
         <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="100%">
           <Box color="error.main" mb={2}>
             <Typography data-testid={DATA_TEST_ID.SENSITIVE_DATA_FORM_ERROR_MESSAGE}>
-              {t("sensitiveData.components.sensitiveDataForm.failedToLoadConfig")}
+              {t("sensitive_data_failed_to_load_config")}
             </Typography>
           </Box>
           <PrimaryButton
@@ -405,9 +405,9 @@ const SensitiveDataForm: React.FC = () => {
                   <>
                     {t("sensitive_data_subtitle")}
                     {isPIIRequired
-                      ? " " + t("sensitiveData.components.sensitiveDataForm.unskippableSubtitle")
-                      : " " + t("sensitiveData.components.sensitiveDataForm.skippableSubtitle")}
-                    <HelpTip icon={<PrivacyTipIcon />}>{t("sensitiveData.components.sensitiveDataForm.helpTipText")}</HelpTip>
+                      ? " " + t("sensitive_data_unskippable_subtitle")
+                      : " " + t("sensitive_data_skippable_subtitle")}
+                    <HelpTip icon={<PrivacyTipIcon />}>{t("sensitive_data_help_tip_text")}</HelpTip>
                   </>
                 }
               />
