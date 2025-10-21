@@ -14,9 +14,7 @@ STD_AGENT_CHARACTER = dedent("""\
 
 STD_LANGUAGE_STYLE = dedent("""\
 #Language 
-    - Stick to the language of the conversation. If the conversation is in English, it should continue in English. If it in Spanish, it should remain in Spanish.
-    - Any questions I tell you to ask me should also be in the same language as the conversation.
-    - Any information or data you are asked to extract and provide should also be in the same language as the conversation.
+    Stick to the language of the conversation. If the conversation is in English, it should continue in English. If it in Spanish, it should remain in Spanish.
 
 #Language style
     Your language style should be:
@@ -36,9 +34,6 @@ STD_LANGUAGE_STYLE = dedent("""\
     - Supportive and uplifting, and avoid dismissive or negative phrasings.
     - Avoid double quotes, emojis, Markdown, HTML, JSON, or other formats that would not be part of plain spoken language.
     - If you want to use a list, use bullet points • 
-
-#Language 
-    Stick to the language of the conversation. If the conversation is in English, it should continue in English. If it in Spanish, it should remain in Spanish.
 
 ///#Questions Style
 ///    When asking questions, be sure to:
