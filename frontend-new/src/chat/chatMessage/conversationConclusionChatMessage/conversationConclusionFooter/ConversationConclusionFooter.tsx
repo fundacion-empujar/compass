@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Box, Typography, useTheme } from "@mui/material";
+import { useTranslation } from "react-i18next";
 import CustomLink from "src/theme/CustomLink/CustomLink";
 import { FIXED_MESSAGES_TEXT } from "src/chat/util";
 import FeedbackForm, {
@@ -119,35 +120,35 @@ const ConversationConclusionFooter: React.FC = () => {
         marginTop={theme.fixedSpacing(theme.tabiyaSpacing.md)}
         data-testid={DATA_TEST_ID.CONVERSATION_CONCLUSION_FOOTER_CONTAINER}
       >
-        <Typography variant="body1">          
-           {t("chat.chatMessage.conversationConclusionFooter.youCanNow")}{" "}                                   
+        <Typography variant="body1">
+          {t("conversation_conclusion_footer_you_can_now")} {" "}
           <StyledCustomLink
             onClick={handleOpenExperiencesDrawer}
             disableWhenOffline
             data-testid={DATA_TEST_ID.EXPERIENCES_DRAWER_BUTTON}
           >
-           <BadgeOutlinedIcon />
-            {t("chat.chatMessage.conversationConclusionFooter.viewAndDownloadCv")}
+            <BadgeOutlinedIcon />
+            {t("conversation_conclusion_footer_view_and_download_cv")}
           </StyledCustomLink>{" "}
-          {t("chat.chatMessage.conversationConclusionFooter.here")}
+          {t("conversation_conclusion_footer_here")}
           {/* Show anonymous user registration link if the user is anonymous and hasn't already converted */}
           {isAnonymous && !isAccountConverted && (
             <span data-testid={DATA_TEST_ID.CREATE_ACCOUNT_MESSAGE}>
-              {t("chat.chatMessage.conversationConclusionFooter.createAccountIntro")} {" "}
+              {t("conversation_conclusion_footer_create_account_intro")} {" "}
               <StyledCustomLink
                 onClick={() => setShowConversionDialog(true)}
                 disableWhenOffline
                 data-testid={DATA_TEST_ID.CREATE_ACCOUNT_LINK}
               >
                 <PermIdentityIcon />
-                {t("chat.chatMessage.conversationConclusionFooter.createAccount")}
+                {t("conversation_conclusion_footer_create_account")}
               </StyledCustomLink>
             </span>
           )}
           {/* Show the verification reminder if the user has already converted their account */}
           {isAccountConverted && (
             <span data-testid={DATA_TEST_ID.VERIFICATION_REMINDER_MESSAGE}>
-              {t("chat.chatMessage.conversationConclusionFooter.verificationReminder")}
+              {t("conversation_conclusion_footer_verification_reminder")}
             </span>
           )}
         </Typography>
@@ -169,31 +170,31 @@ const ConversationConclusionFooter: React.FC = () => {
           {/* Show feedback form if the rating has been submitted */}
           {hasSubmittedCustomerSatisfactionRating && feedbackStatus === FeedbackStatus.NOT_STARTED && (
             <span data-testid={DATA_TEST_ID.FEEDBACK_MESSAGE_TEXT}>{" "}
-              {t("chat.chatMessage.conversationConclusionFooter.feedbackWelcome")} {" "}
+              {t("conversation_conclusion_footer_feedback_welcome")} {" "}
               <StyledCustomLink
                 onClick={() => setIsFeedbackFormOpen(true)}
                 disableWhenOffline
                 data-testid={DATA_TEST_ID.FEEDBACK_FORM_BUTTON}
               >
                 <FeedbackOutlinedIcon />
-                {t("chat.chatMessage.conversationConclusionFooter.feedbackLinkText")}
+                {t("conversation_conclusion_footer_feedback_link_text")}
               </StyledCustomLink>{" "}
-              {t("chat.chatMessage.conversationConclusionFooter.feedbackFromYouSuffix")}
+              {t("conversation_conclusion_footer_feedback_from_you_suffix")}
             </span>
           )}
           {/* Show continue feedback if the status is already started */}
           {hasSubmittedCustomerSatisfactionRating && feedbackStatus === FeedbackStatus.STARTED && (
             <span data-testid={DATA_TEST_ID.FEEDBACK_IN_PROGRESS_MESSAGE}>
-              {t("chat.chatMessage.conversationConclusionFooter.feedbackInProgressPrefix")} {" "}
+              {t("conversation_conclusion_footer_feedback_in_progress_prefix")} {" "}
               <StyledCustomLink
                 onClick={() => setIsFeedbackFormOpen(true)}
                 disableWhenOffline
                 data-testid={DATA_TEST_ID.FEEDBACK_IN_PROGRESS_BUTTON}
               >
                 <FeedbackOutlinedIcon />
-                {t("chat.chatMessage.conversationConclusionFooter.feedbackInProgressLinkText")}
+                {t("conversation_conclusion_footer_feedback_in_progress_link_text")}
               </StyledCustomLink>{" "}
-              {t("chat.chatMessage.conversationConclusionFooter.feedbackInProgressSuffix")}
+              {t("conversation_conclusion_footer_feedback_in_progress_suffix")}
             </span>
           )}
           {feedbackSubmitted && hasSubmittedCustomerSatisfactionRating && (
