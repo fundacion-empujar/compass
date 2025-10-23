@@ -90,7 +90,7 @@ const Register: React.FC = () => {
         console.error(error);
         errorMessage = error.message;
       }
-      enqueueSnackbar(t("auth.errors.registerFailedWithMessage", { message: errorMessage }), { variant: "error" });
+      enqueueSnackbar(t("auth_register_failed_with_message", { message: errorMessage }), { variant: "error" });
     },
     [enqueueSnackbar, t]
   );
@@ -121,8 +121,8 @@ const Register: React.FC = () => {
       if (!prefs?.accepted_tc || isNaN(prefs?.accepted_tc.getTime())) {
         navigate(routerPaths.CONSENT, { replace: true });
       } else {
-        navigate(routerPaths.ROOT, { replace: true });
-        enqueueSnackbar(t("auth.pages.register.welcomeBack"), { variant: "success" });
+  navigate(routerPaths.ROOT, { replace: true });
+  enqueueSnackbar(t("welcome_back"), { variant: "success" });
       }
     } catch (error) {
       const firebaseSocialAuthServiceInstance = FirebaseSocialAuthenticationService.getInstance();
@@ -152,7 +152,7 @@ const Register: React.FC = () => {
         const registrationCodeToUse = registrationCode || applicationRegistrationCode;
         // We're using the mail as the username for now, since we don't have any use case in the app for it
   await firebaseEmailAuthServiceInstance.register(email, password, email, registrationCodeToUse);
-  enqueueSnackbar(t("auth.verificationEmailSentShort"), { variant: "success" });
+  enqueueSnackbar(t("auth_verification_email_sent_short"), { variant: "success" });
         // IMPORTANT NOTE: after the preferences are added, or fail to be added, we should log the user out immediately,
         // since if we don't do that, the user may be able to access the application without verifying their email
         // or accepting the dpa.

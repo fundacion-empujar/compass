@@ -65,7 +65,7 @@ const ResendVerificationEmail: React.FC<ResendVerificationEmailProps> = ({
     try {
       const firebaseEmailAuthServiceInstance = FirebaseEmailAuthService.getInstance();
       await firebaseEmailAuthServiceInstance.resendVerificationEmail(email, password);
-      enqueueSnackbar(t("auth.components.resendVerificationEmail.resendVerificationEmailSuccess"), { variant: "success" });
+      enqueueSnackbar(t("auth_resend_verification_email_success"), { variant: "success" });
       setCooldownSeconds(COOLDOWN_SECONDS);
     } catch (error) {
       let errorMessage;
@@ -76,7 +76,7 @@ const ResendVerificationEmail: React.FC<ResendVerificationEmailProps> = ({
         errorMessage = (error as Error).message;
         console.error("Failed to resend verification email (unknown error):", error);
       }
-      enqueueSnackbar(t("auth.components.resendVerificationEmail.resendVerificationEmailFailedWithMessage", { message: errorMessage }), { variant: "error" });
+      enqueueSnackbar(t("auth_resend_verification_email_failed_with_message", { message: errorMessage }), { variant: "error" });
     } finally {
       setIsLoading(false);
     }

@@ -79,7 +79,7 @@ const SocialAuth: React.FC<Readonly<SocialAuthProps>> = ({
       }
 
       console.error(error);
-      enqueueSnackbar(t("auth.components.socialAuth.socialFailedLoginWithMessage", { message: errorMessage }), { variant: "error" });
+      enqueueSnackbar(t("auth_social_failed_login_with_message", { message: errorMessage }), { variant: "error" });
     },
     [enqueueSnackbar, registrationCode, t],
   );
@@ -129,7 +129,7 @@ const SocialAuth: React.FC<Readonly<SocialAuthProps>> = ({
       if (!prefs) {
         // if registration is disabled, show an error message
         if (registrationDisabled) {
-          enqueueSnackbar(t("auth.components.socialAuth.accountNotRegistered"), { variant: "error" });
+          enqueueSnackbar(t("auth_social_account_not_registered"), { variant: "error" });
           return;
         }
 

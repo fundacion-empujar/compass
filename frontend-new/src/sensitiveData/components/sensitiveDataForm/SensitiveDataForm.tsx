@@ -281,15 +281,15 @@ const SensitiveDataForm: React.FC = () => {
       PersistentStorageService.setPersonalInfo(extractPersonalInfo(sensitiveData, fields));
       console.info("User confirmed providing personal data and saved successfully.");
 
-      enqueueSnackbar(t("sensitiveData.components.sensitiveDataForm.savedSuccess"), { variant: "success" });
+      enqueueSnackbar(t("sensitive_data_saved_success"), { variant: "success" });
       navigate(routerPaths.ROOT);
     } catch (e) {
       console.error("Failed to save personal data", e);
-      let friendlyErrorMessage = t("sensitiveData.components.sensitiveDataForm.errorDefault");
+      let friendlyErrorMessage = t("sensitive_data_error_default");
       if (e instanceof RestAPIError) {
         friendlyErrorMessage = getUserFriendlyErrorMessage(e);
       } else if (e instanceof EncryptedDataTooLarge) {
-        friendlyErrorMessage = t("sensitiveData.components.sensitiveDataForm.errorEncryptedDataTooLarge");
+        friendlyErrorMessage = t("sensitive_data_error_encrypted_data_too_large");
       }
       enqueueSnackbar(friendlyErrorMessage, { variant: "error" });
 
@@ -308,10 +308,10 @@ const SensitiveDataForm: React.FC = () => {
       console.info("User rejected providing sensitive data. Logging out user.");
 
       navigate(routerPaths.LANDING, { replace: true });
-      enqueueSnackbar(t("consent.components.consentPage.snackbarLoggedOutSuccess"), { variant: "success" });
+      enqueueSnackbar(t("consent_snackbar_logged_out_success"), { variant: "success" });
     } catch (e) {
       console.error("Failed to log out", e);
-      enqueueSnackbar(t("consent.components.consentPage.snackbarLoggedOutFailure"), { variant: "error" });
+      enqueueSnackbar(t("consent_snackbar_logged_out_failure"), { variant: "error" });
     } finally {
       setIsSubmitButtonEnabled(true);
       setIsRejecting(false);
@@ -331,7 +331,7 @@ const SensitiveDataForm: React.FC = () => {
       });
       console.info("User skipped providing sensitive data.");
 
-  enqueueSnackbar(t("sensitiveData.components.sensitiveDataForm.collectionSkipped"), { variant: "success" });
+  enqueueSnackbar(t("sensitive_data_collection_skipped"), { variant: "success" });
       navigate(routerPaths.ROOT);
     } catch (e) {
       console.error("Failed to skip personal data", e);

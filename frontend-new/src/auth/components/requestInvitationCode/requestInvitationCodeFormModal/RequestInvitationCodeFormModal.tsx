@@ -61,11 +61,11 @@ const RequestInvitationCodeFormModal: React.FC<RequestInvitationFormModalProps> 
         message,
       });
 
-      enqueueSnackbar(t("auth.components.requestInvitationCodeFormModal.invitationRequestSubmitSuccess"), {
+      enqueueSnackbar(t("invitation_request_submit_success"), {
         variant: "success",
       });
     } catch (e) {
-      enqueueSnackbar(t("auth.components.requestInvitationCodeFormModal.invitationRequestSubmitError"), {
+      enqueueSnackbar(t("invitation_request_submit_error"), {
         variant: "error",
       });
       console.error(e);

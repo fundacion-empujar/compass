@@ -80,7 +80,7 @@ const SummaryEditField: React.FC<Readonly<SummaryEditFieldProps>> = ({
       const experienceService = ExperienceService.getInstance();
       const originalExperience = await experienceService.getUneditedExperience(sessionId, experience_uuid);
       setSummaryValue(originalExperience.summary ?? "");
-      setSuccessText(t("experiences.experiencesDrawer.components.experienceEditForm.components.summaryEditField.restored"));
+      setSuccessText(t("experiences_summary_restored"));
       notifyOnChange(
         { target: { value: originalExperience.summary ?? "" } } as React.ChangeEvent<HTMLTextAreaElement>,
         SUMMARY_FIELD_NAME,
@@ -91,7 +91,7 @@ const SummaryEditField: React.FC<Readonly<SummaryEditFieldProps>> = ({
       }, 3000); // Clear message after 3 seconds
     } catch (err) {
       console.error(new ExperienceError("Failed to restore summary:", err));
-      enqueueSnackbar(t("experiences.experiencesDrawer.components.experienceEditForm.components.summaryEditField.restoreFailed"), { variant: "error" });
+      enqueueSnackbar(t("experiences_summary_restore_failed"), { variant: "error" });
     } finally {
       setIsRestoring(false);
     }

@@ -63,7 +63,7 @@ const Landing: React.FC = () => {
         errorMessage = error.message;
         console.error(error);
       }
-      enqueueSnackbar(t("auth.errors.loginFailedWithMessage", { message: errorMessage }), { variant: "error" });
+      enqueueSnackbar(t("auth_login_failed_with_message", { message: errorMessage }), { variant: "error" });
     },
     [enqueueSnackbar, t]
   );
@@ -75,7 +75,7 @@ const Landing: React.FC = () => {
         navigate(routerPaths.CONSENT, { replace: true });
       } else {
         navigate(routerPaths.ROOT, { replace: true });
-        enqueueSnackbar(t("auth.pages.landing.welcome"), { variant: "success" });
+        enqueueSnackbar(t("welcome_back"), { variant: "success" });
       }
     } catch (error: unknown) {
       console.error(new AuthenticationError("An error occurred while trying to get your preferences", error));
@@ -85,7 +85,7 @@ const Landing: React.FC = () => {
       } else {
         errorMessage = (error as Error).message;
       }
-      enqueueSnackbar(t("auth.errors.preferencesFetchFailedWithMessage", { message: errorMessage }), {
+      enqueueSnackbar(t("auth_preferences_fetch_failed_with_message", { message: errorMessage }), {
         variant: "error",
       });
     }
@@ -97,7 +97,7 @@ const Landing: React.FC = () => {
       const firebaseInvitationAuthServiceInstance = FirebaseInvitationCodeAuthenticationService.getInstance();
       await firebaseInvitationAuthServiceInstance.login(applicationLoginCode);
       console.info("User logged in as guest.");
-      enqueueSnackbar(t("auth.pages.landing.invitationCodeValid"), { variant: "success" });
+      enqueueSnackbar(t("invitation_code_valid"), { variant: "success" });
       await handlePostLogin();
     } catch (error) {
       await handleError(error as Error);

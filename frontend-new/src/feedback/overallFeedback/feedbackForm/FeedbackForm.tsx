@@ -63,10 +63,10 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ isOpen, notifyOnClose }) =>
       await overallFeedbackService.sendFeedback(sessionId, formData);
       console.info("Feedback submitted successfully for session", sessionId);
 
-      enqueueSnackbar(t("feedback.overallFeedback.feedbackForm.submitSuccess"), { variant: "success" });
+      enqueueSnackbar(t("feedback_overall_submit_success"), { variant: "success" });
     } catch (error) {
       console.error(new FeedbackError("Failed to submit feedback", error));
-      enqueueSnackbar(t("feedback.overallFeedback.feedbackForm.submitError"), { variant: "error" });
+      enqueueSnackbar(t("feedback_overall_submit_error"), { variant: "error" });
     } finally {
       setIsSubmitting(false);
     }

@@ -112,7 +112,7 @@ const SkillsRankingBriefing: React.FC<Readonly<SkillsRankingBriefingProps>> = ({
       );
     } catch (err) {
       console.error(err);
-      enqueueSnackbar(t("features.skillsRanking.components.skillsRankingBriefing.failedToContinue"), { variant: "error" });
+      enqueueSnackbar(t("skillsRanking_briefing_failed_to_continue"), { variant: "error" });
       setSubmitted(false);
       setIsTypingVisible(false);
       return;

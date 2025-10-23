@@ -109,7 +109,7 @@ const Login: React.FC = () => {
         console.error(error);
         setShowResendVerification(false);
       }
-      enqueueSnackbar(t("auth.errors.loginFailedWithMessage", { message: errorMessage }), { variant: "error" });
+      enqueueSnackbar(t("auth_login_failed_with_message", { message: errorMessage }), { variant: "error" });
 
       // if something goes wrong, log the user out
       const firebaseEmailAuthServiceInstance = FirebaseEmailAuthService.getInstance();
@@ -226,7 +226,7 @@ const Login: React.FC = () => {
       } else {
         errorMessage = (error as Error).message;
       }
-      enqueueSnackbar(t("auth.errors.preferencesFetchFailedWithMessage", { message: errorMessage }), {
+      enqueueSnackbar(t("auth_preferences_fetch_failed_with_message", { message: errorMessage }), {
         variant: "error",
       });
     }
