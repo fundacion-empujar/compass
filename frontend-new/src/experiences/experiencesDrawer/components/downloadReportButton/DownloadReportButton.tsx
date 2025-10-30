@@ -28,7 +28,7 @@ const DownloadReportButton: React.FC<DownloadReportButtonProps> = ({ disabled, i
   return (
     <Box data-testid={DATA_TEST_ID.DOWNLOAD_REPORT_BUTTON_CONTAINER}>
       <PrimaryButton
-        title={t("experiences.experiencesDrawer.components.downloadReportButton.downloadCv")}
+        title={t("experiences_downloadReportButton_download_cv")}
         disabled={disabled || isLoading}
         disableWhenOffline
         startIcon={
@@ -45,11 +45,11 @@ const DownloadReportButton: React.FC<DownloadReportButtonProps> = ({ disabled, i
         onClick={notifyOnDownloadPdf}
         data-testid={DATA_TEST_ID.DOWNLOAD_REPORT_BUTTON}
       >
-        {isLoading ? t("experiences.experiencesDrawer.components.downloadReportButton.downloading") : t("experiences.experiencesDrawer.components.downloadReportButton.downloadCv")}
+        {isLoading ? t("experiences_downloadReportButton_downloading") : t("experiences_downloadReportButton_download_cv")}
       </PrimaryButton>
       {disabled && (
         <HelpTip icon={<InfoIcon />} data-testid={DATA_TEST_ID.DOWNLOAD_REPORT_HELP_TIP}>
-          {t("experiences.experiencesDrawer.components.downloadReportButton.helpTipBlockedMessage")}
+          {t("experiences_downloadReportButton_help_tip_blocked_message")}
         </HelpTip>
       )}
     </Box>
