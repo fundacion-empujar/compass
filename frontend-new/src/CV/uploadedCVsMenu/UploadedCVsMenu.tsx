@@ -43,8 +43,8 @@ const UploadedCVsMenu: React.FC<UploadedCVsMenuContentProps> = ({
   const isCollectPhase = currentPhase === ConversationPhase.COLLECT_EXPERIENCES;
 
   const helpTipText = isCollectPhase
-    ? t("cv.uploadedCVsMenu.helpCollect")
-    : t("cv.uploadedCVsMenu.helpDisabled");
+    ? t("uploadedCVsMenu_help_collect")
+    : t("uploadedCVsMenu_help_disabled");
 
   return (
     <Box
@@ -60,7 +60,7 @@ const UploadedCVsMenu: React.FC<UploadedCVsMenuContentProps> = ({
         }}
       >
         <PrimaryIconButton
-          title={t("cv.uploadedCVsMenu.backTitle")}
+          title={t("uploadedCVsMenu_back_title")}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -77,7 +77,7 @@ const UploadedCVsMenu: React.FC<UploadedCVsMenuContentProps> = ({
           color="text.primary"
           data-testid={DATA_TEST_ID.UPLOADED_CVS_MENU_UPLOADED_TEXT}
         >
-          {t("cv.uploadedCVsMenu.titleWithCount", { count: uploadedCVs.length })}
+          {t("uploadedCVsMenu_title_with_count", { count: uploadedCVs.length })}
         </Typography>
         <HelpTip icon={<InfoIcon />} data-testid={DATA_TEST_ID.UPLOADED_CVS_MENU_HELP_TIP}>
           {helpTipText}
@@ -116,7 +116,7 @@ const UploadedCVsMenu: React.FC<UploadedCVsMenuContentProps> = ({
 
         {!isLoading && uploadedCVs.length === 0 && (
           <Typography variant="caption" color="secondary">
-            {t("cv.uploadedCVsMenu.empty")}
+            {t("uploadedCVsMenu_empty")}
           </Typography>
         )}
 
