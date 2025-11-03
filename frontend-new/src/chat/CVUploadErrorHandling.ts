@@ -8,37 +8,37 @@ import i18n from "src/i18n/i18n";
  */
 export const CV_UPLOAD_ERROR_I18N_KEYS = {
   // Character limit errors
-  MESSAGE_LIMIT: "common.chat.errors.messageLimit",
-  INVALID_SPECIAL_CHARACTERS: "common.chat.errors.invalidSpecialCharacters",
+  MESSAGE_LIMIT: "chat_message_error_limit",
+  INVALID_SPECIAL_CHARACTERS: "chat_message_error_invalid_chars",
 
   // File size and type errors
-  MAX_FILE_SIZE: "common.upload.errors.maxFileSize",
-  FILE_TOO_DENSE: "common.upload.errors.tooDense",
-  UNSUPPORTED_FILE_TYPE: "common.upload.errors.unsupportedFileType",
+  MAX_FILE_SIZE: "chat_message_cv_error_max_file_size",
+  FILE_TOO_DENSE: "chat_message_cv_error_too_dense",
+  UNSUPPORTED_FILE_TYPE: "chat_message_cv_error_unsupported_file_type",
 
   // CV processing errors
-  CV_MARKDOWN_TOO_LONG: "common.upload.errors.cvMarkdownTooLong",
-  EMPTY_CV_PARSE: "common.upload.errors.emptyParse",
-  GENERIC_UPLOAD_ERROR: "common.upload.errors.generic",
+  CV_MARKDOWN_TOO_LONG: "chat_message_cv_error_cv_markdown_too_long",
+  EMPTY_CV_PARSE: "chat_message_cv_error_empty_parse",
+  GENERIC_UPLOAD_ERROR: "chat_message_cv_error_generic",
 
   // Rate limiting and quota errors
-  RATE_LIMIT_WAIT: "common.upload.errors.rateLimit",
-  MAX_UPLOADS_REACHED: "common.upload.errors.maxUploadsReached",
+  RATE_LIMIT_WAIT: "chat_message_cv_error_rate_limit",
+  MAX_UPLOADS_REACHED: "chat_message_cv_error_max_uploads_reached",
 
   // Duplicate and conflict errors
-  DUPLICATE_CV: "common.upload.errors.duplicate",
+  DUPLICATE_CV: "chat_message_cv_error_duplicate",
 
   // Timeout errors
-  UPLOAD_TIMEOUT: "common.upload.errors.timeout",
+  UPLOAD_TIMEOUT: "chat_message_cv_error_timeout",
 
   // Authentication errors
-  UNAUTHORIZED: "common.upload.errors.unauthorized",
+  UNAUTHORIZED: "chat_message_cv_error_unauthorized",
 
   // Not found errors
-  UPLOAD_NOT_FOUND: "common.upload.errors.uploadNotFound",
+  UPLOAD_NOT_FOUND: "chat_message_cv_error_upload_not_found",
 
   // Generic server errors
-  SERVER_ERROR: "common.upload.errors.generic",
+  SERVER_ERROR: "chat_message_cv_error_generic",
 } as const;
 
 /**
@@ -75,7 +75,7 @@ export const getCvUploadErrorMessageFromHttpStatus = (status: number, detail?: s
     case StatusCodes.INTERNAL_SERVER_ERROR:
     default:
       // If backend provided a detail message, return it as-is (will be rendered literally)
-      return detail || CV_UPLOAD_ERROR_I18N_KEYS.SERVER_ERROR;
+      return detail || CV_UPLOAD_ERROR_MESSAGES.SERVER_ERROR;
   }
 };
 
@@ -127,22 +127,22 @@ export const getUploadErrorMessage = (status: number, detail?: string): string =
   switch (status) {
     case 401:
     case 403:
-      return i18n.t(CV_UPLOAD_ERROR_I18N_KEYS.UNAUTHORIZED);
+      return i18n.t(CV_UPLOAD_ERROR_MESSAGES.UNAUTHORIZED);
     case 404:
-      return i18n.t(CV_UPLOAD_ERROR_I18N_KEYS.UPLOAD_NOT_FOUND);
+      return i18n.t(CV_UPLOAD_ERROR_MESSAGES.UPLOAD_NOT_FOUND);
     case 413:
-      return i18n.t(CV_UPLOAD_ERROR_I18N_KEYS.MAX_FILE_SIZE);
+      return i18n.t(CV_UPLOAD_ERROR_MESSAGES.MAX_FILE_SIZE);
     case 415:
-      return i18n.t(CV_UPLOAD_ERROR_I18N_KEYS.UNSUPPORTED_FILE_TYPE);
+      return i18n.t(CV_UPLOAD_ERROR_MESSAGES.UNSUPPORTED_FILE_TYPE);
     case 429:
-      return i18n.t(CV_UPLOAD_ERROR_I18N_KEYS.RATE_LIMIT_WAIT);
+      return i18n.t(CV_UPLOAD_ERROR_MESSAGES.RATE_LIMIT_WAIT);
     case 408:
     case 504:
-      return i18n.t(CV_UPLOAD_ERROR_I18N_KEYS.UPLOAD_TIMEOUT);
+      return i18n.t(CV_UPLOAD_ERROR_MESSAGES.UPLOAD_TIMEOUT);
     case 409:
-      return i18n.t(CV_UPLOAD_ERROR_I18N_KEYS.DUPLICATE_CV);
+      return i18n.t(CV_UPLOAD_ERROR_MESSAGES.DUPLICATE_CV);
     case 500:
     default:
-      return detail || i18n.t(CV_UPLOAD_ERROR_I18N_KEYS.GENERIC_UPLOAD_ERROR);
+      return detail || i18n.t(CV_UPLOAD_ERROR_MESSAGES.GENERIC_UPLOAD_ERROR);
   }
 };
