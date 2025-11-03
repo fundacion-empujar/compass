@@ -62,7 +62,7 @@ const RegisterWithEmailForm: React.FC<Readonly<RegisterFormProps>> = ({
     >
       <TextField
         fullWidth
-        label={t("common.fields.email")}
+        label={t("email")}
         type="email"
         disabled={isRegistering || disabled}
         variant="outlined"
@@ -72,7 +72,7 @@ const RegisterWithEmailForm: React.FC<Readonly<RegisterFormProps>> = ({
       />
       <PasswordInput
         fullWidth
-        label={t("common.fields.password")}
+        label={t("password")}
         disabled={isRegistering || disabled}
         variant="outlined"
         required
@@ -94,7 +94,7 @@ const RegisterWithEmailForm: React.FC<Readonly<RegisterFormProps>> = ({
         {isRegistering ? (
           <CircularProgress
             color={"secondary"}
-            aria-label={t("auth.pages.register.components.registerWithEmailForm.registeringAria")}
+            aria-label={t("registering_aria")}
             data-testid={DATA_TEST_ID.REGISTER_BUTTON_CIRCULAR_PROGRESS}
             size={16}
             sx={{ marginTop: theme.tabiyaSpacing.sm, marginBottom: theme.tabiyaSpacing.sm }}
