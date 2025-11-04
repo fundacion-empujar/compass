@@ -26,9 +26,8 @@ export const useFieldsConfig = () => {
   useEffect(() => {
     const fetchConfig = async () => {
       try {
-        // Build localized path
-        // Example: /data/config/fields_en.yaml
-        const lang = i18n.language || "en-gb";
+        // Build localized path (e.g., /data/config/fields-en-gb.yaml)
+        const lang = i18n.language || DEFAULT_LOCALE;
         const configPath = `${CONFIG_BASE_PATH}/fields-${lang}.yaml`;
 
         const response = await customFetch(configPath, {
