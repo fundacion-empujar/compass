@@ -70,9 +70,9 @@ export const DATA_TEST_ID = {
 
 // i18n notification message keys (tests/components should resolve via t(<key>))
 export const NOTIFICATION_MESSAGES_TEXT = {
-  NEW_CONVERSATION_STARTED: "chat.chat.notifications.startConversationSuccess",
-  SUCCESSFULLY_LOGGED_OUT: "chat.chat.notifications.logoutSuccess",
-  FAILED_TO_START_CONVERSATION: "chat.chat.notifications.startConversationFailed",
+  NEW_CONVERSATION_STARTED: "new_conversation_started",
+  SUCCESSFULLY_LOGGED_OUT: "successfully_logged_out",
+  FAILED_TO_START_CONVERSATION: "failed_to_start_conversation",
 } as const;
 
 interface ChatProps {
@@ -217,7 +217,7 @@ export const Chat: React.FC<Readonly<ChatProps>> = ({
       setExperiences(data);
     } catch (error) {
       console.error(new ChatError("Failed to retrieve experiences", error));
-      enqueueSnackbar(t("chat.chat.notifications.experiencesFetchFailed"), { variant: "error" });
+      enqueueSnackbar(t("experiences_fetch_failed"), { variant: "error" });
     } finally {
       setIsLoading(false);
     }
@@ -309,7 +309,7 @@ return {
         removeMessageFromChat(messageId);
         const items: string[] | undefined = status.experience_bullets ?? undefined;
         if (Array.isArray(items) && items.length > 0) {
-          const intro = t("chat.util.messages.experiencesIntro");
+          const intro = t("chat_message_experiences_intro");
           const bullets = items
             .map((s) => (s?.trim()?.length ? `• ${s.trim()}` : ""))
             .filter(Boolean)
@@ -317,7 +317,7 @@ return {
           const composed = bullets ? `${intro}\n${bullets}` : intro;
           setPrefillMessage(composed);
         }
-        enqueueSnackbar(t("chat.cvUploadPolling.uploadedSuccessfully"), { variant: "success" });
+        enqueueSnackbar(t("cv_upload_uploaded_successfully"), { variant: "success" });
       },
       onTerminal: (_status: UploadStatus) => {
         stopPollingForUpload(uploadId, handles.intervalId as any, handles.timeoutId as any);
@@ -351,7 +351,7 @@ return {
         } else if (statusCode) {
           enqueueSnackbar(getUploadErrorMessage(statusCode, detail), { variant: "error" });
         } else {
-          enqueueSnackbar(t("chat.cvUploadPolling.networkErrorStatus"), { variant: "error" });
+          enqueueSnackbar(t("cv_upload_network_error_status"), { variant: "error" });
         }
         console.error("Error polling upload status:", error);
       },
@@ -374,14 +374,14 @@ return {
               ...msg,
               payload: {
                 ...msg.payload,
-                message: t("chat.cvUploadPolling.cancelled"),
+                message: t("cv_upload_cancelled"),
                 disabled: true,
               }
             };
           }
           return msg;
         }));
-        enqueueSnackbar(t("chat.cvUploadPolling.cancelled"), { variant: "info" });
+        enqueueSnackbar(t("cv_upload_cancelled"), { variant: "info" });
         return;
       }
 
@@ -397,7 +397,7 @@ return {
             ...msg,
             payload: {
               ...msg.payload,
-              message: t("chat.cvUploadPolling.cancelled"),
+              message: t("cv_upload_cancelled"),
               disabled: true,
             }
           };
@@ -411,10 +411,10 @@ return {
         stopPollingForUpload(uploadId, uploadInfo.intervalId, uploadInfo.timeoutId);
       }
 
-      enqueueSnackbar(t("chat.cvUploadPolling.cancelled"), { variant: "info" });
+      enqueueSnackbar(t("cv_upload_cancelled"), { variant: "info" });
     } catch (error) {
       console.error("Error cancelling upload:", error);
-      enqueueSnackbar(t("chat.cvUploadPolling.failedToCancel"), { variant: "error" });
+      enqueueSnackbar(t("cv_upload_failed_to_cancel"), { variant: "error" });
     }
   }, [activeUploads, enqueueSnackbar, stopPollingForUpload, t]);
 
@@ -431,7 +431,7 @@ return {
         // Clear any previous prefill and CV upload errors to avoid stale text on new uploads
         setPrefillMessage(null);
         setCvUploadError(null);
-  enqueueSnackbar(t("chat.cvUploadPolling.uploadingFileNamed", { filename: file.name }), { variant: "info" });
+  enqueueSnackbar(t("cv_upload_uploading_file_named", { filename: file.name }), { variant: "info" });
 
         const currentUserId = authenticationStateService.getInstance().getUser()?.id;
         if (!currentUserId) {
@@ -485,7 +485,7 @@ return {
           // No upload id – treat as immediate failure
           removeMessageFromChat(uploadingMessageId);
           console.log("Failed to start upload. Backend did not return uploadId ", response)
-          enqueueSnackbar(t("chat.cvUploadPolling.failedToStart"), { variant: "error" });
+          enqueueSnackbar(t("cv_upload_failed_to_start"), { variant: "error" });
           return [] as string[];
         }
 
