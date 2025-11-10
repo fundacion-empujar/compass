@@ -248,14 +248,9 @@ const RotateToSolveTask: React.FC<RotateToSolveTaskProps> = ({
     >
   
       <Typography variant="body1" color="text.secondary" data-testid={DATA_TEST_ID.INSTRUCTION_TEXT}>
-        {/* react-i18next Trans expects an array of components when using numeric <0/> <1/> placeholders */}
-        <Trans
-          i18nKey="skillsRanking_rotateToSolve_instructions"
-          components={[
-            <RotateRightIcon key="rotate-right-icon" fontSize="inherit" sx={{ verticalAlign: "text-bottom" }} />,
-            <RotateLeftIcon key="rotate-left-icon" fontSize="inherit" sx={{ verticalAlign: "text-bottom" }} />,
-          ]}
-        />
+        {t("skillsRanking_rotateToSolve_instructions_1")}{" "}
+        <RotateRightIcon fontSize="inherit" sx={{ verticalAlign: "text-bottom" }} />{t("skillsRanking_rotateToSolve_instructions_2")}{" "}
+        <RotateLeftIcon fontSize="inherit" sx={{ verticalAlign: "text-bottom" }} />.
       </Typography>
       
       <Box
