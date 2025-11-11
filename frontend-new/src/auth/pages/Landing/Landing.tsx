@@ -202,7 +202,7 @@ const Landing: React.FC = () => {
                   onClick={() => navigate(routerPaths.LOGIN)}
                   data-testid={DATA_TEST_ID.LANDING_LOGIN_BUTTON}
                 >
-                  {t("login")} {/* Changed from "Login" */}
+                  {t("common.buttons.login")} {/* Changed from "Login" */}
                 </PrimaryButton>
                 {!registrationDisabled && (
                   <SecondaryButton
@@ -212,7 +212,7 @@ const Landing: React.FC = () => {
                     onClick={() => navigate(routerPaths.REGISTER)}
                     data-testid={DATA_TEST_ID.LANDING_SIGNUP_BUTTON}
                   >
-                    {t("register")} {/* Changed from "Register" */}
+                    {t("common.buttons.register")} {/* Changed from "Register" */}
                   </SecondaryButton>
                 )}
               </Box>
