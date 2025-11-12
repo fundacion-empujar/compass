@@ -255,7 +255,7 @@ const SensitiveDataForm: React.FC = () => {
     // Check if the form is valid based on current validation state
     if (!isFormValid(validationErrors)) {
       console.warn("User attempted to submit invalid sensitive data form.");
-      enqueueSnackbar(t("sensitive_data_invalid_form"), { variant: "error" });
+      enqueueSnackbar(t("sensitiveData.components.sensitiveDataForm.invalidForm"), { variant: "error" });
       return;
     }
 
@@ -281,15 +281,15 @@ const SensitiveDataForm: React.FC = () => {
       PersistentStorageService.setPersonalInfo(extractPersonalInfo(sensitiveData, fields));
       console.info("User confirmed providing personal data and saved successfully.");
 
-      enqueueSnackbar(t("sensitive_data_saved_success"), { variant: "success" });
+      enqueueSnackbar(t("sensitiveData.components.sensitiveDataForm.savedSuccess"), { variant: "success" });
       navigate(routerPaths.ROOT);
     } catch (e) {
       console.error("Failed to save personal data", e);
-      let friendlyErrorMessage = t("sensitive_data_error_default");
+      let friendlyErrorMessage = t("sensitiveData.components.sensitiveDataForm.errorDefault");
       if (e instanceof RestAPIError) {
         friendlyErrorMessage = getUserFriendlyErrorMessage(e);
       } else if (e instanceof EncryptedDataTooLarge) {
-        friendlyErrorMessage = t("sensitive_data_error_encrypted_data_too_large");
+        friendlyErrorMessage = t("sensitiveData.components.sensitiveDataForm.errorEncryptedDataTooLarge");
       }
       enqueueSnackbar(friendlyErrorMessage, { variant: "error" });
 
@@ -331,7 +331,7 @@ const SensitiveDataForm: React.FC = () => {
       });
       console.info("User skipped providing sensitive data.");
 
-  enqueueSnackbar(t("sensitive_data_collection_skipped"), { variant: "success" });
+  enqueueSnackbar(t("sensitiveData.components.sensitiveDataForm.collectionSkipped"), { variant: "success" });
       navigate(routerPaths.ROOT);
     } catch (e) {
       console.error("Failed to skip personal data", e);
@@ -365,7 +365,7 @@ const SensitiveDataForm: React.FC = () => {
         <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="100%">
           <Box color="error.main" mb={2}>
             <Typography data-testid={DATA_TEST_ID.SENSITIVE_DATA_FORM_ERROR_MESSAGE}>
-              {t("sensitive_data_failed_to_load_config")}
+              {t("sensitiveData.components.sensitiveDataForm.failedToLoadConfig")}
             </Typography>
           </Box>
           <PrimaryButton
@@ -400,14 +400,14 @@ const SensitiveDataForm: React.FC = () => {
               }}
             >
               <AuthHeader
-                title={t("sensitive_data_title")}
+                title={t("sensitiveData.components.sensitiveDataForm.title")}
                 subtitle={
                   <>
-                    {t("sensitive_data_subtitle")}
+                    {t("sensitiveData.components.sensitiveDataForm.subtitle")}
                     {isPIIRequired
-                      ? " " + t("sensitive_data_unskippable_subtitle")
-                      : " " + t("sensitive_data_skippable_subtitle")}
-                    <HelpTip icon={<PrivacyTipIcon />}>{t("sensitive_data_help_tip_text")}</HelpTip>
+                      ? " " + t("sensitiveData.components.sensitiveDataForm.unskippableSubtitle")
+                      : " " + t("sensitiveData.components.sensitiveDataForm.skippableSubtitle")}
+                    <HelpTip icon={<PrivacyTipIcon />}>{t("sensitiveData.components.sensitiveDataForm.helpTipText")}</HelpTip>
                   </>
                 }
               />
@@ -474,7 +474,7 @@ const SensitiveDataForm: React.FC = () => {
                         data-testid={DATA_TEST_ID.SENSITIVE_DATA_FORM_BUTTON_CIRCULAR_PROGRESS}
                       />
                     ) : (
-                      t("start_conversation")
+                      t("sensitiveData.components.sensitiveDataForm.startConversation")
                     )}
                   </PrimaryButton>
                 </Box>
@@ -489,7 +489,7 @@ const SensitiveDataForm: React.FC = () => {
                 id: "1",
                 text: (
                   <>
-                    {t("sensitive_data_reject_paragraph_1")}{" "}
+                    {t("sensitiveData.components.sensitiveDataForm.rejectParagraph1")}{" "}
                     <HighlightedSpan>{t("common.backdrop.loggingYouOut")}</HighlightedSpan>
                   </>
                 ),
@@ -517,14 +517,14 @@ const SensitiveDataForm: React.FC = () => {
                 id: "1",
                 text: (
                   <>                  
-                    {t("sensitive_data_skip_paragraph_1")}{" "}
-                    <HighlightedSpan>{t("sensitive_data_skip_paragraph_1_highlighted")}</HighlightedSpan>
+                    {t("sensitiveData.components.sensitiveDataForm.skipParagraph1")}{" "}
+                    <HighlightedSpan>{t("sensitiveData.components.sensitiveDataForm.skipParagraph1Highlighted")}</HighlightedSpan>
                   </>
                 ),
               },
               {
                 id: "2",
-                text: <>{t("are_you_sure_you_want_to_skip")}</>,
+                text: <>{t("sensitiveData.components.sensitiveDataForm.areYouSureYouWantToSkip")}</>,
               },
             ]}
             onCancel={handleSkipProvidingSensitiveData}
@@ -534,10 +534,10 @@ const SensitiveDataForm: React.FC = () => {
             onConfirm={() => {
               setConfirmingSkip(false);
             }}
-            cancelButtonText={t("yes_skip")}
-            confirmButtonText={t("share_data")}
+            cancelButtonText={t("sensitiveData.components.sensitiveDataForm.yesSkip")}
+            confirmButtonText={t("sensitiveData.components.sensitiveDataForm.shareData")}
           />
-          <Backdrop isShown={isSkipping || isRejecting} message={isSkipping ? t("skipping") : t("common.backdrop.loggingYouOut")} />
+          <Backdrop isShown={isSkipping || isRejecting} message={isSkipping ? t("sensitiveData.components.sensitiveDataForm.skipping") : t("common.backdrop.loggingYouOut")} />
         </>
       )}
     </Suspense>

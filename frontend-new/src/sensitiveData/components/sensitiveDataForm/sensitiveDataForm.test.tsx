@@ -783,7 +783,7 @@ describe("Sensitive Data Form", () => {
       // THEN the specific error message for encrypted data too large should be shown (via i18n)
       const i18n = require("src/i18n/i18n").default;
       expect(useSnackbar().enqueueSnackbar).toHaveBeenCalledWith(
-        i18n.t("sensitive_data_error_encrypted_data_too_large"),
+        i18n.t("sensitiveData.components.sensitiveDataForm.errorEncryptedDataTooLarge"),
         {
           variant: "error",
         }
