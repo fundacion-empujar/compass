@@ -151,7 +151,7 @@ export const ReactionButtons: React.FC<ReactionButtonsProps> = ({ messageId, cur
           }}
           onClick={handleLikeClick}
           data-testid={DATA_TEST_ID.BUTTON_LIKE}
-          title={t("like")}
+          title={t("chat.reaction.components.reactionButtons.likeLabel")}
           disabled={!isOnline || isSubmitting}
         >
           {reaction === ReactionKind.LIKED ? (
@@ -176,7 +176,7 @@ export const ReactionButtons: React.FC<ReactionButtonsProps> = ({ messageId, cur
           }}
           onClick={handleDislikeClick}
           data-testid={DATA_TEST_ID.BUTTON_DISLIKE}
-          title={t("dislike")}
+          title={t("chat.reaction.components.reactionButtons.dislikeLabel")}
           disabled={!isOnline || isSubmitting}
         >
           {reaction === ReactionKind.DISLIKED ? (
