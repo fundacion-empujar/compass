@@ -172,7 +172,7 @@ describe("CustomerSatisfactionRating", () => {
     // AND the given callback to not have been called
     expect(givenNotifyOnSubmitted).not.toHaveBeenCalled();
     // AND the error to be logged
-    expect(console.error).toHaveBeenCalledWith(new FeedbackError("Feedback submission failed:", expect.any(Error)));
+    expect(console.error).toHaveBeenCalledWith("Feedback submission failed:", expect.any(Error));
     // AND expect no warning to have occurred
     expect(console.warn).not.toHaveBeenCalled();
   });
@@ -202,7 +202,7 @@ describe("CustomerSatisfactionRating", () => {
     // AND the given callback to not have been called
     expect(givenNotifyOnSubmitted).not.toHaveBeenCalled();
     // AND the error to be logged
-    expect(console.error).toHaveBeenCalledWith(new FeedbackError("Feedback submission failed:", expect.any(Error)));
+    expect(console.error).toHaveBeenCalledWith("Feedback submission failed:", expect.any(Error));
     // AND expect no warning to have occurred
     expect(console.warn).not.toHaveBeenCalled();
   });

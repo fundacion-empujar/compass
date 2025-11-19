@@ -1159,10 +1159,7 @@ describe("ChatMessageField", () => {
             open: true,
             items: expect.arrayContaining([
               expect.objectContaining({
-                description: i18n.t("chat.chatMessageField.uploadCvCollectExperiences", {
-                  MAX_FILE_SIZE_MB,
-                  MAX_MARKDOWN_CHARS,
-                }),
+                description: "Attach your CV to the conversation",
                 disabled: false, // Should be enabled in COLLECT_EXPERIENCES phase
               }),
             ]),
