@@ -7,6 +7,8 @@ import ChatMessageField, {
   DISALLOWED_CHARACTERS,
   MENU_ITEM_ID,
   MAX_FILE_SIZE_BYTES,
+  MAX_FILE_SIZE_MB,
+  MAX_MARKDOWN_CHARS
 } from "./ChatMessageField";
 import { render, screen, fireEvent, act, userEvent, waitFor } from "src/_test_utilities/test-utils";
 import { mockBrowserIsOnLine, unmockBrowserIsOnLine } from "src/_test_utilities/mockBrowserIsOnline";
@@ -1159,7 +1161,10 @@ describe("ChatMessageField", () => {
             open: true,
             items: expect.arrayContaining([
               expect.objectContaining({
-                description: "Attach your CV to the conversation",
+                description: i18n.t("chat.chatMessageField.uploadCvCollectExperiences", {
+                  MAX_FILE_SIZE_MB,
+                  MAX_MARKDOWN_CHARS,
+                }),
                 disabled: false, // Should be enabled in COLLECT_EXPERIENCES phase
               }),
             ]),

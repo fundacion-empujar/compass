@@ -56,6 +56,9 @@ window.tabiyaConfig = {
   FRONTEND_DATE_SPLITTER: btoa("/"),
 
 
+  // ################################################################
+  // #       Auth Settings.
+  // ################################################################
   FRONTEND_DISABLE_LOGIN_CODE: btoa("false"),
   FRONTEND_DISABLE_REGISTRATION: btoa("false"),
   FRONTEND_DISABLE_SOCIAL_AUTH: btoa("false"),

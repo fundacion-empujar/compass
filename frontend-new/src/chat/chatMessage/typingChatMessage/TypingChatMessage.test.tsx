@@ -50,7 +50,7 @@ describe("TypingChatMessage", () => {
     // AND expect the message bubble to be visible
     expect(screen.getByTestId(CHAT_BUBBLE_DATA_TEST_ID.CHAT_MESSAGE_BUBBLE_CONTAINER)).toBeInTheDocument();
   // AND expect the typing text to be displayed (translated)
-  expect(screen.getByText(i18n.t(UI_TEXT.TYPING))).toBeInTheDocument();
+  expect(screen.getByText(i18n.t(UI_TEXT_KEYS.TYPING))).toBeInTheDocument();
     // AND expect to find 3 dots (periods)
     const dots = screen.getAllByText(".");
     expect(dots).toHaveLength(3);
@@ -80,7 +80,7 @@ describe("TypingChatMessage", () => {
     });
 
   // THEN expect the thinking text to be displayed (translated)
-  expect(screen.getByText(i18n.t(UI_TEXT.THINKING))).toBeInTheDocument();
+  expect(screen.getByText(i18n.t(UI_TEXT_KEYS.THINKING))).toBeInTheDocument();
     // AND expect to find 3 dots (periods)
     const dots = screen.getAllByText(".");
     expect(dots).toHaveLength(3);
@@ -100,9 +100,9 @@ describe("TypingChatMessage", () => {
     render(givenComponent);
 
   // THEN initially it should display the typing text (translated)
-  expect(screen.getByText(i18n.t(UI_TEXT.TYPING))).toBeInTheDocument();
+  expect(screen.getByText(i18n.t(UI_TEXT_KEYS.TYPING))).toBeInTheDocument();
   // AND the thinking text should not be displayed (translated)
-  expect(screen.queryByText(i18n.t(UI_TEXT.THINKING))).not.toBeInTheDocument();
+  expect(screen.queryByText(i18n.t(UI_TEXT_KEYS.THINKING))).not.toBeInTheDocument();
 
     // WHEN advancing time past the waitBeforeThinking time
     act(() => {
@@ -110,9 +110,9 @@ describe("TypingChatMessage", () => {
     });
 
   // THEN it should now display the thinking text (translated)
-  expect(screen.getByText(i18n.t(UI_TEXT.THINKING))).toBeInTheDocument();
+  expect(screen.getByText(i18n.t(UI_TEXT_KEYS.THINKING))).toBeInTheDocument();
   // AND the typing text should not be displayed (translated)
-  expect(screen.queryByText(i18n.t(UI_TEXT.TYPING))).not.toBeInTheDocument();
+  expect(screen.queryByText(i18n.t(UI_TEXT_KEYS.TYPING))).not.toBeInTheDocument();
     // AND expect no errors or warnings to have occurred
     expect(console.error).not.toHaveBeenCalled();
     expect(console.warn).not.toHaveBeenCalled();

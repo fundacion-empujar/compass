@@ -75,7 +75,7 @@ export const getCvUploadErrorMessageFromHttpStatus = (status: number, detail?: s
     case StatusCodes.INTERNAL_SERVER_ERROR:
     default:
       // If backend provided a detail message, return it as-is (will be rendered literally)
-      return detail || CV_UPLOAD_ERROR_MESSAGES.SERVER_ERROR;
+      return detail || CV_UPLOAD_ERROR_I18N_KEYS.SERVER_ERROR;
   }
 };
 
@@ -127,22 +127,22 @@ export const getUploadErrorMessage = (status: number, detail?: string): string =
   switch (status) {
     case 401:
     case 403:
-      return i18n.t(CV_UPLOAD_ERROR_MESSAGES.UNAUTHORIZED);
+      return i18n.t(CV_UPLOAD_ERROR_I18N_KEYS.UNAUTHORIZED);
     case 404:
-      return i18n.t(CV_UPLOAD_ERROR_MESSAGES.UPLOAD_NOT_FOUND);
+      return i18n.t(CV_UPLOAD_ERROR_I18N_KEYS.UPLOAD_NOT_FOUND);
     case 413:
-      return i18n.t(CV_UPLOAD_ERROR_MESSAGES.MAX_FILE_SIZE);
+      return i18n.t(CV_UPLOAD_ERROR_I18N_KEYS.MAX_FILE_SIZE);
     case 415:
-      return i18n.t(CV_UPLOAD_ERROR_MESSAGES.UNSUPPORTED_FILE_TYPE);
+      return i18n.t(CV_UPLOAD_ERROR_I18N_KEYS.UNSUPPORTED_FILE_TYPE);
     case 429:
-      return i18n.t(CV_UPLOAD_ERROR_MESSAGES.RATE_LIMIT_WAIT);
+      return i18n.t(CV_UPLOAD_ERROR_I18N_KEYS.RATE_LIMIT_WAIT);
     case 408:
     case 504:
-      return i18n.t(CV_UPLOAD_ERROR_MESSAGES.UPLOAD_TIMEOUT);
+      return i18n.t(CV_UPLOAD_ERROR_I18N_KEYS.UPLOAD_TIMEOUT);
     case 409:
-      return i18n.t(CV_UPLOAD_ERROR_MESSAGES.DUPLICATE_CV);
+      return i18n.t(CV_UPLOAD_ERROR_I18N_KEYS.DUPLICATE_CV);
     case 500:
     default:
-      return detail || i18n.t(CV_UPLOAD_ERROR_MESSAGES.GENERIC_UPLOAD_ERROR);
+      return detail || i18n.t(CV_UPLOAD_ERROR_I18N_KEYS.GENERIC_UPLOAD_ERROR);
   }
 };

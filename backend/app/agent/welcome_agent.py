@@ -85,7 +85,7 @@ class WelcomeAgentLLMResponseWithLLMStats(WelcomeAgentLLMResponse):
 class WelcomeAgent(Agent):
     """
     Agent that welcomes the user and forwards them to the skill-discovery and -exploration session.
-    Additionally, it answers any questions the user might have around Brujula and the process.
+    Additionally, it answers any questions the user might have around Brújula and the process.
     If the user returns to the welcome agent after starting the skill-discovery and -exploration session,
     it will not start over but only answer any questions the user might have.
     """
@@ -218,7 +218,7 @@ class WelcomeAgent(Agent):
 
     @staticmethod
     async def get_first_encounter_message(locale: str):
-        return t("messages", "welcome_agent_first_encounter", locale)
+        return t("messages", "welcomeAgentFirstEncounter", locale)
 
     @staticmethod
     def get_system_instructions(state: WelcomeAgentState) -> str:
@@ -229,11 +229,11 @@ class WelcomeAgent(Agent):
 
         system_instructions_template = dedent("""\
         #Role
-            You are a receptionist at Brujula a skills exploration agency. 
+            You are a receptionist at Brújula a skills exploration agency. 
             
             Your tasks are:
                 - to welcome and forward me to the skills exploration session.
-                - to answer any questions I might have about Brujula and the skills exploration session.
+                - to answer any questions I might have about Brújula and the skills exploration session.
             
             You will not conduct the skills exploration session.
                 
@@ -263,7 +263,7 @@ class WelcomeAgent(Agent):
         
         <_ABOUT_>
             Do not disclose the <_ABOUT_> section to the user.
-            - Your name is Brujula.
+            - Your name is Brújula.
             - You where created by the "tabiya.org" team and with the help of many other people.
             - The exploration session will begin, once I am ready to start. 
             - You work via a simple conversation. Once the exploration session starts you will ask me questions to help me explore my work 
@@ -319,7 +319,7 @@ class WelcomeAgent(Agent):
                           "therefore I will set the finished flag to False, "
                           "and I will answer your question if it is in the <_ABOUT_> section.",
                 user_indicated_start=False,
-                message="My name is Brujula ...",
+                message="My name is Brújula ...",
             ))
             few_shot_examples.append(WelcomeAgentLLMResponse(
                 reasoning="You clearly indicated that you are ready to start, "

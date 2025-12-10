@@ -151,7 +151,7 @@ class _ResponsibilitiesExtractionLLM:
         </System Instructions>
         """)
 
-        return system_instructions_template.format(language_style=STD_LANGUAGE_STYLE)
+        return system_instructions_template.format(language_style=get_language_style())
 
     @staticmethod
     def _extraction_prompt_template(context: ConversationContext, last_user_input: str) -> str:

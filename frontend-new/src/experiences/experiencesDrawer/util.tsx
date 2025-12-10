@@ -18,6 +18,31 @@ import SchoolIcon from "@mui/icons-material/School";
 import QuizIcon from "@mui/icons-material/Quiz";
 import i18n from "src/i18n/i18n";
 
+
+/**
+ * Centralized error messages with i18n support
+ */
+export const ERROR_MESSAGES = {
+  get EXPERIENCE_TITLE() {
+    return i18n.t("errors.experienceTitleMaxLength", { max: EXPERIENCE_TITLE_MAX_LENGTH });
+  },
+  get COMPANY() {
+    return i18n.t("errors.companyMaxLength", { max: COMPANY_MAX_LENGTH });
+  },
+  get LOCATION() {
+    return i18n.t("errors.locationMaxLength", { max: LOCATION_MAX_LENGTH });
+  },
+  get SUMMARY() {
+    return i18n.t("errors.summaryMaxLength", { max: SUMMARY_MAX_LENGTH });
+  },
+  get TIMELINE_START() {
+    return i18n.t("errors.timelineMaxLength", { max: TIMELINE_MAX_LENGTH });
+  },
+  get TIMELINE_END() {
+    return i18n.t("errors.timelineMaxLength", { max: TIMELINE_MAX_LENGTH });
+  },
+} as const;
+
 export const WORK_TYPE_DESCRIPTIONS = {
   get SELF_EMPLOYMENT() {
     return i18n.t("experiences.experiencesDrawer.util.workTypeDescription.selfEmployment");
@@ -35,6 +60,9 @@ export const WORK_TYPE_DESCRIPTIONS = {
     return i18n.t("experiences.experiencesDrawer.util.workTypeDescription.uncategorized");
   },
 } as const;
+
+
+
 
 export const getWorkTypeTitle = (workType: WorkType | null) => {
   switch (workType) {

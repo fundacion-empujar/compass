@@ -3,7 +3,7 @@ import "src/_test_utilities/consoleMock";
 import "src/_test_utilities/envServiceMock"
 
 import React from "react";
-import { render, screen, act, waitFor} from "src/_test_utilities/test-utils";
+import { render, screen, act, waitFor } from "src/_test_utilities/test-utils";
 import CustomerSatisfactionRating, { UI_TEXT, DATA_TEST_ID } from "./CustomerSatisfaction";
 import i18n from "src/i18n/i18n";
 import CustomRating, { DATA_TEST_ID as CUSTOM_RATING_DATA_TEST_ID } from "src/feedback/overallFeedback/feedbackForm/components/customRating/CustomRating";
@@ -16,6 +16,7 @@ import {
   SensitivePersonalDataRequirement,
   UserPreference,
 } from "src/userPreferences/UserPreferencesService/userPreferences.types";
+import { FeedbackError } from "src/error/commonErrors";
 import { mockBrowserIsOnLine } from "src/_test_utilities/mockBrowserIsOnline";
 import { resetAllMethodMocks } from "src/_test_utilities/resetAllMethodMocks";
 import { FeedbackResponse, QUESTION_KEYS } from "src/feedback/overallFeedback/overallFeedbackService/OverallFeedback.service.types";
@@ -172,7 +173,7 @@ describe("CustomerSatisfactionRating", () => {
     // AND the given callback to not have been called
     expect(givenNotifyOnSubmitted).not.toHaveBeenCalled();
     // AND the error to be logged
-    expect(console.error).toHaveBeenCalledWith("Feedback submission failed:", expect.any(Error));
+    expect(console.error).toHaveBeenCalledWith(expect.any(FeedbackError));
     // AND expect no warning to have occurred
     expect(console.warn).not.toHaveBeenCalled();
   });
@@ -202,7 +203,7 @@ describe("CustomerSatisfactionRating", () => {
     // AND the given callback to not have been called
     expect(givenNotifyOnSubmitted).not.toHaveBeenCalled();
     // AND the error to be logged
-    expect(console.error).toHaveBeenCalledWith("Feedback submission failed:", expect.any(Error));
+    expect(console.error).toHaveBeenCalledWith(expect.any(FeedbackError));
     // AND expect no warning to have occurred
     expect(console.warn).not.toHaveBeenCalled();
   });

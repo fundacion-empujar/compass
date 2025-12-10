@@ -158,8 +158,8 @@ def _construct_env_js_content(*, artifacts_dir: str, stack_name: str):
         "FRONTEND_DISABLE_REGISTRATION": base64_encode(disable_registration),
         "FRONTEND_DISABLE_SOCIAL_AUTH": base64_encode(disable_social_auth),
         "FRONTEND_FEATURES": base64_encode(features),
-        "FRONTEND_SUPPORTED_LANGUAGES": base64_encode(supported_languages),
-        "FRONTEND_DEFAULT_LOCALE": base64_encode(default_language),
+        "FRONTEND_SUPPORTED_LOCALES": base64_encode(supported_locales),
+        "FRONTEND_DEFAULT_LOCALE": base64_encode(default_locale),
     }
 
     env_json_content = f"""window.tabiyaConfig = {json.dumps(frontend_env_json, indent=4)};"""

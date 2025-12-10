@@ -352,7 +352,7 @@ const ChatMessageField: React.FC<ChatMessageFieldProps> = (props) => {
     }
 
     if (file.size > MAX_FILE_SIZE_BYTES) {
-      setErrorMessage(t(CV_UPLOAD_ERROR_I18N_KEYS.MAX_FILE_SIZE));
+      setErrorMessage(CV_UPLOAD_ERROR_I18N_KEYS.MAX_FILE_SIZE);
       return;
     }
 
@@ -478,7 +478,10 @@ const ChatMessageField: React.FC<ChatMessageFieldProps> = (props) => {
               props.currentPhase === ConversationPhase.INTRO
                 ? t("chat.chatMessageField.uploadCvIntro")
                 : props.currentPhase === ConversationPhase.COLLECT_EXPERIENCES
-                  ? t("chat.chatMessageField.uploadCvCollectExperiences")
+                  ? t("chat.chatMessageField.uploadCvCollectExperiences", {
+                      MAX_FILE_SIZE_MB,
+                      MAX_MARKDOWN_CHARS,
+                    })
                   : t("chat.chatMessageField.uploadCvOtherPhase"),
             icon: <UploadFileIcon />,
             disabled: inputIsDisabled() || props.currentPhase !== ConversationPhase.COLLECT_EXPERIENCES,
@@ -537,7 +540,7 @@ const ChatMessageField: React.FC<ChatMessageFieldProps> = (props) => {
           onKeyDown={handleKeyDown}
           inputRef={inputRef}
           error={!!errorMessage}
-          helperText={errorMessage ? t(errorMessage) : ""}
+          helperText={errorMessage ? t(errorMessage) : undefined}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">

@@ -6,6 +6,7 @@ from app.countries import Country
 from app.i18n.language_config import LanguageConfig
 from app.users.cv.constants import DEFAULT_MAX_UPLOADS_PER_USER, DEFAULT_RATE_LIMIT_PER_MINUTE
 from app.version.types import Version
+from app.i18n.types import Locale
 
 from features.types import FeatureSetupConfig
 
@@ -70,9 +71,9 @@ class ApplicationConfig(BaseModel):
     cv_max_uploads_per_user: Optional[int] = Field(default=DEFAULT_MAX_UPLOADS_PER_USER, gt=0)
     cv_rate_limit_per_minute: Optional[int] = Field(default=DEFAULT_RATE_LIMIT_PER_MINUTE, gt=0)
 
-    language_config: LanguageConfig
+    default_language: Locale
     """
-    The language configuration for the backend, including default locale and available locales with date formats.
+    The Default language to be used by the backend.
     """
 
 

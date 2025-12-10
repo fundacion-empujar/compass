@@ -108,7 +108,6 @@ describe("SummaryEditField", () => {
       expect(within(summaryContainer).getByRole("textbox")).toHaveValue(uneditedSummary);
     });
     // AND success message is shown
-    const i18n = require("src/i18n/i18n").default;
     expect(screen.getByTestId(DATA_TEST_ID.FORM_SUMMARY_HELPER)).toHaveTextContent(
       i18n.t("experiences.experiencesDrawer.components.experienceEditForm.components.summaryEditField.restored")
     );
@@ -139,7 +138,6 @@ describe("SummaryEditField", () => {
     await waitFor(() => {
       expect(console.error).toHaveBeenCalledWith(new ExperienceError("Failed to restore summary:", givenError));
     });
-    const i18n = require("src/i18n/i18n").default;
     expect(mockEnqueueSnackbar).toHaveBeenCalledWith(i18n.t("experiences.experiencesDrawer.components.experienceEditForm.components.summaryEditField.restoreFailed"), {
       variant: "error",
     });
