@@ -164,7 +164,7 @@ test_cases = [
         experience_title="Community Volunteering",
         work_type=WorkType.UNSEEN_UNPAID
     ),
-     _TestCaseConversation(
+    _TestCaseConversation(
         country_of_user=Country.ARGENTINA,
         name="argentina",
         summary="Te conté que laburo de asistente de ventas en el local de mi viejo y que también ayudo en la casa de mi vieja.",
@@ -188,7 +188,7 @@ test_cases = [
         experience_title="Asistente de ventas",
         work_type=WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT
     )
-    ]
+]
 
 
 @pytest.mark.asyncio

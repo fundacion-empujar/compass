@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 from textwrap import dedent
+from typing import Mapping, Optional
 
 import pytest
 
@@ -10,6 +11,7 @@ from app.conversation_memory.conversation_memory_manager import ConversationMemo
 from app.conversation_memory.conversation_memory_types import ConversationMemoryManagerState
 from app.i18n.translation_service import get_i18n_manager
 from app.i18n.types import Locale
+from app.countries import Country
 from app.server_config import UNSUMMARIZED_WINDOW_SIZE, TO_BE_SUMMARIZED_WINDOW_SIZE
 from common_libs.test_utilities import get_random_session_id
 from common_libs.test_utilities.guard_caplog import guard_caplog

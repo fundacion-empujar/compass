@@ -190,6 +190,7 @@ async def test_user_talks_about_occupations(caplog: LogCaptureFixture,
         actual_state = AgentState(i, turn.output.agent_type, turn.output.finished)
         assert actual_state == expected_state, f"Agent actual state: {actual_state} did have the expected state: {expected_state}"
 
+
 @pytest.mark.asyncio
 @pytest.mark.evaluation_test
 async def test_argentina_counseling_flow_simple(caplog: LogCaptureFixture,
