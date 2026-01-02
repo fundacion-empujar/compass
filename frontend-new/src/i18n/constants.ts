@@ -18,3 +18,5 @@ export const LocalesLabels = {
 } as const;
 
 export const SupportedLocales = [Locale.EN_GB, Locale.EN_US, Locale.ES_ES, Locale.ES_AR] as const;
+
+export const FALL_BACK_LOCALE = Locale.EN_GB;

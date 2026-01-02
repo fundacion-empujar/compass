@@ -4,14 +4,13 @@ import "src/_test_utilities/consoleMock";
 import { render, screen } from "src/_test_utilities/test-utils";
 import React from "react";
 
-import { render, screen } from "src/_test_utilities/test-utils";
 import LanguageContextMenu, { DATA_TEST_ID } from "./LanguageContextMenu";
 import ContextMenu from "src/theme/ContextMenu/ContextMenu";
 
 jest.mock("src/i18n/languageContextMenu/parseEnvSupportedLocales", () => {
-  const constants = require("src/i18n/constants");
+  const { Locale } = require("src/i18n/constants");
   return {
-    parseEnvSupportedLocales: jest.fn().mockReturnValue(constants.SupportedLocales),
+    parseEnvSupportedLocales: jest.fn().mockReturnValue([Locale.EN_GB, Locale.EN_US, Locale.ES_ES, Locale.ES_AR]),
   };
 });
 
@@ -29,7 +28,7 @@ describe("LanguageContextMenu", () => {
     render(<LanguageContextMenu />);
 
     // THEN the LanguageContextMenu should be rendered
-    const actualLanguageContextMenu = screen.getByTestId(DATA_TEST_ID.LANGUAGE_CONTEXT_MENU_SELECT_BUTTON);
+    const actualLanguageContextMenu = screen.getByTestId(DATA_TEST_ID.AUTH_LANGUAGE_SELECTOR_BUTTON);
     expect(actualLanguageContextMenu).toBeInTheDocument();
 
     // AND the component should match the snapshot
