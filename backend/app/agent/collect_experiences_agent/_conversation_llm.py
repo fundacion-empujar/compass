@@ -456,7 +456,6 @@ class _ConversationLLM:
                                                     unexplored_types=unexplored_types,
                                                     final_summary_sent=final_summary_sent,
                                                     final_summary_confirmed=final_summary_confirmed,
-                                                    summary_language_hint=summary_language_hint
                                                 ),
                                                 last_referenced_experience=_get_last_referenced_experience(collected_data, last_referenced_experience_index),
                                                 example_summary=_get_example_summary(),
@@ -497,7 +496,6 @@ def _transition_instructions(*,
                              unexplored_types: list[WorkType],
                              final_summary_sent: bool,
                              final_summary_confirmed: bool,
-                             summary_language_hint: str,
                              ):
     # Check if there are incomplete experiences that need to be completed first
     incomplete_experiences = _find_incomplete_experiences(collected_data)
@@ -538,11 +536,37 @@ def _transition_instructions(*,
                                                 # excluding_experiences=_get_excluding_experiences(exploring_type)
                                                 )
     else:  # Summarize and confirm the collected data
+        user_language = get_i18n_manager().get_locale().value
 
+        # Step 3: User confirmed the summary - end the conversation
+        if final_summary_confirmed:
+            end_conversation = dedent("""
+                {language_style}
+
+                Respond immediately with <END_OF_CONVERSATION>. Do not add any other text.
+            """)
+            return replace_placeholders_with_indent(end_conversation,
+                                                    language_style=get_language_style())
+
+        # Step 2: Summary was sent, waiting for user confirmation
+        if final_summary_sent:
+            wait_for_confirmation = dedent("""
+                {language_style}
+
+                You already presented the recap. Do not repeat it.
+                If I clearly state that the information is correct or I have nothing else to add, respond immediately with <END_OF_CONVERSATION>.
+                If I provide new information, follow the #Gather Details instructions instead of ending the conversation.
+                
+                YOU MUST ALWAYS: All the responses must be in {user_language} language.
+            """)
+            return replace_placeholders_with_indent(wait_for_confirmation,
+                                                    language_style=get_language_style(),
+                                                    user_language=user_language)
+
+        # Step 1: Need to present the summary for the first time
         duplicate_hint = ""
         if len(collected_data) > 1:
             duplicate_hint = "Also, with the above question inform me that if one of the work experiences seems to be duplicated, I can ask you to remove it.\n"
-        user_language = get_i18n_manager().get_locale().value
         summarize_and_confirm = dedent("""
             Explicitly summarize all the work experiences you collected and explicitly ask me if I would like to add or change anything in the information 
             you collected before moving forward to the next step. 
@@ -575,29 +599,6 @@ def _transition_instructions(*,
                                                 user_language=user_language,
                                                 summary_of_experiences=_get_summary_of_experiences(collected_data),
                                                 duplicate_hint=duplicate_hint)
-        # TODO: See if this is still necessary. So far this code is unreacheable.
-        if not final_summary_confirmed:
-            wait_for_confirmation = dedent("""
-                {language_style}
-                {summary_language_hint}
-
-                You already presented the recap. Do not repeat it.
-                If I clearly state that the information is correct or I have nothing else to add, respond immediately with <END_OF_CONVERSATION>.
-                If I provide new information, follow the #Gather Details instructions instead of ending the conversation.
-            """)
-            return replace_placeholders_with_indent(wait_for_confirmation,
-                                                    language_style=STD_LANGUAGE_STYLE,
-                                                    summary_language_hint=summary_language_hint)
-
-        end_conversation = dedent("""
-            {language_style}
-            {summary_language_hint}
-
-            Respond immediately with <END_OF_CONVERSATION>. Do not add any other text.
-        """)
-        return replace_placeholders_with_indent(end_conversation,
-                                                language_style=STD_LANGUAGE_STYLE,
-                                                summary_language_hint=summary_language_hint)
 
 
 def _get_collected_experience_data(collected_data: list[CollectedData]) -> str:
@@ -769,7 +770,6 @@ def _get_explore_experiences_instructions(*,
         Carefully review my work experiences and the information I provide to determine whether I am referring to a single work experience or multiple experiences. 
         A single work experience may involve multiple organizations or time periods.
         
-        If I provide the same work experience multiple times, you should tell me that you already have this information.
         Here are the work experiences that I have shared with you so far:
             {experiences_summary}
         
