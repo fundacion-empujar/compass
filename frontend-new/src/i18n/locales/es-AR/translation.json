@@ -258,7 +258,6 @@
         "loggingInAria": "Iniciando sesión",
         "dontHaveAnAccount": "¿No tienes una cuenta?",
         "fillInEmailAndPassword": "Por favor, rellene los campos de correo electrónico y contraseña",
-        "orLoginToYourAccountToContinue": "O inicia sesión en tu cuenta para continuar",
         "or": "o",
         "components": {
           "loginWithInviteCodeForm": {
@@ -273,7 +272,6 @@
         "registeringYou": "Registrándote...",
         "enterRegistrationCode": "Ingresa tu código de registro",
         "registrationCode": "Código de registro",
-        "andEitherContinueWith": "o continúa con",
         "components": {
           "registerWithEmailForm": {
             "registeringAria": "Registrando"

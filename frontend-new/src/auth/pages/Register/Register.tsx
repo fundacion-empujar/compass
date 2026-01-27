@@ -296,9 +296,11 @@ const Register: React.FC = () => {
         )}
         {!applicationRegistrationCode && (
           <Divider textAlign="center" style={{ width: "100%" }}>
-            <Typography variant="subtitle2" padding={theme.fixedSpacing(theme.tabiyaSpacing.sm)}>
-              {t("auth.pages.register.andEitherContinueWith")}
-            </Typography>
+            <Typography
+              variant="subtitle2"
+              padding={theme.fixedSpacing(theme.tabiyaSpacing.sm)}
+              aria-hidden="true"
+            />
           </Divider>
         )}
         <RegisterWithEmailForm

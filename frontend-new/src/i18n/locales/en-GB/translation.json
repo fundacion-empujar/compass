@@ -258,7 +258,6 @@
         "loggingInAria": "Logging in",
         "dontHaveAnAccount": "Don't have an account? ",
         "fillInEmailAndPassword": "Please fill in the email and password fields",
-        "orLoginToYourAccountToContinue": "Or login to your account to continue",
         "or": "or",
         "components": {
           "loginWithInviteCodeForm": {
@@ -273,7 +272,6 @@
         "registeringYou": "Registering you...",
         "enterRegistrationCode": "Enter your registration code",
         "registrationCode": "Registration code",
-        "andEitherContinueWith": "and either continue with",
         "components": {
           "registerWithEmailForm": {
             "registeringAria": "Registering"

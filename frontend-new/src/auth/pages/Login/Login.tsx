@@ -322,14 +322,6 @@ const Login: React.FC = () => {
   const isLoginButtonDisabled =
     isLoading || activeLoginForm === ActiveForm.NONE || ((!email || !password) && !inviteCode);
 
-  const invitationCodeAndEmailFormDividerText = useMemo(() => {
-    if (applicationLoginCode) {
-      return t("auth.pages.login.orLoginToYourAccountToContinue");
-    } else {
-      return t("auth.pages.login.or");
-    }
-  }, [applicationLoginCode, t]);
-
   const getLoginCodeComponent = useMemo(() => {
     if (loginCodeDisabled) {
       return (
@@ -370,8 +362,8 @@ const Login: React.FC = () => {
               variant="subtitle2"
               padding={theme.fixedSpacing(theme.tabiyaSpacing.sm)}
               data-testid={DATA_TEST_ID.SUBTITLE}
+              aria-hidden="true"
             >
-              {invitationCodeAndEmailFormDividerText}
             </Typography>
           </Divider>
         </>
@@ -384,7 +376,6 @@ const Login: React.FC = () => {
     isLoading,
     loginCodeDisabled,
     theme,
-    invitationCodeAndEmailFormDividerText,
     t,
   ]);
 
