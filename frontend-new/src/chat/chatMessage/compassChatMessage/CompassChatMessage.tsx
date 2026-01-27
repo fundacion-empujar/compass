@@ -4,7 +4,7 @@ import { ConversationMessageSender, MessageReaction } from "src/chat/ChatService
 import ChatBubble from "src/chat/chatMessage/components/chatBubble/ChatBubble";
 import Timestamp from "src/chat/chatMessage/components/chatMessageFooter/components/timestamp/Timestamp";
 import ChatMessageFooterLayout from "src/chat/chatMessage/components/chatMessageFooter/ChatMessageFooterLayout";
-import ReactionButtons from "src/chat/reaction/components/reactionButtons/ReactionButtons";
+// import ReactionButtons from "src/chat/reaction/components/reactionButtons/ReactionButtons";
 
 const uniqueId = "2fbaf2ef-9eab-485a-bd28-b4a164e18b06";
 
@@ -44,10 +44,12 @@ const CompassChatMessage: React.FC<CompassChatMessageProps> = ({ message_id, mes
           <ChatBubble message={message} sender={ConversationMessageSender.COMPASS} />
           <ChatMessageFooterLayout sender={ConversationMessageSender.COMPASS}>
             <Timestamp sentAt={sent_at} />
+            {/*
             <ReactionButtons
               messageId={message_id}
               currentReaction={reaction}
             />
+            */}
           </ChatMessageFooterLayout>
         </Box>
       </Box>
