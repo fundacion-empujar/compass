@@ -1,4 +1,4 @@
-import React, { startTransition, useEffect, useState } from "react";
+import React, { Suspense, startTransition, useEffect, useState } from "react";
 import { createHashRouter, RouterProvider } from "react-router-dom";
 import Login from "src/auth/pages/Login/Login";
 import ErrorPage from "src/error/errorPage/ErrorPage";
@@ -322,7 +322,11 @@ const App = () => {
       element: <NotFound />,
     },
   ]);
-  return <RouterProvider router={router} />;
+  return (
+    <Suspense fallback={<Backdrop isShown={true} transparent={true} message="Loading page..." />}>
+      <RouterProvider router={router} fallbackElement={<Backdrop isShown={true} transparent={true} message="Loading page..." />} />
+    </Suspense>
+  );
 };
 
 export default Sentry.withProfiler(App);
