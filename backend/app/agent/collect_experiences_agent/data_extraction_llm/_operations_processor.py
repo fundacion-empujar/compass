@@ -157,6 +157,11 @@ class OperationsProcessor:
 
         appended_add_count = 0
         for add_payload in pending_add_payloads:
+            # Skip empty experiences (e.g., user confirmed work type but provided no details yet)
+            if self._is_experience_empty(add_payload):
+                self.logger.warning("Skipping empty experience from being added: %s", add_payload)
+                continue
+
             new_index = next_available_index + appended_add_count
             appended_add_count += 1
             self.logger.info("Adding new experience with index: %s", new_index)
