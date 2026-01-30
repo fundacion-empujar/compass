@@ -15,8 +15,8 @@ import RegistrationCodeFormModal, {
 import UserPreferencesService from "src/userPreferences/UserPreferencesService/userPreferences.service";
 import { invitationsService } from "src/auth/services/invitationsService/invitations.service";
 import { InvitationStatus, InvitationType } from "src/auth/services/invitationsService/invitations.types";
-import { Language } from "src/userPreferences/UserPreferencesService/userPreferences.types";
-import { getRegistrationDisabled } from "src/envService";
+import { Language, UserPreference } from "src/userPreferences/UserPreferencesService/userPreferences.types";
+import { getRegistrationCodeDisabled, getRegistrationDisabled } from "src/envService";
 import { GTMService } from "src/utils/analytics/gtmService";
 import { setUserIdentityFromAuth } from "src/analytics/identity";
 
@@ -38,6 +38,8 @@ export interface SocialAuthProps {
   isLoading: boolean;
   notifyOnLoading: (loading: boolean) => void;
 }
+
+const registrationCodeDisabled = getRegistrationCodeDisabled().toLowerCase() === "true";
 
 const SocialAuth: React.FC<Readonly<SocialAuthProps>> = ({
   registrationCode,
@@ -92,33 +94,43 @@ const SocialAuth: React.FC<Readonly<SocialAuthProps>> = ({
   );
 
   const registerUser = useCallback(
-    async (registrationCode: string, reportToken?: string) => {
+    async (registrationCode: string | undefined, reportToken?: string) => {
+      let prefs: UserPreference;
       try {
-        // first check if the invitation code is valid
         const _user = authStateService.getInstance().getUser();
         if (!_user) {
           throw new Error("Something went wrong: No user found");
         }
-        const invitation = await invitationsService.checkInvitationCodeStatus(registrationCode, reportToken);
-        if (invitation.status !== InvitationStatus.VALID) {
-          throw Error("The registration code is invalid or already used");
-        }
-        if (!invitation.source && invitation.invitation_type !== InvitationType.REGISTER) {
-          throw Error("The invitation code is not for registration");
+
+        // the registration code may be omitted entirely when GLOBAL_DISABLE_REGISTRATION_CODE is enabled
+        if (!registrationCode) {
+          prefs = await UserPreferencesService.getInstance().createUserPreferences({
+            user_id: _user.id,
+            language: Language.en,
+          });
+        } else {
+          const invitation = await invitationsService.checkInvitationCodeStatus(registrationCode, reportToken);
+          if (invitation.status !== InvitationStatus.VALID) {
+            throw Error("The registration code is invalid or already used");
+          }
+          if (!invitation.source && invitation.invitation_type !== InvitationType.REGISTER) {
+            throw Error("The invitation code is not for registration");
+          }
+
+          // create user preferences for the first time.
+          // in order to do this, there needs to be a logged-in user in the persistent storage
+          prefs = await UserPreferencesService.getInstance().createUserPreferences({
+            user_id: _user.id,
+            invitation_code: invitation.invitation_code ?? registrationCode,
+            registration_code: registrationCode,
+            report_token: reportToken,
+            language: Language.en,
+          });
         }
 
-        // create user preferences for the first time.
-        // in order to do this, there needs to be a logged-in user in the persistent storage
-        const prefs = await UserPreferencesService.getInstance().createUserPreferences({
-          user_id: _user.id,
-          invitation_code: invitation.invitation_code ?? registrationCode,
-          registration_code: registrationCode,
-          report_token: reportToken,
-          language: Language.en,
-        });
         UserPreferencesStateService.getInstance().setUserPreferences(prefs);
         setUserIdentityFromAuth({ registrationCode, userId: _user.id, source: "secure_link" });
-        GTMService.trackRegistrationComplete("google", registrationCode);
+        GTMService.trackRegistrationComplete("google", registrationCode ?? null);
       } catch (error: any) {
         await handleError(error);
       }
@@ -144,8 +156,8 @@ const SocialAuth: React.FC<Readonly<SocialAuthProps>> = ({
           return;
         }
 
-        // if no registration code was provided, show the registration code form
-        if (!_registrationCode) {
+        // if no registration code was provided, and the registration code is enabled, show the registration code form
+        if (!_registrationCode && !registrationCodeDisabled) {
           setShowRegistrationCodeForm(RegistrationCodeFormModalState.SHOW);
           return;
         }

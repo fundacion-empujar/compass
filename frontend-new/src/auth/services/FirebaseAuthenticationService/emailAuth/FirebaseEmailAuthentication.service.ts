@@ -102,22 +102,27 @@ class FirebaseEmailAuthenticationService extends AuthenticationService {
     email: string,
     password: string,
     username: string,
-    registrationCode: string,
+    registrationCode: string | undefined,
     reportToken?: string
   ): Promise<string> {
     const firebaseErrorFactory = getFirebaseErrorFactory("EmailAuthService", "handleRegister");
-    const invitation = await invitationsService.checkInvitationCodeStatus(registrationCode, reportToken);
-    if (invitation.status === InvitationStatus.INVALID || invitation.status === InvitationStatus.USED) {
-      throw firebaseErrorFactory(
-        FirebaseErrorCodes.INVALID_REGISTRATION_CODE,
-        `the registration code is invalid: ${registrationCode}`
-      );
-    }
-    if (!invitation.source && invitation.invitation_type && invitation.invitation_type !== InvitationType.REGISTER) {
-      throw firebaseErrorFactory(
-        FirebaseErrorCodes.INVALID_REGISTRATION_TYPE,
-        `the invitation code is not for registration: ${registrationCode}`
-      );
+    let invitationCodeUsed: string | undefined;
+    // the registration code may be omitted entirely when GLOBAL_DISABLE_REGISTRATION_CODE is enabled
+    if (registrationCode) {
+      const invitation = await invitationsService.checkInvitationCodeStatus(registrationCode, reportToken);
+      if (invitation.status === InvitationStatus.INVALID || invitation.status === InvitationStatus.USED) {
+        throw firebaseErrorFactory(
+          FirebaseErrorCodes.INVALID_REGISTRATION_CODE,
+          `the registration code is invalid: ${registrationCode}`
+        );
+      }
+      if (!invitation.source && invitation.invitation_type && invitation.invitation_type !== InvitationType.REGISTER) {
+        throw firebaseErrorFactory(
+          FirebaseErrorCodes.INVALID_REGISTRATION_TYPE,
+          `the invitation code is not for registration: ${registrationCode}`
+        );
+      }
+      invitationCodeUsed = invitation.code;
     }
 
     let userCredential;
@@ -156,7 +161,7 @@ class FirebaseEmailAuthenticationService extends AuthenticationService {
     // so once the preferences are created we will log the user out
     // we expect this to be done in the onSuccessfulRegistration method
     // by calling the parent class method once the user is successfully registered
-    await super.onSuccessfulRegistration(token, invitation.code, reportToken);
+    await super.onSuccessfulRegistration(token, invitationCodeUsed, reportToken);
     return token;
   }
 

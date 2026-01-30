@@ -15,4 +15,5 @@ jest.mock("src/envService", () => ({
   getTargetEnvironmentName: jest.fn(() => "local"),
   getGtmContainerId: jest.fn(() => ""),
   getGtmEnabled: jest.fn(() => "false"),
+  getRegistrationCodeDisabled: jest.fn(() => "false"),
 }));

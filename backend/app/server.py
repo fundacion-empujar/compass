@@ -201,6 +201,9 @@ if not is_locale_supported(backend_default_locale):
 
 logger.info(f"Backend default locale: {backend_default_locale}")
 
+# Read invitation code bypass settings
+_disable_registration_code = os.getenv("GLOBAL_DISABLE_REGISTRATION_CODE", "").lower() == "true"
+
 # set global application configuration
 application_config = ApplicationConfig(
     environment_name=os.getenv("TARGET_ENVIRONMENT_NAME"),
@@ -215,10 +218,15 @@ application_config = ApplicationConfig(
     cv_storage_bucket=os.getenv("BACKEND_CV_STORAGE_BUCKET"),
     cv_max_uploads_per_user=os.getenv("BACKEND_CV_MAX_UPLOADS_PER_USER") or DEFAULT_MAX_UPLOADS_PER_USER,
     cv_rate_limit_per_minute=os.getenv("BACKEND_CV_RATE_LIMIT_PER_MINUTE") or DEFAULT_RATE_LIMIT_PER_MINUTE,
-    default_language=backend_default_locale
+    default_language=backend_default_locale,
+    disable_registration_code=_disable_registration_code,
 )
 
 set_application_config(application_config)
+
+# warning log when registration code bypass is enabled
+if _disable_registration_code:
+    logger.warning("GLOBAL_DISABLE_REGISTRATION_CODE is enabled - registered users can create preferences without invitation codes.")
 
 ##################
 # Set Sentry Context, after setting application config.

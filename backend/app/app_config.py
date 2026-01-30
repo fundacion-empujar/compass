@@ -83,6 +83,11 @@ class ApplicationConfig(BaseModel):
     The Default language to be used by the backend.
     """
 
+    disable_registration_code: bool = False
+    """
+    A flag to disable registration code validation for registered users.
+    """
+
 
 _application_config: ApplicationConfig | None = None
 
