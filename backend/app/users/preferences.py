@@ -11,13 +11,14 @@ from app.context_vars import user_id_ctx_var
 from app.conversations.feedback.repository import UserFeedbackRepository
 from app.conversations.feedback.services.service import UserFeedbackService, IUserFeedbackService
 from app.invitations.repository import UserInvitationRepository
-from app.invitations.types import InvitationType, ClaimSource, SecureLinkCodeClaim
+from app.invitations.types import ClaimSource, SecureLinkCodeClaim
 from app.metrics.services.get_metrics_service import get_metrics_service
 from app.metrics.services.service import IMetricsService
 from app.metrics.types import UserAccountCreatedEvent
 from app.security_token import normalize_security_token
 from app.server_dependencies.db_dependencies import CompassDBProvider
 from app.users.auth import Authentication, UserInfo, SignInProvider
+from app.users.validators import AnonymousUserValidator, RegisteredUserValidator
 from app.users.get_user_preferences_repository import get_user_preferences_repository
 from app.users.repositories import UserPreferenceRepository
 from app.users.sensitive_personal_data.routes import get_sensitive_personal_data_service
@@ -28,6 +29,9 @@ from app.users.types import UserPreferencesUpdateRequest, UserPreferences, \
     CreateUserPreferencesRequest, UserPreferencesRepositoryUpdateRequest, UsersPreferencesResponse
 from common_libs.time_utilities import get_now
 import hashlib
+
+from app.app_config import get_application_config
+from app.users.validators import AnonymousUserValidator, RegisteredUserValidator
 
 logger = logging.getLogger(__name__)
 
@@ -125,25 +129,18 @@ async def _create_user_preferences(
             if preferences.invitation_code:
                 invitation = await user_invitation_repository.get_valid_invitation_by_code(preferences.invitation_code)
         else:
-            if not preferences.invitation_code:
-                raise HTTPException(status_code=400, detail=INVALID_INVITATION_CODE_MESSAGE)
+            application_config = get_application_config()
 
-            invitation = await user_invitation_repository.get_valid_invitation_by_code(
-                preferences.invitation_code,
-                enforce_capacity=False
-            )
+            # Construct the appropriate validator based on the user's authentication provider.
+            # A registered user may bypass the invitation code entirely when GLOBAL_DISABLE_REGISTRATION_CODE is set.
+            if authed_user.sign_in_provider == SignInProvider.ANONYMOUS:
+                validator = AnonymousUserValidator(user_invitation_repository)
+            else:
+                validator = RegisteredUserValidator(application_config, user_invitation_repository)
 
-            if invitation is None:
-                raise HTTPException(status_code=400, detail=INVALID_INVITATION_CODE_MESSAGE)
-
-            # an authenticated user can't use a login invitation code
-            if (invitation.invitation_type == InvitationType.LOGIN.value
-                    and authed_user.sign_in_provider != SignInProvider.ANONYMOUS):
-                raise HTTPException(status_code=400, detail=INVALID_INVITATION_CODE_MESSAGE)
-
-            # an anonymous user can't use a register invitation code because it requires user to register
-            if (invitation.invitation_type == InvitationType.REGISTER.value and
-                    authed_user.sign_in_provider == SignInProvider.ANONYMOUS):
+            # Validate the invitation code.
+            is_invitation_code_valid, invitation = await validator.is_invitation_code_valid(preferences.invitation_code)
+            if not is_invitation_code_valid:
                 raise HTTPException(status_code=400, detail=INVALID_INVITATION_CODE_MESSAGE)
 
         # Generating a 64-bit integer session ID
@@ -151,6 +148,7 @@ async def _create_user_preferences(
         sessions = [session_id]
 
         # Create the user preferences
+        # Store invitation_code as provided (will be None if bypass was used without providing a code)
         newly_created = await repository.insert_user_preference(preferences.user_id, UserPreferences(
             language=preferences.language,
             invitation_code=preferences.invitation_code,
@@ -337,7 +335,7 @@ def add_user_preference_routes(users_router: APIRouter, auth: Authentication):
             sensitive_personal_data_service: ISensitivePersonalDataService = Depends(
                 get_sensitive_personal_data_service),
             user_feedback_service: UserFeedbackService = Depends(_get_user_feedback_service)
-            ) -> UsersPreferencesResponse:
+    ) -> UsersPreferencesResponse:
         # set the user id context variable.
         user_id_ctx_var.set(user_id)
 

@@ -21,7 +21,7 @@ import { InvitationType } from "src/auth/services/invitationsService/invitations
 import PrimaryButton from "src/theme/PrimaryButton/PrimaryButton";
 import { FirebaseErrorCodes } from "src/error/FirebaseError/firebaseError.constants";
 import { INVITATIONS_PARAM_NAME } from "src/auth/auth.types";
-import { getApplicationRegistrationCode, getSocialAuthDisabled } from "src/envService";
+import { getApplicationRegistrationCode, getSocialAuthDisabled, getRegistrationCodeDisabled } from "src/envService";
 import {
   REGISTRATION_CODE_FIELD_LABEL,
   REGISTRATION_CODE_QUERY_PARAM,
@@ -71,6 +71,10 @@ const Register: React.FC = () => {
     return getApplicationRegistrationCode();
   }, []);
 
+  const registrationCodeDisabled = useMemo(() => {
+    return getRegistrationCodeDisabled().toLowerCase() === "true";
+  }, []);
+
   // Check for registration code in URL params when component mounts
   useEffect(() => {
     captureRegistrationCodeFromUrl(location.search, "secure_link");
@@ -79,7 +83,8 @@ const Register: React.FC = () => {
     const linkReportToken = params.get(REPORT_TOKEN_QUERY_PARAM) ?? params.get("token") ?? undefined;
     const inviteCodeParam = params.get(INVITATIONS_PARAM_NAME) ?? params.get("invite-code");
 
-    if (linkCodeParam || inviteCodeParam) {
+    // a plain invite code in the URL is ignored when the code requirement is disabled; secure links still apply
+    if (linkCodeParam || (inviteCodeParam && !registrationCodeDisabled)) {
       const nextState = linkCodeParam
         ? registrationStore.setLinkCode(linkCodeParam, linkReportToken)
         : registrationStore.setManualCode(inviteCodeParam);
@@ -87,6 +92,7 @@ const Register: React.FC = () => {
       setReportToken(nextState.reportToken);
       setCodeLocked(nextState.locked);
       setCodeStatus(null);
+      // Remove the codes from the URL
       const newSearchParams = new URLSearchParams(location.search);
       newSearchParams.delete(REGISTRATION_CODE_QUERY_PARAM);
       newSearchParams.delete(REPORT_TOKEN_QUERY_PARAM);
@@ -111,7 +117,7 @@ const Register: React.FC = () => {
       setCodeLocked(hydrated.locked);
       setCodeStatus(null);
     }
-  }, [location, navigate]);
+  }, [location, navigate, registrationCodeDisabled]);
 
   useEffect(() => {
     if (firstVisitTracked.current) {
@@ -170,6 +176,10 @@ const Register: React.FC = () => {
   const validateCode = useCallback(async () => {
     const codeToUse = registrationCode || applicationRegistrationCode;
     if (!codeToUse) {
+      // the registration code may be omitted entirely when GLOBAL_DISABLE_REGISTRATION_CODE is enabled
+      if (registrationCodeDisabled) {
+        return { codeToUse: undefined, reportTokenToUse: undefined } as const;
+      }
       throw new Error(t("auth.errors.firebase.invalidRegistrationCode"));
     }
     const response = await invitationsService.checkInvitationCodeStatus(
@@ -187,7 +197,15 @@ const Register: React.FC = () => {
       });
     }
     return { codeToUse, reportTokenToUse: codeLocked ? reportToken : undefined } as const;
-  }, [registrationCode, applicationRegistrationCode, enqueueSnackbar, t, reportToken, codeLocked]);
+  }, [
+    registrationCode,
+    applicationRegistrationCode,
+    registrationCodeDisabled,
+    enqueueSnackbar,
+    t,
+    reportToken,
+    codeLocked,
+  ]);
 
   useEffect(() => {
     if (codeLocked && registrationCode) {
@@ -293,7 +311,7 @@ const Register: React.FC = () => {
               </Typography>
             }
           />
-          {!applicationRegistrationCode && (
+          {!applicationRegistrationCode && !registrationCodeDisabled && (
             <React.Fragment>
               <Typography variant="subtitle2">{t("auth.pages.register.enterRegistrationCode")}</Typography>
               <InvitationCodeField
@@ -305,7 +323,7 @@ const Register: React.FC = () => {
               />
             </React.Fragment>
           )}
-          {!applicationRegistrationCode && (
+          {!applicationRegistrationCode && !registrationCodeDisabled && (
             <Divider textAlign="center" style={{ width: "100%" }}>
               <Typography variant="subtitle2" padding={theme.fixedSpacing(theme.tabiyaSpacing.sm)} aria-hidden="true">
                 {t("auth.pages.register.andEitherContinueWith")}
@@ -314,7 +332,7 @@ const Register: React.FC = () => {
           )}
           <RegisterWithEmailForm
             disabled={
-              (!registrationCode && !applicationRegistrationCode) ||
+              (!registrationCode && !applicationRegistrationCode && !registrationCodeDisabled) ||
               codeStatus === InvitationStatus.INVALID ||
               codeStatus === InvitationStatus.USED
             }
@@ -326,7 +344,7 @@ const Register: React.FC = () => {
               postLoginHandler={handlePostLogin}
               isLoading={isLoading}
               disabled={
-                (!registrationCode && !applicationRegistrationCode) ||
+                (!registrationCode && !applicationRegistrationCode && !registrationCodeDisabled) ||
                 codeStatus === InvitationStatus.INVALID ||
                 codeStatus === InvitationStatus.USED
               }
@@ -353,7 +371,9 @@ const Register: React.FC = () => {
           >
             {t("common.buttons.login")}
           </PrimaryButton>
-          {!applicationRegistrationCode && <RequestInvitationCode invitationCodeType={InvitationType.REGISTER} />}
+          {!applicationRegistrationCode && !registrationCodeDisabled && (
+            <RequestInvitationCode invitationCodeType={InvitationType.REGISTER} />
+          )}
         </Box>
         <BugReportButton bottomAlign={true} />
         <Backdrop isShown={isLoading} message={t("auth.pages.register.registeringYou")} />
