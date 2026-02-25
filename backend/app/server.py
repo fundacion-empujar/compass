@@ -13,7 +13,7 @@ from app.countries import Country, get_country_from_string
 from app.invitations import add_user_invitations_routes
 from app.metrics.routes.routes import add_metrics_routes
 from app.sentry_init import init_sentry, set_sentry_contexts
-from app.server_dependencies.db_dependencies import CompassDBProvider
+from app.server_dependencies.db_dependencies import CompassDBProvider, _close_all_clients
 from app.users.auth import Authentication, ApiKeyAuth
 from app.vector_search.occupation_search_routes import add_occupation_search_routes
 from app.vector_search.skill_search_routes import add_skill_search_routes
@@ -283,10 +283,10 @@ async def lifespan(_app: FastAPI):
     # Shutdown logic
     logger.info("Shutting down...")
 
-    # close the database connections
-    application_db.client.close()
-    userdata_db.client.close()
-    metrics_db.client.close()
+    # Close all shared MongoDB clients (handles deduplication internally)
+    # and clear the CompassDBProvider cache so stale references are not reused.
+    _close_all_clients()
+    CompassDBProvider.clear_cache()
 
     logger.info("Shutting down completed.")
     # noinspection PyUnresolvedReferences
