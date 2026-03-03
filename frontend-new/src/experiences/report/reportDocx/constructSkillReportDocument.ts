@@ -166,7 +166,7 @@ export const constructSkillReportDocument = async (props: SkillReportDocumentPro
     sections: [
       {
         headers: { default: await HeaderComponent() },
-        footers: { default: FooterComponent() },
+        footers: { default: await FooterComponent() },
         properties: {
           page: {
             margin: {

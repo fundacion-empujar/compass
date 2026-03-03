@@ -146,23 +146,32 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 16,
   },
-  logoContainer: {
+  headerLogoRow: {
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
-    paddingBottom: 18,
+    justifyContent: "space-between",
     paddingHorizontal: 48,
     paddingTop: 32,
-    gap: 26,
+    paddingBottom: 18,
   },
-  image: {
-    height: 20,
-  },
-  compassImage: {
-    height: 20,
-  },
-  placeholderImage: {
+  partnerImage: {
     height: 30,
+  },
+  partnerImageLarge: {
+    height: 65,
+  },
+  footerLogoRow: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 48,
+    paddingBottom: 6,
+    gap: 22,
+  },
+  footerImage: {
+    height: 18,
   },
   infoIcons: {
     width: 14,

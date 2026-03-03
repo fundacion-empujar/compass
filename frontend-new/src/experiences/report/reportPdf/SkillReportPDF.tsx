@@ -93,16 +93,15 @@ const SkillReportPDF: React.FC<SkillReportProps> = ({
     <Document data-testid={DATA_TEST_ID.SKILL_REPORT_CONTAINER}>
       <Page size="A4" style={styles.page}>
         <View style={styles.body} data-testid={DATA_TEST_ID.SKILL_REPORT_BODY}>
-          <View fixed style={styles.logoContainer}>
-            <Image
-              src={getBase64Image(ReportContent.IMAGE_URLS.COMPASS_LOGO)}
-              style={styles.compassImage}
-              source={undefined}
-            />
-            <Image src={getBase64Image(ReportContent.IMAGE_URLS.OXFORD_LOGO)} style={styles.image} source={undefined} />
-            <Image src={getBase64Image(ReportContent.IMAGE_URLS.YOUTH_INNOVATION_FUND_LOGO)} style={styles.image} source={undefined} />
-            <Image src={getBase64Image(ReportContent.IMAGE_URLS.EMPUJAR_LOGO)} style={styles.image} source={undefined} />
-            <Image src={getBase64Image(ReportContent.IMAGE_URLS.PLACEHOLDER_LOGO)} style={styles.placeholderImage} source={undefined} />
+          <View fixed style={styles.headerLogoRow}>
+            <Image src={getBase64Image(ReportContent.IMAGE_URLS.INTEC_LOGO)} style={styles.partnerImage} source={undefined} />
+            <Image src={getBase64Image(ReportContent.IMAGE_URLS.CESSI_LOGO)} style={styles.partnerImage} source={undefined} />
+            <Image src={getBase64Image(ReportContent.IMAGE_URLS.CAC_LOGO)} style={styles.partnerImageLarge} source={undefined} />
+            <Image src={getBase64Image(ReportContent.IMAGE_URLS.VISTAGE_LOGO)} style={styles.partnerImage} source={undefined} />
+            <Image src={getBase64Image(ReportContent.IMAGE_URLS.UNAJE_LOGO)} style={styles.partnerImage} source={undefined} />
+            <Image src={getBase64Image(ReportContent.IMAGE_URLS.MAXIMIA_LOGO)} style={styles.partnerImage} source={undefined} />
+            <Image src={getBase64Image(ReportContent.IMAGE_URLS.TALENTS_CO_LOGO)} style={styles.partnerImage} source={undefined} />
+            <Image src={getBase64Image(ReportContent.IMAGE_URLS.UIPBA_LOGO)} style={styles.partnerImage} source={undefined} />
           </View>
           <Text x={0} y={0} style={styles.title} data-testid={DATA_TEST_ID.SKILL_REPORT_TITLE}>
             {ReportContent.SKILLS_REPORT_TITLE}
