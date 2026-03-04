@@ -171,19 +171,47 @@ def _re_flags_to_mongo_options(flags: int) -> str:
     return options
 
 
+_WATCH_INITIAL_BACKOFF = 1.0   # seconds
+_WATCH_MAX_BACKOFF = 60.0      # seconds
+_WATCH_BACKOFF_FACTOR = 2.0
+
+
 async def watch_db_changes(*, collection: AsyncIOMotorCollection, debouncer: CacheClearDebouncer, logger: logging.Logger):
-    try:
-        logger.info("Watching database changes for collection: %s", collection.name)
-        async with collection.watch() as stream:
-            async for change in stream:
-                operation = change["operationType"]
-                if operation in {"update", "replace", "delete"}:
-                    logger.debug("Detected DB change (%s)", operation)
-                    await debouncer.schedule_clear()
-                else:
-                    logger.debug("Ignoring change (%s)", operation)
-    except Exception as e:
-        logger.error("Error watching database changes: %s", e)
+    backoff = _WATCH_INITIAL_BACKOFF
+    while True:
+        try:
+            logger.info("Watching database changes for collection: %s", collection.name)
+            async with collection.watch() as stream:
+                backoff = _WATCH_INITIAL_BACKOFF  # Reset backoff on successful connection
+                async for change in stream:
+                    operation = change["operationType"]
+                    if operation in {"update", "replace", "delete"}:
+                        logger.debug("Detected DB change (%s)", operation)
+                        await debouncer.schedule_clear()
+                    else:
+                        logger.debug("Ignoring change (%s)", operation)
+            # Stream ended cleanly — back off before reconnecting to avoid a tight loop
+            logger.info("Change stream closed for %s. Reconnecting in %.1f s.", collection.name, backoff)
+            try:
+                await asyncio.sleep(backoff)
+            except asyncio.CancelledError:
+                logger.info("Watch task cancelled during reconnect for collection: %s", collection.name)
+                return
+            backoff = min(backoff * _WATCH_BACKOFF_FACTOR, _WATCH_MAX_BACKOFF)
+        except asyncio.CancelledError:
+            logger.info("Watch task cancelled for collection: %s", collection.name)
+            return
+        except Exception as e:
+            logger.error(
+                "Error watching database changes for %s: %s. Retrying in %.1f seconds.",
+                collection.name, e, backoff
+            )
+            try:
+                await asyncio.sleep(backoff)
+            except asyncio.CancelledError:
+                logger.info("Watch task cancelled during backoff for collection: %s", collection.name)
+                return
+            backoff = min(backoff * _WATCH_BACKOFF_FACTOR, _WATCH_MAX_BACKOFF)
 
 
 class OccupationSearchService(AbstractEscoSearchService[OccupationEntity]):

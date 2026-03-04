@@ -7,6 +7,42 @@ from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 from common_libs.environment_settings.mongo_db_settings import MongoDbSettings
 from .database_collections import Collections
 
+# Module-level cache: maps MongoDB URI -> shared AsyncIOMotorClient instance.
+# When multiple databases are hosted on the same cluster (same URI),
+# they share a single connection pool instead of each creating their own.
+_client_cache: dict[str, AsyncIOMotorClient] = {}
+
+# Connection pool defaults sized for Cloud Run (10 concurrent requests/instance, 3 instances max).
+_POOL_KWARGS = {
+    "maxPoolSize": 50,
+    "minPoolSize": 5,
+    "maxIdleTimeMS": 30000,
+}
+
+
+def _get_or_create_client(mongodb_uri: str) -> AsyncIOMotorClient:
+    """
+    Return a shared AsyncIOMotorClient for the given URI.
+    If no client exists for this URI yet, create one with pool configuration.
+    """
+    if mongodb_uri not in _client_cache:
+        _client_cache[mongodb_uri] = AsyncIOMotorClient(
+            mongodb_uri,
+            tlsAllowInvalidCertificates=True,
+            **_POOL_KWARGS,
+        )
+    return _client_cache[mongodb_uri]
+
+
+def _close_all_clients():
+    """
+    Close all cached MongoDB clients and clear the cache.
+    Each unique client is closed exactly once regardless of how many databases share it.
+    """
+    for client in _client_cache.values():
+        client.close()
+    _client_cache.clear()
+
 
 async def _get_database_connection_info(database: AsyncIOMotorDatabase) -> str:
     """
@@ -43,10 +79,7 @@ def _get_application_db(mongodb_uri: str, db_name: str) -> AsyncIOMotorDatabase:
     Decouples the database creation from the database provider.
     This allows to mock the database creation in tests, instead of mocking the database provider.
     """
-    return AsyncIOMotorClient(
-        mongodb_uri,
-        tlsAllowInvalidCertificates=True
-    ).get_database(db_name)
+    return _get_or_create_client(mongodb_uri).get_database(db_name)
 
 
 def _get_userdata_db(userdata_mongodb_uri: str, userdata_db_name: str) -> AsyncIOMotorDatabase:
@@ -54,11 +87,7 @@ def _get_userdata_db(userdata_mongodb_uri: str, userdata_db_name: str) -> AsyncI
     Decouples the database creation from the database provider.
     This allows to mock the database creation in tests, instead of mocking the database provider.
     """
-
-    return AsyncIOMotorClient(
-        userdata_mongodb_uri,
-        tlsAllowInvalidCertificates=True
-    ).get_database(userdata_db_name)
+    return _get_or_create_client(userdata_mongodb_uri).get_database(userdata_db_name)
 
 
 def _get_taxonomy_db(mongodb_uri: str, db_name: str) -> AsyncIOMotorDatabase:
@@ -66,10 +95,7 @@ def _get_taxonomy_db(mongodb_uri: str, db_name: str) -> AsyncIOMotorDatabase:
     Decouples the database creation from the database provider.
     This allows to mock the database creation in tests, instead of mocking the database provider.
     """
-    return AsyncIOMotorClient(
-        mongodb_uri,
-        tlsAllowInvalidCertificates=True
-    ).get_database(db_name)
+    return _get_or_create_client(mongodb_uri).get_database(db_name)
 
 
 def _get_metrics_db(mongodb_uri: str, db_name: str) -> AsyncIOMotorDatabase:
@@ -77,10 +103,7 @@ def _get_metrics_db(mongodb_uri: str, db_name: str) -> AsyncIOMotorDatabase:
     Decouples the database creation from the database provider.
     This allows to mock the database creation in tests, instead of mocking the database provider.
     """
-    return AsyncIOMotorClient(
-        mongodb_uri,
-        tlsAllowInvalidCertificates=True
-    ).get_database(db_name)
+    return _get_or_create_client(mongodb_uri).get_database(db_name)
 
 
 async def check_mongo_health(client: AsyncIOMotorClient) -> bool:
