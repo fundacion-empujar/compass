@@ -29,6 +29,18 @@ const FooterComponent = async () => {
   return new Footer({
     children: [
       new Paragraph({
+        children: [
+          new TextRun({
+            text: "Iniciativa desarrollada por",
+            italics: true,
+            size: 14,
+            color: "888888",
+          }),
+        ],
+        alignment: AlignmentType.LEFT,
+        spacing: { after: 80 },
+      }),
+      new Paragraph({
         children: logoRuns,
         alignment: AlignmentType.CENTER,
         spacing: { after: 100 },

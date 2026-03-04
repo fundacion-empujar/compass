@@ -149,17 +149,37 @@ const styles = StyleSheet.create({
   headerLogoRow: {
     display: "flex",
     flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
     paddingHorizontal: 48,
-    paddingTop: 32,
-    paddingBottom: 18,
+    paddingBottom: 6,
+  },
+  headerLogoCell: {
+    flex: 1,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  partnerLogoTitle: {
+    fontSize: 9,
+    textAlign: "left" as const,
+    color: "#888888",
+    paddingTop: 24,
+    paddingBottom: 6,
+    paddingHorizontal: 48,
+    ...fontStyles.italic,
   },
   partnerImage: {
-    height: 30,
+    height: 20,
   },
-  partnerImageLarge: {
-    height: 65,
+  partnerImageSmall: {
+    height: 12,
+  },
+  footerLogoTitle: {
+    fontSize: 8,
+    textAlign: "left" as const,
+    color: "#888888",
+    paddingHorizontal: 48,
+    paddingBottom: 4,
+    ...fontStyles.italic,
   },
   footerLogoRow: {
     display: "flex",

@@ -45,7 +45,7 @@ export const ReportContent = {
     VISTAGE_LOGO: `${process.env.PUBLIC_URL}/vistage-logo.png`,
     UNAJE_LOGO: `${process.env.PUBLIC_URL}/unaje-logo.png`,
     MAXIMIA_LOGO: `${process.env.PUBLIC_URL}/maximia-logo.png`,
-    TALENTS_CO_LOGO: `${process.env.PUBLIC_URL}/talents-co-logo.jpg`,
+    TALENTS_CO_LOGO: `${process.env.PUBLIC_URL}/talents-co-logo.png`,
     UIPBA_LOGO: `${process.env.PUBLIC_URL}/uipba-logo.png`,
     LOCATION_ICON: `${process.env.PUBLIC_URL}/location.png`,
     PHONE_ICON: `${process.env.PUBLIC_URL}/phone.png`,
