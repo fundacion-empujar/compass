@@ -22,6 +22,19 @@ _embedding_config = EmbeddingConfig()
 # Lock to ensure that the singleton instances are thread-safe
 _lock = asyncio.Lock()
 
+# Track watcher tasks so they can be cancelled during shutdown
+_watcher_tasks: set[asyncio.Task] = set()
+
+
+async def cancel_all_watchers():
+    """Cancel all running watcher tasks and wait for them to finish."""
+    for task in _watcher_tasks:
+        task.cancel()
+    if _watcher_tasks:
+        await asyncio.gather(*_watcher_tasks, return_exceptions=True)
+    _watcher_tasks.clear()
+
+
 # Define a singleton instance of the Google VertexAI embeddings
 _embeddings_service_singleton = None
 
@@ -106,7 +119,9 @@ async def get_occupation_search_service(db: AsyncIOMotorDatabase = Depends(Compa
                     embedding_key=_embedding_config.embedding_key,
                 )
                 _occupation_search_service_singleton = OccupationSearchService(db, embedding_model, occupation_vector_search_config, taxonomy_model_id)
-                asyncio.create_task(_occupation_search_service_singleton.watch_db_changes())
+                task = asyncio.create_task(_occupation_search_service_singleton.watch_db_changes())
+                _watcher_tasks.add(task)
+                task.add_done_callback(_watcher_tasks.discard)
     return _occupation_search_service_singleton
 
 
@@ -132,7 +147,9 @@ async def get_occupation_skill_search_service(db: AsyncIOMotorDatabase = Depends
                 logger.info("Creating a new instance of the occupation search service.")
                 _occupation_skill_search_service_singleton = OccupationSkillSearchService(db, embedding_model, taxonomy_model_id)
                 # Start watching for changes in the occupation skill search service
-                asyncio.create_task(_occupation_skill_search_service_singleton.watch_db_changes())
+                task = asyncio.create_task(_occupation_skill_search_service_singleton.watch_db_changes())
+                _watcher_tasks.add(task)
+                task.add_done_callback(_watcher_tasks.discard)
     return _occupation_skill_search_service_singleton
 
 

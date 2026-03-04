@@ -190,6 +190,14 @@ async def watch_db_changes(*, collection: AsyncIOMotorCollection, debouncer: Cac
                         await debouncer.schedule_clear()
                     else:
                         logger.debug("Ignoring change (%s)", operation)
+            # Stream ended cleanly — back off before reconnecting to avoid a tight loop
+            logger.info("Change stream closed for %s. Reconnecting in %.1f s.", collection.name, backoff)
+            try:
+                await asyncio.sleep(backoff)
+            except asyncio.CancelledError:
+                logger.info("Watch task cancelled during reconnect for collection: %s", collection.name)
+                return
+            backoff = min(backoff * _WATCH_BACKOFF_FACTOR, _WATCH_MAX_BACKOFF)
         except asyncio.CancelledError:
             logger.info("Watch task cancelled for collection: %s", collection.name)
             return
