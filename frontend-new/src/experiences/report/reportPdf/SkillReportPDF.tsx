@@ -97,16 +97,16 @@ const SkillReportPDF: React.FC<SkillReportProps> = ({
             Plataforma validada por
           </Text>
           <View fixed style={styles.headerLogoRow}>
-            <View style={styles.headerLogoCell}><Image src={getBase64Image(ReportContent.IMAGE_URLS.INTEC_LOGO)} style={styles.partnerImage} source={undefined} /></View>
-            <View style={styles.headerLogoCell}><Image src={getBase64Image(ReportContent.IMAGE_URLS.CESSI_LOGO)} style={styles.partnerImage} source={undefined} /></View>
             <View style={styles.headerLogoCell}><Image src={getBase64Image(ReportContent.IMAGE_URLS.CAC_LOGO)} style={styles.partnerImage} source={undefined} /></View>
-            <View style={styles.headerLogoCell}><Image src={getBase64Image(ReportContent.IMAGE_URLS.VISTAGE_LOGO)} style={styles.partnerImageSmall} source={undefined} /></View>
+            <View style={styles.headerLogoCell}><Image src={getBase64Image(ReportContent.IMAGE_URLS.CESSI_LOGO)} style={styles.partnerImage} source={undefined} /></View>
+            <View style={styles.headerLogoCell}><Image src={getBase64Image(ReportContent.IMAGE_URLS.INTEC_LOGO)} style={styles.partnerImage} source={undefined} /></View>
+            <View style={styles.headerLogoCell}><Image src={getBase64Image(ReportContent.IMAGE_URLS.MAXIMIA_LOGO)} style={styles.partnerImage} source={undefined} /></View>
           </View>
           <View fixed style={{ ...styles.headerLogoRow, paddingBottom: 18 }}>
-            <View style={styles.headerLogoCell}><Image src={getBase64Image(ReportContent.IMAGE_URLS.UNAJE_LOGO)} style={styles.partnerImage} source={undefined} /></View>
-            <View style={styles.headerLogoCell}><Image src={getBase64Image(ReportContent.IMAGE_URLS.MAXIMIA_LOGO)} style={styles.partnerImage} source={undefined} /></View>
             <View style={styles.headerLogoCell}><Image src={getBase64Image(ReportContent.IMAGE_URLS.TALENTS_CO_LOGO)} style={styles.partnerImage} source={undefined} /></View>
             <View style={styles.headerLogoCell}><Image src={getBase64Image(ReportContent.IMAGE_URLS.UIPBA_LOGO)} style={styles.partnerImage} source={undefined} /></View>
+            <View style={styles.headerLogoCell}><Image src={getBase64Image(ReportContent.IMAGE_URLS.UNAJE_LOGO)} style={styles.partnerImage} source={undefined} /></View>
+            <View style={styles.headerLogoCell}><Image src={getBase64Image(ReportContent.IMAGE_URLS.VISTAGE_LOGO)} style={styles.partnerImageSmall} source={undefined} /></View>
           </View>
           <Text x={0} y={0} style={styles.title} data-testid={DATA_TEST_ID.SKILL_REPORT_TITLE}>
             {ReportContent.SKILLS_REPORT_TITLE}

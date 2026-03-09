@@ -15,14 +15,14 @@ import { getBase64Image } from "src/experiences/report/util";
 import { ReportContent } from "src/experiences/report/reportContent";
 
 const LOGO_CONFIG = [
-  { imageUrl: ReportContent.IMAGE_URLS.INTEC_LOGO, width: 55, height: 20 },
-  { imageUrl: ReportContent.IMAGE_URLS.CESSI_LOGO, width: 59, height: 20 },
   { imageUrl: ReportContent.IMAGE_URLS.CAC_LOGO, width: 82, height: 20 },
-  { imageUrl: ReportContent.IMAGE_URLS.VISTAGE_LOGO, width: 63, height: 12 },
-  { imageUrl: ReportContent.IMAGE_URLS.UNAJE_LOGO, width: 29, height: 20 },
+  { imageUrl: ReportContent.IMAGE_URLS.CESSI_LOGO, width: 59, height: 20 },
+  { imageUrl: ReportContent.IMAGE_URLS.INTEC_LOGO, width: 55, height: 20 },
   { imageUrl: ReportContent.IMAGE_URLS.MAXIMIA_LOGO, width: 78, height: 20 },
   { imageUrl: ReportContent.IMAGE_URLS.TALENTS_CO_LOGO, width: 91, height: 20 },
   { imageUrl: ReportContent.IMAGE_URLS.UIPBA_LOGO, width: 64, height: 20 },
+  { imageUrl: ReportContent.IMAGE_URLS.UNAJE_LOGO, width: 85, height: 20 },
+  { imageUrl: ReportContent.IMAGE_URLS.VISTAGE_LOGO, width: 63, height: 12 },
 ];
 
 const NO_BORDER = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
