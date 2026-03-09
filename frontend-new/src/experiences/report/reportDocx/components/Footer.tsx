@@ -6,9 +6,9 @@ const LOGO_SPACER = "\u00A0\u00A0\u00A0";
 
 const FOOTER_LOGO_CONFIG = [
   { imageUrl: ReportContent.IMAGE_URLS.COMPASS_LOGO, width: 99, height: 24 },
+  { imageUrl: ReportContent.IMAGE_URLS.EMPUJAR_LOGO, width: 72, height: 24 },
   { imageUrl: ReportContent.IMAGE_URLS.OXFORD_LOGO, width: 83, height: 24 },
   { imageUrl: ReportContent.IMAGE_URLS.YOUTH_INNOVATION_FUND_LOGO, width: 71, height: 24 },
-  { imageUrl: ReportContent.IMAGE_URLS.EMPUJAR_LOGO, width: 72, height: 24 },
 ];
 
 const FooterComponent = async () => {
