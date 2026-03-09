@@ -146,23 +146,52 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 16,
   },
-  logoContainer: {
+  headerLogoRow: {
+    display: "flex",
+    flexDirection: "row",
+    paddingHorizontal: 48,
+    paddingBottom: 6,
+  },
+  headerLogoCell: {
+    flex: 1,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  partnerLogoTitle: {
+    fontSize: 9,
+    textAlign: "left" as const,
+    color: "#888888",
+    paddingTop: 24,
+    paddingBottom: 6,
+    paddingHorizontal: 48,
+    ...fontStyles.italic,
+  },
+  partnerImage: {
+    height: 20,
+  },
+  partnerImageSmall: {
+    height: 12,
+  },
+  footerLogoTitle: {
+    fontSize: 8,
+    textAlign: "left" as const,
+    color: "#888888",
+    paddingHorizontal: 48,
+    paddingBottom: 4,
+    ...fontStyles.italic,
+  },
+  footerLogoRow: {
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
-    paddingBottom: 18,
+    justifyContent: "center",
     paddingHorizontal: 48,
-    paddingTop: 32,
-    gap: 26,
+    paddingBottom: 6,
+    gap: 22,
   },
-  image: {
-    height: 20,
-  },
-  compassImage: {
-    height: 20,
-  },
-  placeholderImage: {
-    height: 30,
+  footerImage: {
+    height: 18,
   },
   infoIcons: {
     width: 14,
