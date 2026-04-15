@@ -99,10 +99,12 @@ const SkillReportPDF: React.FC<SkillReportProps> = ({
           <View fixed style={styles.headerLogoRow}>
             <View style={styles.headerLogoCell}><Image src={getBase64Image(ReportContent.IMAGE_URLS.CAC_LOGO)} style={styles.partnerImage} source={undefined} /></View>
             <View style={styles.headerLogoCell}><Image src={getBase64Image(ReportContent.IMAGE_URLS.CESSI_LOGO)} style={styles.partnerImage} source={undefined} /></View>
+            <View style={styles.headerLogoCell}><Image src={getBase64Image(ReportContent.IMAGE_URLS.CIRION_LOGO)} style={styles.partnerImage} source={undefined} /></View>
             <View style={styles.headerLogoCell}><Image src={getBase64Image(ReportContent.IMAGE_URLS.INTEC_LOGO)} style={styles.partnerImage} source={undefined} /></View>
             <View style={styles.headerLogoCell}><Image src={getBase64Image(ReportContent.IMAGE_URLS.MAXIMIA_LOGO)} style={styles.partnerImage} source={undefined} /></View>
           </View>
           <View fixed style={{ ...styles.headerLogoRow, paddingBottom: 18 }}>
+            <View style={styles.headerLogoCell}><Image src={getBase64Image(ReportContent.IMAGE_URLS.MERCADOLIBRE_LOGO)} style={styles.partnerImage} source={undefined} /></View>
             <View style={styles.headerLogoCell}><Image src={getBase64Image(ReportContent.IMAGE_URLS.TALENTS_CO_LOGO)} style={styles.partnerImage} source={undefined} /></View>
             <View style={styles.headerLogoCell}><Image src={getBase64Image(ReportContent.IMAGE_URLS.UIPBA_LOGO)} style={styles.partnerImage} source={undefined} /></View>
             <View style={styles.headerLogoCell}><Image src={getBase64Image(ReportContent.IMAGE_URLS.UNAJE_LOGO)} style={styles.partnerImage} source={undefined} /></View>

@@ -36,37 +36,92 @@ async def list_invitations(mongo_uri: str, db_name: str):
     client = AsyncIOMotorClient(mongo_uri, tlsAllowInvalidCertificates=True)
     si = await client.server_info()
     db = client.get_database(db_name)
-    collection = db.get_collection("user_invitations")
+    invitations_col = db.get_collection("user_invitations")
+    preferences_col = db.get_collection("user_preferences")
 
     host, port = client.address
     print(f"Connected to {db_name} at {host}:{port} version:{si.get('version', 'Unknown')}\n")
 
-    cursor = collection.find({})
+    # Build a lookup of secure link claims: invitation_code_template -> claim doc
+    claims_by_template = {}
+    async for claim in invitations_col.find({"registration_code": {"$exists": True}, "claimed_user_id": {"$exists": True}}):
+        template = claim.get("invitation_code_template")
+        if template:
+            claims_by_template.setdefault(template, []).append(claim)
+
+    # Build a lookup of user registrations by invitation_code
+    users_by_code = {}
+    async for user in preferences_col.find({"invitation_code": {"$exists": True, "$ne": None}}):
+        code = user.get("invitation_code")
+        if code:
+            users_by_code.setdefault(code, []).append(user)
+
+    # Collect invitation codes (documents that have the invitation_code field)
+    invitations = []
+    async for doc in invitations_col.find({"invitation_code": {"$exists": True}}):
+        invitations.append(doc)
+
     now = datetime.now()
-    
-    print("=" * 100)
-    print(f"{'Code':<40} {'Type':<10} {'Valid Until':<25} {'Usage':<20} {'Status':<10}")
-    print("=" * 100)
-    
-    async for doc in cursor:
+    total = len(invitations)
+    used_count = 0
+
+    print("=" * 120)
+    print(f"{'Code':<40} {'Type':<10} {'Valid Until':<25} {'Usage':<15} {'Claimed':<10} {'Status':<10}")
+    print("=" * 120)
+
+    for doc in invitations:
         code = doc.get("invitation_code", "N/A")
         inv_type = doc.get("invitation_type", "N/A")
         valid_until = doc.get("valid_until")
         remaining = doc.get("remaining_usage", 0)
         allowed = doc.get("allowed_usage", 0)
         spd_req = doc.get("sensitive_personal_data_requirement", "N/A")
-        
+
         valid_until_str = valid_until.strftime("%Y-%m-%d %H:%M:%S") if valid_until else "N/A"
-        usage_str = f"{remaining}/{allowed}"
-        
+
+        # Determine usage: check counter first, then secure link claims, then user_preferences
+        claims = claims_by_template.get(code, [])
+        registered_users = users_by_code.get(code, [])
+
+        if allowed > 0:
+            used = allowed - remaining
+            usage_str = f"{used}/{allowed}"
+        elif registered_users:
+            usage_str = f"{len(registered_users)} user(s)"
+        else:
+            usage_str = "0"
+
+        claimed = len(claims) > 0 or len(registered_users) > 0
+        if claimed:
+            used_count += 1
+        elif allowed > 0 and remaining < allowed:
+            used_count += 1
+        claimed_str = "YES" if claimed else "NO"
+
         # Check if expired
         status = "EXPIRED" if valid_until and valid_until < now else "VALID"
-        
-        print(f"{code:<40} {inv_type:<10} {valid_until_str:<25} {usage_str:<20} {status:<10}")
-        print(f"  └─ SPD Requirement: {spd_req}")
+
+        print(f"{code:<40} {inv_type:<10} {valid_until_str:<25} {usage_str:<15} {claimed_str:<10} {status:<10}")
+        print(f"  └─ SPD: {spd_req}")
+
+        # Show claim details
+        for claim in claims:
+            claimed_at = claim.get("claimed_at")
+            claimed_at_str = claimed_at.strftime("%Y-%m-%d %H:%M") if claimed_at else "N/A"
+            print(f"  └─ Claimed by {claim.get('claimed_user_id', 'N/A')} at {claimed_at_str}")
+
+        # Show registered users (if not already shown via claims)
+        if not claims and registered_users:
+            for user in registered_users:
+                tc = user.get("accepted_tc")
+                tc_str = tc.strftime("%Y-%m-%d %H:%M") if tc else "pending"
+                print(f"  └─ Registered user {user.get('user_id', 'N/A')} (T&C: {tc_str})")
+
         print()
-    
-    print("=" * 100)
+
+    print("=" * 120)
+    print(f"Total: {total} codes | Used: {used_count} | Unused: {total - used_count}")
+    print("=" * 120)
     client.close()
 
 

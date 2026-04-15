@@ -9,3 +9,10 @@ credentials*.json
 .github/
 
 .specify
+CLAUDE.md
+.claude
+
+# deployments
+be-report.md
+fe-report.md
+version.json-e
