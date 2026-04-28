@@ -157,7 +157,8 @@ The backend uses the following environment variables:
 - `USERDATA_DATABASE_NAME`: The name of the mongo db database used by the application to store user data.
 - `METRICS_MONGODB_URI`: The URI of the MongoDB instance for the metrics database.
 - `METRICS_DATABASE_NAME`: The name of the mongo db database used by the application to store metrics data.
-- `VERTEX_API_REGION`: (optional) The region of the Vertex API to use. If not set defaults to `us-central1`.
+- `VERTEX_API_EMBEDDINGS_REGION`: The region of the Vertex API to use for embedding models. Must be a regional location (e.g. `us-central1`) — embedding models such as `text-embedding-005` are not published in the global publisher catalog.
+- `VERTEX_API_GEN_AI_REGION`: (optional) The region of the Vertex API to use for generative-AI calls (Gemini etc.). Can be a regional location or `global`. If not set, defaults to `us-central1`.
 - `EMBEDDINGS_SERVICE_NAME`: The name of the embeddings service to use. Currently, the only supported service is `GOOGLE-VERTEX-AI`.
 - `EMBEDDINGS_MODEL_NAME`: The name of the embeddings model to use. See https://cloud.google.com/vertex-ai/generative-ai/docs/embeddings/get-text-embeddings#supported-models for the list of supported models.
 - `LOG_CONFIG_FILE`: (Optional) See the [Logging](#logging) section for more information. If not set defaults to `logging.cfg.yaml`.
@@ -194,7 +195,8 @@ USERDATA_MONGODB_URI=<URI_TO_MONGODB>
 USERDATA_DATABASE_NAME=<USERDATA_DATABASE_NAME>
 METRICS_MONGODB_URI=<URI_TO_MONGODB>
 METRICS_DATABASE_NAME=<METRICS_DATABASE_NAME>
-VERTEX_API_REGION=<REGION>
+VERTEX_API_EMBEDDINGS_REGION=<REGIONAL_LOCATION>
+VERTEX_API_GEN_AI_REGION=<REGIONAL_LOCATION_OR_GLOBAL>
 EMBEDDINGS_SERVICE_NAME=<EMBEDDINGS_SERVICE_NAME>
 EMBEDDINGS_MODEL_NAME=<EMBEDDINGS_MODEL_NAME>
 LOG_CONFIG_FILE=<YAML_FILE>
@@ -283,7 +285,13 @@ For example:
 Assuming the `.env` file is in the root directory of the project and the service account key file
 named `credentials.json` is in a folder named `keys` in the root directory and a mongodb instance is running locally (`mongodb://localhost:27017`).
 
+
 ```dotenv
+# Google Cloud Authentication
+GOOGLE_APPLICATION_CREDENTIALS=<PATH_TO_SERVICE_ACCOUNT_KEY>
+VERTEX_API_EMBEDDINGS_REGION=us-central1
+VERTEX_API_GEN_AI_REGION=us-central1
+
 TAXONOMY_MONGODB_URI=mongodb+srv://<USERNAME>:<PASSORD>@<CLUSTER>/?retryWrites=true&w=majority&appName=Brújula-Dev
 TAXONOMY_DATABASE_NAME=brujula-taxonomy-dev
 TAXONOMY_MODEL_ID=<MODEL_ID>
@@ -421,6 +429,13 @@ We have scripts for exporting and importing conversations for analysis and later
 ## Export users feedback
 
 The script `export_feedback.py` is used to export the feedback data from the database to a CSV file.
+
+### AI & Embeddings
+
+- `VERTEX_API_EMBEDDINGS_REGION` - Vertex AI region for embedding models (must be a regional location, e.g. `us-central1`)
+- `VERTEX_API_GEN_AI_REGION` - Vertex AI region for generative-AI calls (regional or `global`, default: `us-central1`)
+- `EMBEDDINGS_SERVICE_NAME` - Embeddings service provider
+- `EMBEDDINGS_MODEL_NAME` - Model for generating embeddings
 
 For the source database the script uses the following environment variables:
 
