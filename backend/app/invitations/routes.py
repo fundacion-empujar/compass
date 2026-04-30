@@ -9,6 +9,7 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from app.constants.errors import HTTPErrorResponse
 from app.invitations.repository import UserInvitationRepository
 from app.invitations.types import GetInvitationCodeStatusResponse, InvitationCodeStatus, ClaimSource
+from app.security_token import normalize_security_token
 from app.server_dependencies.db_dependencies import CompassDBProvider
 from app.users.get_user_preferences_repository import get_user_preferences_repository
 from app.users.repositories import IUserPreferenceRepository
@@ -50,9 +51,8 @@ def add_user_invitations_routes(app: FastAPI):
         try:
             # Secure-link validation path
             if reg_code:
-                sec_token = os.getenv("SEC_TOKEN")
-                normalized_report_token = report_token.casefold() if report_token else None
-                normalized_sec_token = sec_token.casefold() if sec_token else None
+                normalized_report_token = normalize_security_token(report_token)
+                normalized_sec_token = normalize_security_token(os.getenv("SEC_TOKEN"))
                 if not normalized_report_token or not normalized_sec_token:
                     raise HTTPException(status_code=HTTPStatus.UNAUTHORIZED, detail="Security token required")
                 if normalized_report_token != normalized_sec_token:

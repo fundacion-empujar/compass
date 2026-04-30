@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, Fas
 from fastapi.responses import StreamingResponse
 
 from app.constants.errors import HTTPErrorResponse
+from app.security_token import normalize_security_token
 from app.users.auth import Authentication, UserInfo
 from app.users.cv.constants import (
     MAX_CV_SIZE_BYTES,
@@ -506,9 +507,8 @@ def add_public_report_routes(app: FastAPI):
     ) -> PublicReportResponse:
         try:
             # 0. Validate Security Token if configured
-            sec_token = os.getenv("SEC_TOKEN")
-            normalized_token = token.casefold() if token else None
-            normalized_sec_token = sec_token.casefold() if sec_token else None
+            normalized_token = normalize_security_token(token)
+            normalized_sec_token = normalize_security_token(os.getenv("SEC_TOKEN"))
             if normalized_sec_token:
                 if not normalized_token:
                     log_non_pii_warning(
@@ -611,16 +611,15 @@ def add_public_report_routes(app: FastAPI):
         """
         try:
             # Validate Security Token - REQUIRED
-            sec_token = os.getenv("SEC_TOKEN")
-            if not sec_token:
+            normalized_sec_token = normalize_security_token(os.getenv("SEC_TOKEN"))
+            if not normalized_sec_token:
                 logger.error("SEC_TOKEN environment variable not configured")
                 raise HTTPException(
                     status_code=HTTPStatus.SERVICE_UNAVAILABLE,
                     detail="Bulk download service not configured"
                 )
 
-            normalized_token = token.casefold() if token else None
-            normalized_sec_token = sec_token.casefold()
+            normalized_token = normalize_security_token(token)
 
             if not normalized_token:
                 log_non_pii_warning(

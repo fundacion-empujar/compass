@@ -15,6 +15,7 @@ from app.invitations.types import InvitationType, ClaimSource, SecureLinkCodeCla
 from app.metrics.services.get_metrics_service import get_metrics_service
 from app.metrics.services.service import IMetricsService
 from app.metrics.types import UserAccountCreatedEvent
+from app.security_token import normalize_security_token
 from app.server_dependencies.db_dependencies import CompassDBProvider
 from app.users.auth import Authentication, UserInfo, SignInProvider
 from app.users.get_user_preferences_repository import get_user_preferences_repository
@@ -104,9 +105,8 @@ async def _create_user_preferences(
 
         invitation = None
         if secure_link_flow:
-            sec_token = os.getenv("SEC_TOKEN")
-            normalized_report_token = preferences.report_token.casefold() if preferences.report_token else None
-            normalized_sec_token = sec_token.casefold() if sec_token else None
+            normalized_report_token = normalize_security_token(preferences.report_token)
+            normalized_sec_token = normalize_security_token(os.getenv("SEC_TOKEN"))
             if not normalized_report_token or not normalized_sec_token:
                 raise HTTPException(status_code=HTTPStatus.UNAUTHORIZED, detail="Security token required")
             if normalized_report_token != normalized_sec_token:

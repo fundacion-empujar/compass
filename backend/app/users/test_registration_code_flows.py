@@ -139,6 +139,96 @@ async def test_manual_shared_invitation_does_not_decrement_capacity(in_memory_ap
 
 
 @pytest.mark.asyncio
+async def test_secure_link_accepts_token_with_trailing_bang_stripped(monkeypatch, in_memory_application_database):
+    """Chat-app auto-link parsers (WhatsApp etc.) drop the trailing '!' from a URL.
+    The deployed SEC_TOKEN ends in '!', so links arriving without it must still validate."""
+    db = await in_memory_application_database
+    invitations_repo = UserInvitationRepository(db)
+    user_repo = UserPreferenceRepository(db)
+    metrics = _NoopMetricsService()
+
+    monkeypatch.setenv("SEC_TOKEN", "fundacion-empujar-2026!")
+
+    request = CreateUserPreferencesRequest(
+        user_id="user-bang-stripped",
+        language="en",
+        registration_code="reg-bang-stripped",
+        report_token="fundacion-empujar-2026",
+        client_id="client-bang",
+    )
+    authed_user = UserInfo(
+        user_id="user-bang-stripped",
+        name="User Bang",
+        email="bang@example.com",
+        token="fake",
+        sign_in_provider=SignInProvider.GOOGLE,
+    )
+
+    created = await _create_user_preferences(invitations_repo, user_repo, request, authed_user, metrics)
+    assert created.registration_code == "reg-bang-stripped"
+
+
+@pytest.mark.asyncio
+async def test_secure_link_accepts_token_with_trailing_bang_present(monkeypatch, in_memory_application_database):
+    """The same registration must also work when the trailing '!' survived (e.g. desktop browser)."""
+    db = await in_memory_application_database
+    invitations_repo = UserInvitationRepository(db)
+    user_repo = UserPreferenceRepository(db)
+    metrics = _NoopMetricsService()
+
+    monkeypatch.setenv("SEC_TOKEN", "fundacion-empujar-2026!")
+
+    request = CreateUserPreferencesRequest(
+        user_id="user-bang-present",
+        language="en",
+        registration_code="reg-bang-present",
+        report_token="fundacion-empujar-2026!",
+        client_id="client-bang",
+    )
+    authed_user = UserInfo(
+        user_id="user-bang-present",
+        name="User Bang",
+        email="bang@example.com",
+        token="fake",
+        sign_in_provider=SignInProvider.GOOGLE,
+    )
+
+    created = await _create_user_preferences(invitations_repo, user_repo, request, authed_user, metrics)
+    assert created.registration_code == "reg-bang-present"
+
+
+@pytest.mark.asyncio
+async def test_secure_link_rejects_unrelated_token_even_with_bang_tolerance(monkeypatch, in_memory_application_database):
+    """Regression guard: tolerance only strips a trailing '!', it does not match arbitrary tokens."""
+    db = await in_memory_application_database
+    invitations_repo = UserInvitationRepository(db)
+    user_repo = UserPreferenceRepository(db)
+    metrics = _NoopMetricsService()
+
+    monkeypatch.setenv("SEC_TOKEN", "fundacion-empujar-2026!")
+
+    request = CreateUserPreferencesRequest(
+        user_id="user-wrong",
+        language="en",
+        registration_code="reg-wrong",
+        report_token="completely-different-token",
+        client_id="client-wrong",
+    )
+    authed_user = UserInfo(
+        user_id="user-wrong",
+        name="User Wrong",
+        email="wrong@example.com",
+        token="fake",
+        sign_in_provider=SignInProvider.GOOGLE,
+    )
+
+    with pytest.raises(HTTPException) as excinfo:
+        await _create_user_preferences(invitations_repo, user_repo, request, authed_user, metrics)
+    assert excinfo.value.status_code == HTTPStatus.FORBIDDEN
+    assert "Invalid security token" in str(excinfo.value.detail)
+
+
+@pytest.mark.asyncio
 async def test_secure_link_requires_report_token(monkeypatch, in_memory_application_database):
     db = await in_memory_application_database
     invitations_repo = UserInvitationRepository(db)

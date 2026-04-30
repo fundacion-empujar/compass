@@ -26,6 +26,57 @@ def clear_security_token(monkeypatch):
     monkeypatch.delenv("SEC_TOKEN", raising=False)
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("link_token", ["fundacion-empujar-2026!", "fundacion-empujar-2026"])
+async def test_report_lookup_accepts_token_with_or_without_trailing_bang(app, monkeypatch, link_token):
+    """Chat-app auto-link parsers strip a trailing '!'. With SEC_TOKEN ending in '!',
+    both the original and the truncated token in the URL must validate."""
+    monkeypatch.setenv("SEC_TOKEN", "fundacion-empujar-2026!")
+
+    mock_pref_repo = MagicMock(spec=IUserPreferenceRepository)
+    mock_pref = UserPreferences(
+        user_id="user-from-reg",
+        sessions=[987],
+        sensitive_personal_data_requirement=SensitivePersonalDataRequirement.NOT_AVAILABLE,
+    )
+    mock_pref_repo.get_user_preference_by_registration_code = AsyncMock(return_value=mock_pref)
+    mock_pref_repo.get_user_preference_by_user_id = AsyncMock(return_value=None)
+
+    mock_exp_service = MagicMock(spec=IExperienceService)
+    mock_exp_service.get_experiences_by_session_id = AsyncMock(return_value=[])
+
+    app.dependency_overrides[get_user_preferences_repository] = lambda: mock_pref_repo
+    app.dependency_overrides[get_experience_service] = lambda: mock_exp_service
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        response = await ac.get(f"/reports/reg-123?token={link_token}")
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json()["user_id"] == "user-from-reg"
+
+
+@pytest.mark.asyncio
+async def test_report_lookup_rejects_unrelated_token_even_with_bang_tolerance(app, monkeypatch):
+    """Regression guard: tolerance only strips a trailing '!', not arbitrary substrings."""
+    monkeypatch.setenv("SEC_TOKEN", "fundacion-empujar-2026!")
+
+    mock_pref_repo = MagicMock(spec=IUserPreferenceRepository)
+    mock_pref_repo.get_user_preference_by_registration_code = AsyncMock(return_value=None)
+    mock_pref_repo.get_user_preference_by_user_id = AsyncMock(return_value=None)
+
+    mock_exp_service = MagicMock(spec=IExperienceService)
+    mock_exp_service.get_experiences_by_session_id = AsyncMock(return_value=[])
+
+    app.dependency_overrides[get_user_preferences_repository] = lambda: mock_pref_repo
+    app.dependency_overrides[get_experience_service] = lambda: mock_exp_service
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        response = await ac.get("/reports/reg-123?token=completely-different")
+
+    assert response.status_code == HTTPStatus.FORBIDDEN
+    mock_pref_repo.get_user_preference_by_registration_code.assert_not_awaited()
+
+
+@pytest.mark.asyncio
 async def test_report_lookup_accepts_case_insensitive_token(app, monkeypatch):
     monkeypatch.setenv("SEC_TOKEN", "SeCrEt")
 
