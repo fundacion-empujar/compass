@@ -148,20 +148,48 @@ class LLMAgentDirector(AbstractAgentDirector):
 
                 # Perform the task
                 agent_output = await agent_for_task.execute(clean_input, context)
+
+                # Determine if a phase transition is about to happen so we can decide
+                # whether to save this agent's response to history.
+                new_phase = self._get_new_phase(agent_output)
+                _will_transition = self._state.current_phase != new_phase
+                _will_transition_to_preference = (
+                    agent_output.finished
+                    and agent_output.agent_type == AgentType.EXPLORE_EXPERIENCES_AGENT
+                    and self._state.counseling_sub_phase == CounselingSubPhase.PREFERENCE_ELICITATION
+                )
+                _transitioning = _will_transition or _will_transition_to_preference
+
                 if not agent_for_task.is_responsible_for_conversation_history():
-                    await self._conversation_manager.update_history(clean_input, agent_output)
+                    # Don't save the outgoing agent's final response when transitioning —
+                    # the next agent will produce the response the user actually sees.
+                    if not _transitioning:
+                        await self._conversation_manager.update_history(clean_input, agent_output)
 
                 # Update the conversation phase
-                new_phase = self._get_new_phase(agent_output)
+                # new_phase was already computed above for the history-saving decision; reuse it here.
                 self._logger.debug("Transitioned phase from %s --to-> %s", self._state.current_phase, new_phase)
 
-                transitioned_to_new_phase = self._state.current_phase != new_phase
+                transitioned_to_new_phase = _will_transition
                 if transitioned_to_new_phase:
-                    user_input = AgentInput(
-                        message="(silence)",
-                        is_artificial=True
-                    )
                     self._state.current_phase = new_phase
+                    phase_ctx_var.set(new_phase.value if new_phase else ":none:")
+
+                if _will_transition_to_preference:
+                    transitioned_to_new_phase = True
+                    user_input = AgentInput(message="", is_artificial=True)
+                elif transitioned_to_new_phase:
+                    if get_application_config().inline_phase_transition:
+                        transitioned_to_new_phase = False
+                    else:
+                        user_input = AgentInput(
+                            message="(silence)",
+                            is_artificial=True
+                        )
+                
+                # Clear agent_type after all operations and logging for this iteration
+                # This ensures observability logs capture the agent type throughout execution
+                agent_type_ctx_var.set(":none:")
 
             # return the last agent output in case
             return agent_output
