@@ -58,14 +58,14 @@ async def test_secure_link_claim_and_duplicate_rejection(monkeypatch, in_memory_
         user_id="user-1",
         language="en",
         registration_code="reg-123",
-        report_token="token-abc",  # nosec B106
+        report_token="token-abc",
         client_id="client-1",
     )
     authed_user = UserInfo(
         user_id="user-1",
         name="User One",
         email="one@example.com",
-        token="fake",  # nosec B106
+        token="fake",
         sign_in_provider=SignInProvider.GOOGLE,
     )
 
@@ -248,7 +248,7 @@ async def test_secure_link_requires_report_token(monkeypatch, in_memory_applicat
         user_id="user-3",
         name="User Three",
         email="three@example.com",
-        token="fake",  # nosec B106
+        token="fake",
         sign_in_provider=SignInProvider.GOOGLE,
     )
 

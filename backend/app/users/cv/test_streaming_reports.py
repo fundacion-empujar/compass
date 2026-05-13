@@ -31,7 +31,7 @@ def app():  # pylint: disable=missing-function-docstring
 def setup_environment():
     """Set up environment variables for testing."""
     # Set SEC_TOKEN for all tests
-    os.environ["SEC_TOKEN"] = "valid-token"  # nosec B105
+    os.environ["SEC_TOKEN"] = "valid-token"
     yield
     # Clean up
     if "SEC_TOKEN" in os.environ:
