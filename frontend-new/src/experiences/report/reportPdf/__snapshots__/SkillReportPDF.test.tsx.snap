@@ -11,29 +11,100 @@ exports[`Report should render Report correctly 1`] = `
       data-testid="skill-report-body-5a296552-f91f-4c38-b88f-542cacaced8e"
       style="display: flex; flex-direction: column;"
     >
-      <view
-        style="display: flex; flex-direction: row; align-items: center; padding-bottom: 18px; padding-top: 32px; gap: 26px;"
+      <text
+        style="font-size: 9px; text-align: left; color: rgb(136, 136, 136); padding-top: 24px; padding-bottom: 6px; font-family: Inter; font-style: italic;"
+        x="0"
+        y="0"
       >
-        <image
-          src="[object Promise]"
-          style="height: 20px;"
-        />
-        <image
-          src="[object Promise]"
-          style="height: 20px;"
-        />
-        <image
-          src="[object Promise]"
-          style="height: 20px;"
-        />
-        <image
-          src="[object Promise]"
-          style="height: 20px;"
-        />
-        <image
-          src="[object Promise]"
-          style="height: 30px;"
-        />
+        Plataforma validada por
+      </text>
+      <view
+        style="display: flex; flex-direction: row; padding-bottom: 6px;"
+      >
+        <view
+          style="flex: 1; display: flex; align-items: center; justify-content: center;"
+        >
+          <image
+            src="[object Promise]"
+            style="height: 20px;"
+          />
+        </view>
+        <view
+          style="flex: 1; display: flex; align-items: center; justify-content: center;"
+        >
+          <image
+            src="[object Promise]"
+            style="height: 20px;"
+          />
+        </view>
+        <view
+          style="flex: 1; display: flex; align-items: center; justify-content: center;"
+        >
+          <image
+            src="[object Promise]"
+            style="height: 20px;"
+          />
+        </view>
+        <view
+          style="flex: 1; display: flex; align-items: center; justify-content: center;"
+        >
+          <image
+            src="[object Promise]"
+            style="height: 20px;"
+          />
+        </view>
+        <view
+          style="flex: 1; display: flex; align-items: center; justify-content: center;"
+        >
+          <image
+            src="[object Promise]"
+            style="height: 20px;"
+          />
+        </view>
+      </view>
+      <view
+        style="display: flex; flex-direction: row; padding-bottom: 18px;"
+      >
+        <view
+          style="flex: 1; display: flex; align-items: center; justify-content: center;"
+        >
+          <image
+            src="[object Promise]"
+            style="height: 20px;"
+          />
+        </view>
+        <view
+          style="flex: 1; display: flex; align-items: center; justify-content: center;"
+        >
+          <image
+            src="[object Promise]"
+            style="height: 20px;"
+          />
+        </view>
+        <view
+          style="flex: 1; display: flex; align-items: center; justify-content: center;"
+        >
+          <image
+            src="[object Promise]"
+            style="height: 20px;"
+          />
+        </view>
+        <view
+          style="flex: 1; display: flex; align-items: center; justify-content: center;"
+        >
+          <image
+            src="[object Promise]"
+            style="height: 20px;"
+          />
+        </view>
+        <view
+          style="flex: 1; display: flex; align-items: center; justify-content: center;"
+        >
+          <image
+            src="[object Promise]"
+            style="height: 12px;"
+          />
+        </view>
       </view>
       <text
         data-testid="skill-report-title-5a296552-f91f-4c38-b88f-542cacaced8e"
@@ -426,13 +497,40 @@ exports[`Report should render Report correctly 1`] = `
           x="0"
           y="0"
         >
-          This report summarizes the key information gathered during a conversation with Brújula on June 1, 2021. Brújula is an AI chatbot that assists job-seekers in exploring their skills and experiences. This report presents the candidate’s work experience and the skills identified from each experience. This information can be used to guide job search and highlight their skills when applying for jobs, especially during interviews with potential employers. It can be a good starting point for creating a complete CV.
+          This report summarizes the key information gathered during a conversation with Brújula on June 1, 2021. Brújula is an AI chatbot that assists job-seekers in exploring their skills and experiences. This report presents the candidate's work experience and the skills identified from each experience. This information can be used to guide job search and highlight their skills when applying for jobs, especially during interviews with potential employers. It can be a good starting point for creating a complete CV.
         </text>
       </view>
     </view>
     <view
       style="width: 100%; display: flex; flex-direction: column; padding-bottom: 26px; position: absolute; bottom: 0px;"
     >
+      <text
+        style="font-size: 8px; text-align: left; color: rgb(136, 136, 136); padding-bottom: 4px; font-family: Inter; font-style: italic;"
+        x="0"
+        y="0"
+      >
+        Iniciativa desarrollada por
+      </text>
+      <view
+        style="display: flex; flex-direction: row; align-items: center; justify-content: center; padding-bottom: 6px; gap: 22px;"
+      >
+        <image
+          src="[object Promise]"
+          style="height: 18px;"
+        />
+        <image
+          src="[object Promise]"
+          style="height: 18px;"
+        />
+        <image
+          src="[object Promise]"
+          style="height: 18px;"
+        />
+        <image
+          src="[object Promise]"
+          style="height: 18px;"
+        />
+      </view>
       <text
         style="font-size: 10px; display: flex; justify-content: center; text-align: center;"
         x="0"

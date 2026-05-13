@@ -150,6 +150,7 @@ jest.mock("src/feedback/bugReport/bugReportButton/BugReportButton", () => {
 });
 
 jest.mock("src/analytics/identity", () => ({
+  captureRegistrationCodeFromUrl: jest.fn(),
   getStoredIdentity: jest.fn().mockReturnValue(null),
   setUserIdentityFromAuth: jest.fn(),
 }));
