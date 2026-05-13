@@ -214,7 +214,9 @@ describe("Chat", () => {
   function assertMessagesAreShown(conversationMessages: IChatMessage<any>[], areLastMessages: boolean = true) {
     // eslint-disable-next-line jest/valid-expect
     const fn = areLastMessages
+      // eslint-disable-next-line jest/valid-expect
       ? expect(ChatList as jest.Mock).toHaveBeenLastCalledWith
+      // eslint-disable-next-line jest/valid-expect
       : expect(ChatList as jest.Mock).toHaveBeenCalledWith;
     fn(
       expect.objectContaining({
