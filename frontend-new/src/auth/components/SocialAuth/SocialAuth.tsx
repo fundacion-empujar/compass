@@ -210,7 +210,7 @@ const SocialAuth: React.FC<Readonly<SocialAuthProps>> = ({
       <Box width="100%">
         <div data-test_id={DATA_TEST_ID.FIREBASE_AUTH}>
           <Button
-            variant="text"
+            variant="outlined"
             size={"medium"}
             disabled={socialAuthLoading}
             fullWidth
@@ -218,12 +218,18 @@ const SocialAuth: React.FC<Readonly<SocialAuthProps>> = ({
             data-testid={DATA_TEST_ID.CONTINUE_WITH_GOOGLE_BUTTON}
             onClick={loginWithPopup}
             sx={{
-              paddingX: 4,
+              paddingX: theme.fixedSpacing(theme.tabiyaSpacing.md),
+              paddingY: theme.fixedSpacing(theme.tabiyaSpacing.sm),
               display: "flex",
               justifyItems: "center",
               alignContent: "center",
               gap: 2,
               color: (theme) => theme.palette.tabiyaBlue.light,
+              borderColor: (theme) => theme.palette.divider,
+              borderRadius: (theme) => theme.tabiyaRounding.sm,
+              "&:hover": {
+                backgroundColor: (theme) => theme.palette.grey[100],
+              },
             }}
           >
             <div style={{ display: "flex", alignItems: "center" }}>

@@ -21,7 +21,6 @@ import { AuthenticationError } from "src/error/commonErrors";
 import ResendVerificationEmail from "src/auth/components/resendVerificationEmail/ResendVerificationEmail";
 import RequestInvitationCode from "src/auth/components/requestInvitationCode/RequestInvitationCode";
 import { InvitationType } from "src/auth/services/invitationsService/invitations.types";
-import CustomLink from "src/theme/CustomLink/CustomLink";
 import { INVITATIONS_PARAM_NAME } from "src/auth/auth.types";
 import MetricsService from "src/metrics/metricsService";
 import { DeviceSpecificationEvent, EventType, UserLocationEvent } from "src/metrics/types";
@@ -50,7 +49,7 @@ export const DATA_TEST_ID = {
   FORGOT_PASSWORD_LINK: `login-forgot-password-link-${uniqueId}`,
   LOGIN_USING: `login-using-${uniqueId}`,
   FIREBASE_AUTH_CONTAINER: `firebase-auth-container-${uniqueId}`,
-  REGISTER_LINK: `login-register-link-${uniqueId}`,
+  REGISTER_BUTTON: `login-register-button-${uniqueId}`,
   LANGUAGE_SELECTOR: `login-language-selector-${uniqueId}`,
   REQUEST_LOGIN_CODE_LINK: `login-request-login-code-link-${uniqueId}`,
   START_NEW_CONVERSATION_BUTTON: `login-start-new-conversation-button-${uniqueId}`,
@@ -372,7 +371,9 @@ const Login: React.FC = () => {
               padding={theme.fixedSpacing(theme.tabiyaSpacing.sm)}
               data-testid={DATA_TEST_ID.SUBTITLE}
               aria-hidden="true"
-            ></Typography>
+            >
+              {t("auth.pages.login.or")}
+            </Typography>
           </Divider>
         </>
       );
@@ -505,10 +506,25 @@ const Login: React.FC = () => {
           />
         )}
         {!registrationDisabled && (
-          <Typography variant="caption" data-testid={DATA_TEST_ID.REGISTER_LINK}>
-            {t("auth.pages.login.dontHaveAnAccount")}
-            <CustomLink onClick={() => navigate(routerPaths.REGISTER)}>{t("common.buttons.register")}</CustomLink>
-          </Typography>
+          <>
+            <Typography
+              variant="body1"
+              textAlign="center"
+              fontWeight={600}
+              paddingTop={theme.fixedSpacing(theme.tabiyaSpacing.sm)}
+            >
+              {t("auth.pages.login.dontHaveAnAccount")}
+            </Typography>
+            <PrimaryButton
+              fullWidth
+              variant="outlined"
+              color="secondary"
+              onClick={() => navigate(routerPaths.REGISTER)}
+              data-testid={DATA_TEST_ID.REGISTER_BUTTON}
+            >
+              {t("common.buttons.register")}
+            </PrimaryButton>
+          </>
         )}
         {showRequestLoginCode && <RequestInvitationCode invitationCodeType={InvitationType.LOGIN} />}
       </Box>

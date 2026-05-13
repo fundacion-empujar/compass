@@ -272,6 +272,7 @@
         "registeringYou": "Registrándote...",
         "enterRegistrationCode": "Ingresa tu código de registro",
         "registrationCode": "Código de registro",
+        "andEitherContinueWith": "O bien continuá con",
         "components": {
           "registerWithEmailForm": {
             "registeringAria": "Registrando"
