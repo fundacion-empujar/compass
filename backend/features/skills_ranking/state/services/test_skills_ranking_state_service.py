@@ -71,6 +71,12 @@ def _mock_user_preference_repository() -> IUserPreferenceRepository:
         async def insert_user_preference(self, user_id: str, user_preference: UserPreferences) -> UserPreferences:
             raise NotImplementedError()
 
+        async def get_user_preference_by_registration_code(self, registration_code: str) -> UserPreferences | None:
+            raise NotImplementedError()
+
+        async def stream_user_preferences(self, page_size: int, started_before, started_after):
+            raise NotImplementedError()
+
     return MockUserPreferenceRepository()
 
 

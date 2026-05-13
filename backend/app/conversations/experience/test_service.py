@@ -1,4 +1,4 @@
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -7,6 +7,7 @@ from app.agent.explore_experiences_agent_director import DiveInPhase, Experience
     ExploreExperiencesAgentDirectorState
 from app.application_state import ApplicationState
 from app.conversations.experience._types import UpdateExperienceRequest, SkillUpdate, TimelineUpdate, ExperienceResponse
+from app.conversations.experience.repository import IExperiencesRepository
 from app.conversations.experience.service import ExperienceService, ExperienceNotFoundError
 from app.countries import Country
 from app.metrics.application_state_metrics_recorder.recorder import IApplicationStateMetricsRecorder
@@ -33,6 +34,11 @@ def mock_metrics_recorder():
             raise NotImplementedError()
 
     return MockedRecorder()
+
+@pytest.fixture
+def mock_experiences_repository():
+    return MagicMock(spec=IExperiencesRepository)
+
 
 @pytest.fixture(autouse=True)
 def _mock_application_config(monkeypatch):
@@ -115,7 +121,7 @@ def _make_state_with_experience(session_id: int, exp_uuid: str, exp_title: str, 
 
 class TestGetExperiencesBySessionId:
     @pytest.mark.asyncio
-    async def test_success(self, mock_metrics_recorder, mock_metrics_service):
+    async def test_success(self, mock_metrics_recorder, mock_metrics_service, mock_experiences_repository):
         # GIVEN a user and session with an experience
         session_id = get_random_session_id()
         exp_uuid = get_random_printable_string(8)
@@ -123,7 +129,8 @@ class TestGetExperiencesBySessionId:
         app_state = _make_state_with_experience(session_id, exp_uuid, "Test Experience", [(0, skill)])
         mock_metrics_recorder.get_state = AsyncMock(return_value=app_state)
         service = ExperienceService(application_state_metrics_recorder=mock_metrics_recorder,
-                                    metrics_service=mock_metrics_service)
+                                    metrics_service=mock_metrics_service,
+                                    experiences_repository=mock_experiences_repository)
 
         # WHEN get_experiences_by_session_id is called
         result = await service.get_experiences_by_session_id(session_id)
@@ -138,7 +145,7 @@ class TestGetExperiencesBySessionId:
         assert dive_in_phase == DiveInPhase.PROCESSED
 
     @pytest.mark.asyncio
-    async def test_empty(self, mock_metrics_recorder, mock_metrics_service):
+    async def test_empty(self, mock_metrics_recorder, mock_metrics_service, mock_experiences_repository):
         # GIVEN a user and session with no experiences
         session_id = get_random_session_id()
         director_state = ExploreExperiencesAgentDirectorState(
@@ -151,7 +158,8 @@ class TestGetExperiencesBySessionId:
         app_state.explore_experiences_director_state = director_state
         mock_metrics_recorder.get_state = AsyncMock(return_value=app_state)
         service = ExperienceService(application_state_metrics_recorder=mock_metrics_recorder,
-                                    metrics_service=mock_metrics_service)
+                                    metrics_service=mock_metrics_service,
+                                    experiences_repository=mock_experiences_repository)
 
         # WHEN get_experiences_by_session_id is called
         result = await service.get_experiences_by_session_id(session_id)
@@ -160,13 +168,14 @@ class TestGetExperiencesBySessionId:
         assert result == []
 
     @pytest.mark.asyncio
-    async def test_recorder_throws_error(self, mock_metrics_recorder, mock_metrics_service):
+    async def test_recorder_throws_error(self, mock_metrics_recorder, mock_metrics_service, mock_experiences_repository):
         # GIVEN the metrics recorder will throw an error
         session_id = get_random_session_id()
         given_error = Exception("Something went wrong")
         mock_metrics_recorder.get_state = AsyncMock(side_effect=given_error)
         service = ExperienceService(application_state_metrics_recorder=mock_metrics_recorder,
-                                    metrics_service=mock_metrics_service)
+                                    metrics_service=mock_metrics_service,
+                                    experiences_repository=mock_experiences_repository)
 
         # WHEN get_experiences_by_session_id is called
         # THEN the error is propagated
@@ -177,7 +186,7 @@ class TestGetExperiencesBySessionId:
 
 class TestUpdateExperience:
     @pytest.mark.asyncio
-    async def test_success(self, mock_metrics_recorder, mock_metrics_service):
+    async def test_success(self, mock_metrics_recorder, mock_metrics_service, mock_experiences_repository):
         # GIVEN a user and session with an experience
         user_id = get_random_user_id()
         session_id = get_random_session_id()
@@ -188,7 +197,8 @@ class TestUpdateExperience:
         mock_metrics_recorder.save_state = AsyncMock()
         mock_metrics_service.record_event = AsyncMock()
         service = ExperienceService(application_state_metrics_recorder=mock_metrics_recorder,
-                                    metrics_service=mock_metrics_service)
+                                    metrics_service=mock_metrics_service,
+                                    experiences_repository=mock_experiences_repository)
 
         update_payload = UpdateExperienceRequest(
             experience_title="Updated Title",
@@ -275,7 +285,7 @@ class TestExperienceResponseSkillMapping:
         ]
     )
     @pytest.mark.asyncio
-    async def test_update_fields_success_parameterized(self, mock_metrics_recorder, mock_metrics_service, update_payload, expected_changes):
+    async def test_update_fields_success_parameterized(self, mock_metrics_recorder, mock_metrics_service, update_payload, expected_changes, mock_experiences_repository):
         # GIVEN a user and session with an experience
         user_id = get_random_user_id()
         session_id = get_random_session_id()
@@ -308,7 +318,8 @@ class TestExperienceResponseSkillMapping:
         mock_metrics_recorder.get_state = AsyncMock(return_value=app_state)
         mock_metrics_recorder.save_state = AsyncMock()
         service = ExperienceService(application_state_metrics_recorder=mock_metrics_recorder,
-                                    metrics_service=mock_metrics_service)
+                                    metrics_service=mock_metrics_service,
+                                    experiences_repository=mock_experiences_repository)
 
         # WHEN update_experience is called
         exp, dive_in_phase = await service.update_experience(user_id, session_id, exp_uuid, update_payload)
@@ -341,7 +352,7 @@ class TestExperienceResponseSkillMapping:
         assert dive_in_phase == DiveInPhase.PROCESSED
 
     @pytest.mark.asyncio
-    async def test_not_found(self, mock_metrics_recorder, mock_metrics_service):
+    async def test_not_found(self, mock_metrics_recorder, mock_metrics_service, mock_experiences_repository):
         # GIVEN a user and session with NO matching experience
         user_id = get_random_user_id()
         session_id = get_random_session_id()
@@ -349,7 +360,8 @@ class TestExperienceResponseSkillMapping:
         app_state = _make_state_with_experience(session_id, "other_uuid", "Other Experience")
         mock_metrics_recorder.get_state = AsyncMock(return_value=app_state)
         service = ExperienceService(application_state_metrics_recorder=mock_metrics_recorder,
-                                    metrics_service=mock_metrics_service)
+                                    metrics_service=mock_metrics_service,
+                                    experiences_repository=mock_experiences_repository)
         update_payload = UpdateExperienceRequest(experience_title="Updated Title")
 
         # WHEN update_experience is called with a non-existent uuid
@@ -358,7 +370,7 @@ class TestExperienceResponseSkillMapping:
             await service.update_experience(user_id, session_id, exp_uuid, update_payload)
 
     @pytest.mark.asyncio
-    async def test_recorder_get_state_throws_error(self, mock_metrics_recorder, mock_metrics_service):
+    async def test_recorder_get_state_throws_error(self, mock_metrics_recorder, mock_metrics_service, mock_experiences_repository):
         # GIVEN the metrics recorder will throw an error on get_state
         user_id = get_random_user_id()
         session_id = get_random_session_id()
@@ -366,7 +378,8 @@ class TestExperienceResponseSkillMapping:
         given_error = Exception("Something went wrong")
         mock_metrics_recorder.get_state = AsyncMock(side_effect=given_error)
         service = ExperienceService(application_state_metrics_recorder=mock_metrics_recorder,
-                                    metrics_service=mock_metrics_service)
+                                    metrics_service=mock_metrics_service,
+                                    experiences_repository=mock_experiences_repository)
         update_payload = UpdateExperienceRequest(experience_title="Updated Title")
 
         # WHEN update_experience is called
@@ -376,7 +389,7 @@ class TestExperienceResponseSkillMapping:
         assert error_info.value == given_error
 
     @pytest.mark.asyncio
-    async def test_recorder_save_state_throws_error(self, mock_metrics_recorder, mock_metrics_service):
+    async def test_recorder_save_state_throws_error(self, mock_metrics_recorder, mock_metrics_service, mock_experiences_repository):
         # GIVEN the metrics recorder will throw an error on save_state
         user_id = get_random_user_id()
         session_id = get_random_session_id()
@@ -386,7 +399,8 @@ class TestExperienceResponseSkillMapping:
         given_error = Exception("Something went wrong saving")
         mock_metrics_recorder.save_state = AsyncMock(side_effect=given_error)
         service = ExperienceService(application_state_metrics_recorder=mock_metrics_recorder,
-                                    metrics_service=mock_metrics_service)
+                                    metrics_service=mock_metrics_service,
+                                    experiences_repository=mock_experiences_repository)
         update_payload = UpdateExperienceRequest(experience_title="Updated Title")
 
         # WHEN update_experience is called
@@ -398,7 +412,7 @@ class TestExperienceResponseSkillMapping:
 
 class TestDeleteExperience:
     @pytest.mark.asyncio
-    async def test_success(self, mock_metrics_recorder, mock_metrics_service):
+    async def test_success(self, mock_metrics_recorder, mock_metrics_service, mock_experiences_repository):
         # GIVEN a user and session with an experience
         user_id = get_random_user_id()
         session_id = get_random_session_id()
@@ -408,7 +422,8 @@ class TestDeleteExperience:
         mock_metrics_recorder.save_state = AsyncMock()
         mock_metrics_service.record_event = AsyncMock()
         service = ExperienceService(application_state_metrics_recorder=mock_metrics_recorder,
-                                    metrics_service=mock_metrics_service)
+                                    metrics_service=mock_metrics_service,
+                                    experiences_repository=mock_experiences_repository)
 
         # WHEN delete_experience is called
         await service.delete_experience(user_id, session_id, exp_uuid)
@@ -431,7 +446,7 @@ class TestDeleteExperience:
         assert called_event.action == "DELETED"
 
     @pytest.mark.asyncio
-    async def test_not_found(self, mock_metrics_recorder, mock_metrics_service):
+    async def test_not_found(self, mock_metrics_recorder, mock_metrics_service, mock_experiences_repository):
         # GIVEN a user and session with NO matching experience
         user_id = get_random_user_id()
         session_id = get_random_session_id()
@@ -439,7 +454,8 @@ class TestDeleteExperience:
         app_state = _make_state_with_experience(session_id, "other_uuid", "Other Experience")
         mock_metrics_recorder.get_state = AsyncMock(return_value=app_state)
         service = ExperienceService(application_state_metrics_recorder=mock_metrics_recorder,
-                                    metrics_service=mock_metrics_service)
+                                    metrics_service=mock_metrics_service,
+                                    experiences_repository=mock_experiences_repository)
 
         # WHEN delete_experience is called with a non-existent uuid
         # THEN it raises ExperienceNotFoundError
@@ -447,7 +463,7 @@ class TestDeleteExperience:
             await service.delete_experience(user_id, session_id, exp_uuid)
 
     @pytest.mark.asyncio
-    async def test_recorder_get_state_throws_error(self, mock_metrics_recorder, mock_metrics_service):
+    async def test_recorder_get_state_throws_error(self, mock_metrics_recorder, mock_metrics_service, mock_experiences_repository):
         # GIVEN the metrics recorder will throw an error on get_state
         user_id = get_random_user_id()
         session_id = get_random_session_id()
@@ -455,7 +471,8 @@ class TestDeleteExperience:
         given_error = Exception("Something went wrong")
         mock_metrics_recorder.get_state = AsyncMock(side_effect=given_error)
         service = ExperienceService(application_state_metrics_recorder=mock_metrics_recorder,
-                                    metrics_service=mock_metrics_service)
+                                    metrics_service=mock_metrics_service,
+                                    experiences_repository=mock_experiences_repository)
 
         # WHEN delete_experience is called
         # THEN the error is propagated
@@ -466,7 +483,7 @@ class TestDeleteExperience:
 
 class TestGetUneditedExperienceByUuid:
     @pytest.mark.asyncio
-    async def test_success(self, mock_metrics_recorder, mock_metrics_service):
+    async def test_success(self, mock_metrics_recorder, mock_metrics_service, mock_experiences_repository):
         # GIVEN a user and session with an experience
         session_id = get_random_session_id()
         exp_uuid = get_random_printable_string(8)
@@ -474,7 +491,8 @@ class TestGetUneditedExperienceByUuid:
         app_state = _make_state_with_experience(session_id, exp_uuid, "Test Experience", [(0, skill)])
         mock_metrics_recorder.get_state = AsyncMock(return_value=app_state)
         service = ExperienceService(application_state_metrics_recorder=mock_metrics_recorder,
-                                    metrics_service=mock_metrics_service)
+                                    metrics_service=mock_metrics_service,
+                                    experiences_repository=mock_experiences_repository)
 
         # WHEN get_unedited_experience_by_uuid is called
         exp, dive_in_phase = await service.get_unedited_experience_by_uuid(session_id, exp_uuid)
@@ -486,14 +504,15 @@ class TestGetUneditedExperienceByUuid:
         assert dive_in_phase == DiveInPhase.PROCESSED
 
     @pytest.mark.asyncio
-    async def test_not_found(self, mock_metrics_recorder, mock_metrics_service):
+    async def test_not_found(self, mock_metrics_recorder, mock_metrics_service, mock_experiences_repository):
         # GIVEN a user and session with NO matching experience
         session_id = get_random_session_id()
         exp_uuid = get_random_printable_string(8)
         app_state = _make_state_with_experience(session_id, "other_uuid", "Other Experience")
         mock_metrics_recorder.get_state = AsyncMock(return_value=app_state)
         service = ExperienceService(application_state_metrics_recorder=mock_metrics_recorder,
-                                    metrics_service=mock_metrics_service)
+                                    metrics_service=mock_metrics_service,
+                                    experiences_repository=mock_experiences_repository)
 
         # WHEN get_unedited_experience_by_uuid is called with a non-existent uuid
         # THEN it raises ExperienceNotFoundError
@@ -501,14 +520,15 @@ class TestGetUneditedExperienceByUuid:
             await service.get_unedited_experience_by_uuid(session_id, exp_uuid)
 
     @pytest.mark.asyncio
-    async def test_recorder_get_state_throws_error(self, mock_metrics_recorder, mock_metrics_service):
+    async def test_recorder_get_state_throws_error(self, mock_metrics_recorder, mock_metrics_service, mock_experiences_repository):
         # GIVEN the metrics recorder will throw an error on get_state
         session_id = get_random_session_id()
         exp_uuid = get_random_printable_string(8)
         given_error = Exception("Something went wrong")
         mock_metrics_recorder.get_state = AsyncMock(side_effect=given_error)
         service = ExperienceService(application_state_metrics_recorder=mock_metrics_recorder,
-                                    metrics_service=mock_metrics_service)
+                                    metrics_service=mock_metrics_service,
+                                    experiences_repository=mock_experiences_repository)
 
         # WHEN get_unedited_experience_by_uuid is called
         # THEN the error is propagated
@@ -519,7 +539,7 @@ class TestGetUneditedExperienceByUuid:
 
 class TestGetAllUneditedExperiences:
     @pytest.mark.asyncio
-    async def test_get_unedited_experiences(self, mock_metrics_recorder, mock_metrics_service):
+    async def test_get_unedited_experiences(self, mock_metrics_recorder, mock_metrics_service, mock_experiences_repository):
         # GIVEN a user and session with multiple experiences
         session_id = get_random_session_id()
         exp_uuid1 = get_random_printable_string(8)
@@ -542,7 +562,8 @@ class TestGetAllUneditedExperiences:
         )
         mock_metrics_recorder.get_state = AsyncMock(return_value=app_state)
         service = ExperienceService(application_state_metrics_recorder=mock_metrics_recorder,
-                                    metrics_service=mock_metrics_service)
+                                    metrics_service=mock_metrics_service,
+                                    experiences_repository=mock_experiences_repository)
 
         # WHEN get_unedited_experiences is called
         result = await service.get_unedited_experiences(session_id)
@@ -559,7 +580,7 @@ class TestGetAllUneditedExperiences:
         assert result[1][1] == DiveInPhase.PROCESSED
 
     @pytest.mark.asyncio
-    async def test_get_unedited_experiences_empty(self, mock_metrics_recorder, mock_metrics_service):
+    async def test_get_unedited_experiences_empty(self, mock_metrics_recorder, mock_metrics_service, mock_experiences_repository):
         # GIVEN a user and session with no experiences
         session_id = get_random_session_id()
         app_state = ApplicationState.new_state(session_id)
@@ -572,7 +593,8 @@ class TestGetAllUneditedExperiences:
         )
         mock_metrics_recorder.get_state = AsyncMock(return_value=app_state)
         service = ExperienceService(application_state_metrics_recorder=mock_metrics_recorder,
-                                    metrics_service=mock_metrics_service)
+                                    metrics_service=mock_metrics_service,
+                                    experiences_repository=mock_experiences_repository)
 
         # WHEN get_unedited_experiences is called
         result = await service.get_unedited_experiences(session_id)
@@ -581,13 +603,14 @@ class TestGetAllUneditedExperiences:
         assert result == []
 
     @pytest.mark.asyncio
-    async def test_get_unedited_experiences_recorder_throws_error(self, mock_metrics_recorder, mock_metrics_service):
+    async def test_get_unedited_experiences_recorder_throws_error(self, mock_metrics_recorder, mock_metrics_service, mock_experiences_repository):
         # GIVEN the metrics recorder will throw an error
         session_id = get_random_session_id()
         given_error = Exception("Something went wrong")
         mock_metrics_recorder.get_state = AsyncMock(side_effect=given_error)
         service = ExperienceService(application_state_metrics_recorder=mock_metrics_recorder,
-                                    metrics_service=mock_metrics_service)
+                                    metrics_service=mock_metrics_service,
+                                    experiences_repository=mock_experiences_repository)
 
         # WHEN get_unedited_experiences is called
         # THEN the error is propagated
@@ -598,7 +621,7 @@ class TestGetAllUneditedExperiences:
 
 class TestRestoreDeletedExperience:
     @pytest.mark.asyncio
-    async def test_restore_deleted_experience(self, mock_metrics_recorder, mock_metrics_service):
+    async def test_restore_deleted_experience(self, mock_metrics_recorder, mock_metrics_service, mock_experiences_repository):
         # GIVEN a user and session with an experience that was deleted
         user_id = get_random_user_id()
         session_id = get_random_session_id()
@@ -613,7 +636,8 @@ class TestRestoreDeletedExperience:
         mock_metrics_recorder.save_state = AsyncMock()
         mock_metrics_service.record_event = AsyncMock()
         service = ExperienceService(application_state_metrics_recorder=mock_metrics_recorder,
-                                    metrics_service=mock_metrics_service)
+                                    metrics_service=mock_metrics_service,
+                                    experiences_repository=mock_experiences_repository)
 
         # WHEN restore_deleted_experience is called
         result_exp, result_phase = await service.restore_deleted_experience(user_id, session_id, exp_uuid)
@@ -637,7 +661,7 @@ class TestRestoreDeletedExperience:
 
 
     @pytest.mark.asyncio
-    async def test_restore_not_deleted_experience(self, mock_metrics_recorder, mock_metrics_service):
+    async def test_restore_not_deleted_experience(self, mock_metrics_recorder, mock_metrics_service, mock_experiences_repository):
         # GIVEN a user and session with an experience that was not deleted
         user_id = get_random_user_id()
         session_id = get_random_session_id()
@@ -646,7 +670,8 @@ class TestRestoreDeletedExperience:
         mock_metrics_recorder.get_state = AsyncMock(return_value=app_state)
         mock_metrics_recorder.save_state = AsyncMock()
         service = ExperienceService(application_state_metrics_recorder=mock_metrics_recorder,
-                                    metrics_service=mock_metrics_service)
+                                    metrics_service=mock_metrics_service,
+                                    experiences_repository=mock_experiences_repository)
 
         # WHEN restore_deleted_experience is called
         # THEN it raises ExperienceNotFoundError
@@ -657,7 +682,7 @@ class TestRestoreDeletedExperience:
         mock_metrics_recorder.save_state.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_restore_not_found(self, mock_metrics_recorder, mock_metrics_service):
+    async def test_restore_not_found(self, mock_metrics_recorder, mock_metrics_service, mock_experiences_repository):
         # GIVEN a user and session with NO matching experience in deleted state
         user_id = get_random_user_id()
         session_id = get_random_session_id()
@@ -666,7 +691,8 @@ class TestRestoreDeletedExperience:
         mock_metrics_recorder.get_state = AsyncMock(return_value=app_state)
         mock_metrics_recorder.save_state = AsyncMock()
         service = ExperienceService(application_state_metrics_recorder=mock_metrics_recorder,
-                                    metrics_service=mock_metrics_service)
+                                    metrics_service=mock_metrics_service,
+                                    experiences_repository=mock_experiences_repository)
 
         # WHEN restore_deleted_experience is called with a non-existent uuid
         # THEN it raises ExperienceNotFoundError
@@ -677,7 +703,7 @@ class TestRestoreDeletedExperience:
         mock_metrics_recorder.save_state.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_recorder_get_state_throws_error(self, mock_metrics_recorder, mock_metrics_service):
+    async def test_recorder_get_state_throws_error(self, mock_metrics_recorder, mock_metrics_service, mock_experiences_repository):
         # GIVEN the metrics recorder will throw an error on get_state
         user_id = get_random_user_id()
         session_id = get_random_session_id()
@@ -685,7 +711,8 @@ class TestRestoreDeletedExperience:
         given_error = Exception("Something went wrong")
         mock_metrics_recorder.get_state = AsyncMock(side_effect=given_error)
         service = ExperienceService(application_state_metrics_recorder=mock_metrics_recorder,
-                                    metrics_service=mock_metrics_service)
+                                    metrics_service=mock_metrics_service,
+                                    experiences_repository=mock_experiences_repository)
         # WHEN restore_deleted_experience is called
         # THEN the error is propagated
         with pytest.raises(Exception) as error_info:
@@ -693,7 +720,7 @@ class TestRestoreDeletedExperience:
         assert error_info.value == given_error
 
     @pytest.mark.asyncio
-    async def test_recorder_save_state_throws_error(self, mock_metrics_recorder, mock_metrics_service):
+    async def test_recorder_save_state_throws_error(self, mock_metrics_recorder, mock_metrics_service, mock_experiences_repository):
         # GIVEN a user and session with an experience that was not deleted
         user_id = get_random_user_id()
         session_id = get_random_session_id()
@@ -707,7 +734,8 @@ class TestRestoreDeletedExperience:
         given_error = Exception("Something went wrong saving")
         mock_metrics_recorder.save_state = AsyncMock(side_effect=given_error)
         service = ExperienceService(application_state_metrics_recorder=mock_metrics_recorder,
-                                    metrics_service=mock_metrics_service)
+                                    metrics_service=mock_metrics_service,
+                                    experiences_repository=mock_experiences_repository)
 
         # WHEN restore_deleted_experience is called
         # THEN the error is propagated

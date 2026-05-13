@@ -31,9 +31,6 @@ describe("ChatProgresBar", () => {
         total: null,
       });
 
-      // AND the container should be in the document
-      const container = screen.getByTestId(DATA_TEST_ID.CONTAINER);
-
       // AND the progress bar text should be in the document
       const progressBar = screen.getByTestId(DATA_TEST_ID.PROGRESS_BAR_PHASE_TEXT);
       expect(progressBar).toBeInTheDocument();
