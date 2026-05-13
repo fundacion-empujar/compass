@@ -14,7 +14,9 @@ import { nanoid } from "nanoid";
 import Timestamp from "src/chat/chatMessage/components/chatMessageFooter/components/timestamp/Timestamp";
 
 jest.mock("src/chat/chatMessage/components/chatMessageFooter/ChatMessageFooterLayout", () => {
-  const originalModule = jest.requireActual("src/chat/chatMessage/components/chatMessageFooter/ChatMessageFooterLayout");
+  const originalModule = jest.requireActual(
+    "src/chat/chatMessage/components/chatMessageFooter/ChatMessageFooterLayout"
+  );
   return {
     __esModule: true,
     ...originalModule,
@@ -40,7 +42,7 @@ describe("render tests", () => {
       message: "Hello, I'm Brújula",
       sent_at: givenDate,
       type: COMPASS_CHAT_MESSAGE_TYPE,
-      reaction: null
+      reaction: null,
     };
     // WHEN the user chat message is rendered
     render(<CompassChatMessage {...messageData} />);
@@ -50,18 +52,20 @@ describe("render tests", () => {
     // AND expect the message bubble to be visible
     expect(screen.getByTestId(CHAT_BUBBLE_DATA_TEST_ID.CHAT_MESSAGE_BUBBLE_CONTAINER)).toBeInTheDocument();
     // AND expect the message footer to be visible
-    expect(screen.getByTestId(CHAT_MESSAGE_FOOTER_DATA_TEST_ID.CHAT_MESSAGE_FOOTER_LAYOUT_CONTAINER)).toBeInTheDocument();
+    expect(
+      screen.getByTestId(CHAT_MESSAGE_FOOTER_DATA_TEST_ID.CHAT_MESSAGE_FOOTER_LAYOUT_CONTAINER)
+    ).toBeInTheDocument();
 
     // AND the correct date to have been displayed
-    const footerLayoutCalls = (ChatMessageFooterLayout as jest.Mock).mock.calls.at(-1)[0]
+    const footerLayoutCalls = (ChatMessageFooterLayout as jest.Mock).mock.calls.at(-1)[0];
     expect(footerLayoutCalls.children).toEqual(
       expect.objectContaining({
         type: Timestamp,
         props: {
-          sentAt: givenDate
-        }
+          sentAt: givenDate,
+        },
       })
-    )
+    );
     // AND expect the Chat bubble to have been rendered with the expected message
     expect(ChatBubble).toHaveBeenNthCalledWith(
       1,

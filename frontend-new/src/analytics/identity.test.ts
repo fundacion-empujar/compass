@@ -7,7 +7,10 @@ import {
 } from "./identity";
 import { pushToDataLayer } from "src/services/analytics/dataLayer";
 import { REGISTRATION_CODE_QUERY_PARAM } from "src/config/registrationCode";
-import { Language, SensitivePersonalDataRequirement } from "src/userPreferences/UserPreferencesService/userPreferences.types";
+import {
+  Language,
+  SensitivePersonalDataRequirement,
+} from "src/userPreferences/UserPreferencesService/userPreferences.types";
 
 jest.mock("src/services/analytics/dataLayer", () => ({
   pushToDataLayer: jest.fn(),
@@ -112,7 +115,7 @@ describe("analytics identity helper", () => {
       expect.objectContaining({
         event: "user_identity_cleared",
         auth_state: "logged_out",
-      }),
+      })
     );
   });
 });

@@ -1,5 +1,5 @@
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
 
 /* 
 ──────────────────────────────────────────────────────────────
@@ -29,25 +29,25 @@ Feature: Consistency of i18n Translation Keys
 ──────────────────────────────────────────────────────────────
 */
 
-const localesDir = path.join(__dirname, 'locales');
-const referenceLanguage = 'en-GB';
+const localesDir = path.join(__dirname, "locales");
+const referenceLanguage = "en-GB";
 
-describe('Feature: i18n locales consistency', () => {
-  const referenceTranslationsPath = path.join(localesDir, referenceLanguage, 'translation.json');
-  const referenceTranslations = JSON.parse(fs.readFileSync(referenceTranslationsPath, 'utf8'));
+describe("Feature: i18n locales consistency", () => {
+  const referenceTranslationsPath = path.join(localesDir, referenceLanguage, "translation.json");
+  const referenceTranslations = JSON.parse(fs.readFileSync(referenceTranslationsPath, "utf8"));
   const referenceKeys = Object.keys(referenceTranslations);
 
-  const languageDirs = fs.readdirSync(localesDir).filter(dir => 
-    fs.statSync(path.join(localesDir, dir)).isDirectory() && dir !== referenceLanguage
-  );
+  const languageDirs = fs
+    .readdirSync(localesDir)
+    .filter((dir) => fs.statSync(path.join(localesDir, dir)).isDirectory() && dir !== referenceLanguage);
 
-  languageDirs.forEach(lang => {
+  languageDirs.forEach((lang) => {
     it(`Scenario: ${lang} should have the same keys as ${referenceLanguage}`, () => {
       // GIVEN
-      const translationPath = path.join(localesDir, lang, 'translation.json');
+      const translationPath = path.join(localesDir, lang, "translation.json");
 
       // WHEN
-      const translations = JSON.parse(fs.readFileSync(translationPath, 'utf8'));
+      const translations = JSON.parse(fs.readFileSync(translationPath, "utf8"));
       const translationKeys = Object.keys(translations);
 
       // THEN

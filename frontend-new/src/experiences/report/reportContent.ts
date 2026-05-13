@@ -32,8 +32,7 @@ export const ReportContent = {
   get SKILLS_DESCRIPTION_TEXT() {
     return i18n.t("experiences.report.skillsDescriptionText");
   },
-  DISCLAIMER_FINAL_TEXT: (currentDate: string) =>
-    i18n.t("experiences.report.disclaimer.final", { date: currentDate }),
+  DISCLAIMER_FINAL_TEXT: (currentDate: string) => i18n.t("experiences.report.disclaimer.final", { date: currentDate }),
   IMAGE_URLS: {
     COMPASS_LOGO: `${process.env.PUBLIC_URL}/logo.png`,
     OXFORD_LOGO: `${process.env.PUBLIC_URL}/oxford-logo.png`,

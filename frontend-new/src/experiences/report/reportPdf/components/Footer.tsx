@@ -10,10 +10,22 @@ const Footer: React.FC = () => (
       Iniciativa desarrollada por
     </Text>
     <View style={styles.footerLogoRow}>
-      <Image src={getBase64Image(ReportContent.IMAGE_URLS.COMPASS_LOGO)} style={styles.footerImage} source={undefined} />
-      <Image src={getBase64Image(ReportContent.IMAGE_URLS.EMPUJAR_LOGO)} style={styles.footerImage} source={undefined} />
+      <Image
+        src={getBase64Image(ReportContent.IMAGE_URLS.COMPASS_LOGO)}
+        style={styles.footerImage}
+        source={undefined}
+      />
+      <Image
+        src={getBase64Image(ReportContent.IMAGE_URLS.EMPUJAR_LOGO)}
+        style={styles.footerImage}
+        source={undefined}
+      />
       <Image src={getBase64Image(ReportContent.IMAGE_URLS.OXFORD_LOGO)} style={styles.footerImage} source={undefined} />
-      <Image src={getBase64Image(ReportContent.IMAGE_URLS.YOUTH_INNOVATION_FUND_LOGO)} style={styles.footerImage} source={undefined} />
+      <Image
+        src={getBase64Image(ReportContent.IMAGE_URLS.YOUTH_INNOVATION_FUND_LOGO)}
+        style={styles.footerImage}
+        source={undefined}
+      />
     </View>
     <Text
       x={0}

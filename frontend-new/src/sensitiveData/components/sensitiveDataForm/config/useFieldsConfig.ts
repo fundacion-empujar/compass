@@ -56,7 +56,6 @@ export const useFieldsConfig = () => {
   return { fields, loading, error };
 };
 
-
 /**
  * Parses a YAML configuration string into a FieldsConfig object.
  *

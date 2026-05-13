@@ -122,9 +122,16 @@ const pushIdentitySet = (event: GTMUserIdentitySetEvent): void => {
   });
 };
 
-const warnIfInvalidIdentity = (userId: string | null, identifierType: IdentifierType, registrationCode: string | null): void => {
+const warnIfInvalidIdentity = (
+  userId: string | null,
+  identifierType: IdentifierType,
+  registrationCode: string | null
+): void => {
   if (!userId) {
-    console.warn("user identity not set: missing user_id", { identifierType, registrationCodePresent: Boolean(registrationCode) });
+    console.warn("user identity not set: missing user_id", {
+      identifierType,
+      registrationCodePresent: Boolean(registrationCode),
+    });
     return;
   }
   if (identifierType === "registration_code" && registrationCode && userId !== registrationCode) {
@@ -177,7 +184,10 @@ export const clearUserIdentity = (): void => {
   pushToDataLayer(event);
 };
 
-export const captureRegistrationCodeFromUrl = (search: string, source: "secure_link" | "manual" | "unknown" = "secure_link"): string | null => {
+export const captureRegistrationCodeFromUrl = (
+  search: string,
+  source: "secure_link" | "manual" | "unknown" = "secure_link"
+): string | null => {
   const params = new URLSearchParams(search);
   const code = sanitizeCode(params.get(REGISTRATION_CODE_QUERY_PARAM));
   if (code) {

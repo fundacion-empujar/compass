@@ -2,7 +2,7 @@
 import "src/_test_utilities/consoleMock";
 
 // standard sentry mock
-import "src/_test_utilities/sentryMock"
+import "src/_test_utilities/sentryMock";
 import { render, screen } from "src/_test_utilities/test-utils";
 import ErrorPage, { DATA_TEST_ID } from "src/error/errorPage/ErrorPage";
 import { DATA_TEST_ID as BUG_REPORT_DATA_TEST_ID } from "src/feedback/bugReport/bugReportButton/BugReportButton";
@@ -46,6 +46,6 @@ describe("ErrorPage", () => {
     expect(screen.getByText(errorMessage)).toBeInTheDocument();
     // AND expect the bug report button to be rendered
     expect(screen.getByTestId(BUG_REPORT_DATA_TEST_ID.BUG_REPORT_BUTTON_CONTAINER)).toBeInTheDocument();
-  // Snapshot omitted to avoid brittleness with style/classname changes
+    // Snapshot omitted to avoid brittleness with style/classname changes
   });
 });

@@ -1,5 +1,10 @@
 import ErrorConstants from "src/error/restAPIError/RestAPIError.constants";
-import { getRestAPIErrorFactory, RestAPIError, getUserFriendlyErrorMessage, translateUserFriendlyErrorMessage } from "src/error/restAPIError/RestAPIError";
+import {
+  getRestAPIErrorFactory,
+  RestAPIError,
+  getUserFriendlyErrorMessage,
+  translateUserFriendlyErrorMessage,
+} from "src/error/restAPIError/RestAPIError";
 import { StatusCodes } from "http-status-codes";
 import i18n from "src/i18n/i18n";
 
@@ -175,10 +180,9 @@ describe("Test the getUserFriendlyErrorMessage function", () => {
         "Failed to fetch models"
       );
 
-      const key = getUserFriendlyErrorMessage(error);     
+      const key = getUserFriendlyErrorMessage(error);
       const message = translateUserFriendlyErrorMessage(key);
       expect(message).toBe(i18n.t(ErrorConstants.USER_FRIENDLY_ERROR_I18N_KEYS.UNABLE_TO_PROCESS_REQUEST));
-
     });
   });
 });

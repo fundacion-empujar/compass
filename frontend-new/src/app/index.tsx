@@ -324,7 +324,10 @@ const App = () => {
   ]);
   return (
     <Suspense fallback={<Backdrop isShown={true} transparent={true} message="Loading page..." />}>
-      <RouterProvider router={router} fallbackElement={<Backdrop isShown={true} transparent={true} message="Loading page..." />} />
+      <RouterProvider
+        router={router}
+        fallbackElement={<Backdrop isShown={true} transparent={true} message="Loading page..." />}
+      />
     </Suspense>
   );
 };

@@ -83,7 +83,7 @@ abstract class AuthenticationService {
    *
    * @returns {boolean} True if an active session exists, false otherwise.
    */
-  abstract isProviderSessionValid(): Promise<boolean>
+  abstract isProviderSessionValid(): Promise<boolean>;
 
   /**
    * Updates the application state when a successful logout occurs
@@ -172,7 +172,7 @@ abstract class AuthenticationService {
       throw Error("User not found in the token");
     }
     this.authenticationStateService.setUser(user);
-    this.authenticationStateService.setToken(token)
+    this.authenticationStateService.setToken(token);
 
     resolveAndSetUserIdentity({
       userId: user.id,

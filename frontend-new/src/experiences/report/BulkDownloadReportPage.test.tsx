@@ -21,7 +21,11 @@ jest.mock("./reportPdf/SkillReportPDF", () => {
   return jest.fn(() => null);
 });
 jest.mock("./reportDocx/SkillReportDocx", () => {
-  return jest.fn().mockResolvedValue(new Blob(["docx content"], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" }));
+  return jest
+    .fn()
+    .mockResolvedValue(
+      new Blob(["docx content"], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" })
+    );
 });
 
 describe("BulkDownloadReportPage", () => {
@@ -35,9 +39,9 @@ describe("BulkDownloadReportPage", () => {
     (BulkDownloadReportsService.getInstance as jest.Mock).mockReturnValue(mockServiceInstance);
     (globalAssetPreloader.preloadAllAssets as jest.Mock).mockResolvedValue(undefined);
     (globalAssetPreloader.getCache as jest.Mock).mockReturnValue(new Map());
-    Object.defineProperty(globalAssetPreloader, 'cacheSize', {
+    Object.defineProperty(globalAssetPreloader, "cacheSize", {
       get: jest.fn(() => 10),
-      configurable: true
+      configurable: true,
     });
   });
 
@@ -162,9 +166,12 @@ describe("BulkDownloadReportPage", () => {
       const downloadButton = screen.getByText("Download Reports");
       fireEvent.click(downloadButton);
 
-      await waitFor(() => {
-        expect(screen.getByText(/No reports found/i)).toBeInTheDocument();
-      }, { timeout: 3000 });
+      await waitFor(
+        () => {
+          expect(screen.getByText(/No reports found/i)).toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
     });
 
     it("should update progress during download", async () => {
@@ -182,9 +189,12 @@ describe("BulkDownloadReportPage", () => {
       const downloadButton = screen.getByText("Download Reports");
       fireEvent.click(downloadButton);
 
-      await waitFor(() => {
-        expect(screen.getByText(/Successfully downloaded.*reports/i)).toBeInTheDocument();
-      }, { timeout: 5000 });
+      await waitFor(
+        () => {
+          expect(screen.getByText(/Successfully downloaded.*reports/i)).toBeInTheDocument();
+        },
+        { timeout: 5000 }
+      );
 
       expect(mockServiceInstance.streamReports).toHaveBeenCalled();
     });
@@ -228,9 +238,12 @@ describe("BulkDownloadReportPage", () => {
       const downloadButton = screen.getByText("Download Reports");
       fireEvent.click(downloadButton);
 
-      await waitFor(() => {
-        expect(mockSaveAs).toHaveBeenCalled();
-      }, { timeout: 5000 });
+      await waitFor(
+        () => {
+          expect(mockSaveAs).toHaveBeenCalled();
+        },
+        { timeout: 5000 }
+      );
       const callArgs = mockSaveAs.mock.calls[0];
       expect(callArgs[1]).toMatch(/brujula-reports-\d{4}-\d{2}-\d{2}\.zip/);
     });
@@ -243,9 +256,12 @@ describe("BulkDownloadReportPage", () => {
       const downloadButton = screen.getByText("Download Reports");
       fireEvent.click(downloadButton);
 
-      await waitFor(() => {
-        expect(screen.getByText(/Error: Network error/i)).toBeInTheDocument();
-      }, { timeout: 3000 });
+      await waitFor(
+        () => {
+          expect(screen.getByText(/Error: Network error/i)).toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
     });
 
     it("should pass correct filters to service", async () => {
@@ -295,16 +311,24 @@ describe("BulkDownloadReportPage", () => {
       const downloadButton = screen.getByText("Download Reports");
       fireEvent.click(downloadButton);
 
-      await waitFor(() => {
-        expect(screen.getByText(/Successfully downloaded.*reports/i)).toBeInTheDocument();
-      }, { timeout: 5000 });
+      await waitFor(
+        () => {
+          expect(screen.getByText(/Successfully downloaded.*reports/i)).toBeInTheDocument();
+        },
+        { timeout: 5000 }
+      );
     });
 
     it("should show progress percentage", async () => {
       renderComponent();
 
       mockServiceInstance.streamReports.mockImplementation(
-        async (_token: string, _filters: any, onBatch: (batch: any[]) => Promise<void>, onProgress: (count: number) => void) => {
+        async (
+          _token: string,
+          _filters: any,
+          onBatch: (batch: any[]) => Promise<void>,
+          onProgress: (count: number) => void
+        ) => {
           const batch = [
             { user_id: "user1", registration_code: "reg1", experiences: [], conversation_conducted_at: null },
           ];
@@ -316,10 +340,13 @@ describe("BulkDownloadReportPage", () => {
       const downloadButton = screen.getByText("Download Reports");
       fireEvent.click(downloadButton);
 
-      await waitFor(() => {
-        const progressBar = screen.getByRole("progressbar");
-        expect(progressBar).toBeInTheDocument();
-      }, { timeout: 3000 });
+      await waitFor(
+        () => {
+          const progressBar = screen.getByRole("progressbar");
+          expect(progressBar).toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
     });
   });
 });

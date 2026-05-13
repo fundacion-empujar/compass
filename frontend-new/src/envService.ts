@@ -189,7 +189,6 @@ export const getDefaultLocale = () => {
   return getEnv(EnvVariables.FRONTEND_DEFAULT_LOCALE);
 };
 
-
 export const getDatePattern = () => {
   return getEnv(EnvVariables.FRONTEND_DATE_PATTERN);
 };
@@ -197,9 +196,6 @@ export const getDatePattern = () => {
 export const getDateSplitter = () => {
   return getEnv(EnvVariables.FRONTEND_DATE_SPLITTER);
 };
-
-
-
 
 export const ensureRequiredEnvVars = () => {
   requiredEnvVariables.forEach((key: EnvVariables) => {

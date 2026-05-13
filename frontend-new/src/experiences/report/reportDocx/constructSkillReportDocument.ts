@@ -2,12 +2,7 @@ import { Document, Paragraph, TextRun, ImageRun, HeadingLevel, AlignmentType, Bo
 import { Experience } from "src/experiences/experienceService/experiences.types";
 import { ReportContent } from "src/experiences/report/reportContent";
 import { TabiyaBasicColors } from "src/theme/applicationTheme/applicationTheme";
-import {
-  COLORS,
-  formatSkillsReportDate,
-  getBase64Image,
-  prettifyText,
-} from "src/experiences/report/util";
+import { COLORS, formatSkillsReportDate, getBase64Image, prettifyText } from "src/experiences/report/util";
 import constructSkillsDescription from "src/experiences/report/reportDocx/components/ConstructSkillsDescription";
 import HeaderComponent from "src/experiences/report/reportDocx/components/Header";
 import FooterComponent from "src/experiences/report/reportDocx/components/Footer";
@@ -51,7 +46,7 @@ const constructPersonalInformationSection = async (
   address: string | undefined,
   phone: string | undefined,
   email: string | undefined
-) : Promise<void> => {
+): Promise<void> => {
   if (name) {
     paragraphs.push(
       new Paragraph({
@@ -83,29 +78,33 @@ const constructPersonalInformationSection = async (
 
 // Construct the report title
 const constructReportTitle = (paragraphs: Paragraph[]): void => {
-  paragraphs.push(new Paragraph({
-    children: [
-      new TextRun({
-        text: ReportContent.SKILLS_REPORT_TITLE,
-        bold: true,
-        color: TabiyaBasicColors.DarkBlue,
-        size: 32,
-      }),
-    ],
-    heading: HeadingLevel.TITLE,
-    alignment: AlignmentType.LEFT,
-    spacing: { after: 300 },
-  }));
+  paragraphs.push(
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: ReportContent.SKILLS_REPORT_TITLE,
+          bold: true,
+          color: TabiyaBasicColors.DarkBlue,
+          size: 32,
+        }),
+      ],
+      heading: HeadingLevel.TITLE,
+      alignment: AlignmentType.LEFT,
+      spacing: { after: 300 },
+    })
+  );
 };
 
 // Construct the section divider
 const constructSectionDivider = (paragraphs: Paragraph[]): void => {
-  paragraphs.push(new Paragraph({
-    border: {
-      top: { style: BorderStyle.SINGLE, size: 10 },
-    },
-    spacing: { before: 200 },
-  }));
+  paragraphs.push(
+    new Paragraph({
+      border: {
+        top: { style: BorderStyle.SINGLE, size: 10 },
+      },
+      spacing: { before: 200 },
+    })
+  );
 };
 
 const constructFinalDisclaimer = (paragraphs: Paragraph[], conversationConductedAt: string | null): void => {
@@ -179,4 +178,4 @@ export const constructSkillReportDocument = async (props: SkillReportDocumentPro
       },
     ],
   });
-}; 
+};

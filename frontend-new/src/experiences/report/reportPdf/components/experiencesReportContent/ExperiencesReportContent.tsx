@@ -26,9 +26,7 @@ export const capitalizeFirstLetter = (string: string): string => {
   return string.charAt(0).toUpperCase() + string.slice(1);
 };
 
-const ExperiencesReportContent: React.FC<
-
-ExperienceProps> = ({ experience }) => {
+const ExperiencesReportContent: React.FC<ExperienceProps> = ({ experience }) => {
   return (
     <View style={styles.container} data-testid={DATA_TEST_ID.EXPERIENCES_CONTENT_REPORT_CONTAINER}>
       <View style={styles.contentColumn}>
@@ -49,7 +47,7 @@ ExperienceProps> = ({ experience }) => {
             </Text>
             {(experience.timeline.start || experience.timeline.end) && experience.company && (
               <Text x={0} y={0}>
-                ,{" "} 
+                ,{" "}
               </Text>
             )}
             <Text x={0} y={0} data-testid={DATA_TEST_ID.EXPERIENCES_CONTENT_REPORT_COMPANY}>

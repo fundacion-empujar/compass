@@ -1,14 +1,15 @@
-import { SensitivePersonalDataRequirement, UserPreference, Language } from "src/userPreferences/UserPreferencesService/userPreferences.types";
 import {
-  QUESTION_KEYS,
-} from "src/feedback/overallFeedback/overallFeedbackService/OverallFeedback.service.types";
+  SensitivePersonalDataRequirement,
+  UserPreference,
+  Language,
+} from "src/userPreferences/UserPreferencesService/userPreferences.types";
+import { QUESTION_KEYS } from "src/feedback/overallFeedback/overallFeedbackService/OverallFeedback.service.types";
 
 export default class UserPreferencesStateService {
   private static instance: UserPreferencesStateService;
   private userPreferences: UserPreference | null = null;
 
-  private constructor() {
-  }
+  private constructor() {}
 
   public static getInstance(): UserPreferencesStateService {
     if (!UserPreferencesStateService.instance) {
@@ -55,7 +56,7 @@ export default class UserPreferencesStateService {
     if (activeSessionId === null) {
       return false;
     }
-    const answered_questions = this.userPreferences!.user_feedback_answered_questions
+    const answered_questions = this.userPreferences!.user_feedback_answered_questions;
     if (Object.keys(answered_questions).length === 0) {
       return false;
     }
@@ -64,13 +65,13 @@ export default class UserPreferencesStateService {
       return false;
     }
 
-  // Keys of answered_questions are serialized session IDs; bracket access coerces number to string at runtime
-  const answeredForSession = answered_questions[activeSessionId];
+    // Keys of answered_questions are serialized session IDs; bracket access coerces number to string at runtime
+    const answeredForSession = answered_questions[activeSessionId];
     return Array.isArray(answeredForSession)
       ? answeredForSession.some((question: string) => question !== QUESTION_KEYS.CUSTOMER_SATISFACTION)
       : false;
   }
-  
+
   public activeSessionHasCustomerSatisfactionRating(): boolean {
     const activeSessionId = this.getActiveSessionId();
 
@@ -81,7 +82,7 @@ export default class UserPreferencesStateService {
     // userPreferences.user_feedback_answered_questions is an object with session ids as keys,
     // and it is never undefined, but it can be an empty object: {}.
     // For Postel's Law: assert that the object is defined.
-    const answered_questions = this.userPreferences!.user_feedback_answered_questions
+    const answered_questions = this.userPreferences!.user_feedback_answered_questions;
     if (!answered_questions || Object.keys(answered_questions).length === 0) {
       return false;
     }
@@ -90,10 +91,10 @@ export default class UserPreferencesStateService {
       return false;
     }
 
-    const answeredForSession = answered_questions[activeSessionId] ?? answered_questions[String(activeSessionId) as unknown as keyof typeof answered_questions];
-    return Array.isArray(answeredForSession)
-      ? answeredForSession.includes(QUESTION_KEYS.CUSTOMER_SATISFACTION)
-      : false;
+    const answeredForSession =
+      answered_questions[activeSessionId] ??
+      answered_questions[String(activeSessionId) as unknown as keyof typeof answered_questions];
+    return Array.isArray(answeredForSession) ? answeredForSession.includes(QUESTION_KEYS.CUSTOMER_SATISFACTION) : false;
   }
 
   private cloneUserPreferences(preferences: UserPreference | null): UserPreference | null {

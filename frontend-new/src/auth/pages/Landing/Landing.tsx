@@ -106,7 +106,7 @@ const Landing: React.FC = () => {
     }
   }, [applicationLoginCode, handleError, handlePostLogin, enqueueSnackbar, t]);
 
- return (
+  return (
     <>
       <Dialog
         open={true}

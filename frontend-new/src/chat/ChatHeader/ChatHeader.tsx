@@ -11,8 +11,7 @@ import AnimatedBadge from "src/theme/AnimatedBadge/AnimatedBadge";
 import ContextMenu from "src/theme/ContextMenu/ContextMenu";
 import { IsOnlineContext } from "src/app/isOnlineProvider/IsOnlineProvider";
 import * as Sentry from "@sentry/react";
-import AnonymousAccountConversionDialog
-  from "src/auth/components/anonymousAccountConversionDialog/AnonymousAccountConversionDialog";
+import AnonymousAccountConversionDialog from "src/auth/components/anonymousAccountConversionDialog/AnonymousAccountConversionDialog";
 import authenticationStateService from "src/auth/services/AuthenticationState.service";
 import { useChatContext } from "src/chat/ChatContext";
 import { useSnackbar } from "src/theme/SnackbarProvider/SnackbarProvider";
@@ -238,7 +237,7 @@ const ChatHeader: React.FC<Readonly<ChatHeaderProps>> = ({
     handleGiveFeedback,
     timeUntilNotification,
     progressPercentage,
-    t
+    t,
   ]);
 
   const contextMenuItems: MenuItemConfig[] = useMemo(
@@ -259,46 +258,48 @@ const ChatHeader: React.FC<Readonly<ChatHeaderProps>> = ({
       // },
       ...(sentryEnabled
         ? [
-          {
-            id: MENU_ITEM_ID.REPORT_BUG_BUTTON,
-            text: t("feedback.bugReport.reportBug").toLowerCase(),
-            disabled: !isOnline,
-            action: () => {
-              const feedback = Sentry.getFeedback();
-              if (feedback) {
-                feedback.createForm({
-                  formTitle: t("chat.chatHeader.giveGeneralFeedback"),
-                  nameLabel: t("chat.chatHeader.nameLabel"),
-                  namePlaceholder: t("chat.chatHeader.namePlaceholder"),
-                  emailLabel: t("chat.chatHeader.emailLabel"),
-                  emailPlaceholder: t("chat.chatHeader.emailPlaceholder"),
-                  isRequiredLabel: t("chat.chatHeader.requiredLabel"),
-                  messageLabel: t("chat.chatHeader.descriptionLabel"),
-                  messagePlaceholder: t("chat.chatHeader.feedbackMessagePlaceholder"),
-                  addScreenshotButtonLabel: t("chat.chatHeader.addScreenshot"),
-                  submitButtonLabel: t("chat.chatHeader.sendFeedback"),
-                  cancelButtonLabel: t("chat.chatHeader.cancelButton"),
-                  successMessageText: t("chat.chatHeader.feedbackSuccessMessage")
-                }).then((form) => {
-                  if (form) {
-                    form.appendToDom();
-                    form.open(); // shows the feedback form
-                  }
-                });
-              }
+            {
+              id: MENU_ITEM_ID.REPORT_BUG_BUTTON,
+              text: t("feedback.bugReport.reportBug").toLowerCase(),
+              disabled: !isOnline,
+              action: () => {
+                const feedback = Sentry.getFeedback();
+                if (feedback) {
+                  feedback
+                    .createForm({
+                      formTitle: t("chat.chatHeader.giveGeneralFeedback"),
+                      nameLabel: t("chat.chatHeader.nameLabel"),
+                      namePlaceholder: t("chat.chatHeader.namePlaceholder"),
+                      emailLabel: t("chat.chatHeader.emailLabel"),
+                      emailPlaceholder: t("chat.chatHeader.emailPlaceholder"),
+                      isRequiredLabel: t("chat.chatHeader.requiredLabel"),
+                      messageLabel: t("chat.chatHeader.descriptionLabel"),
+                      messagePlaceholder: t("chat.chatHeader.feedbackMessagePlaceholder"),
+                      addScreenshotButtonLabel: t("chat.chatHeader.addScreenshot"),
+                      submitButtonLabel: t("chat.chatHeader.sendFeedback"),
+                      cancelButtonLabel: t("chat.chatHeader.cancelButton"),
+                      successMessageText: t("chat.chatHeader.feedbackSuccessMessage"),
+                    })
+                    .then((form) => {
+                      if (form) {
+                        form.appendToDom();
+                        form.open(); // shows the feedback form
+                      }
+                    });
+                }
+              },
             },
-          },
-        ]
+          ]
         : []),
       ...(isAnonymous
         ? [
-          {
-            id: MENU_ITEM_ID.REGISTER,
-            text: t("common.buttons.register").toLowerCase(),
-            disabled: !isOnline,
-            action: () => setShowConversionDialog(true),
-          },
-        ]
+            {
+              id: MENU_ITEM_ID.REGISTER,
+              text: t("common.buttons.register").toLowerCase(),
+              disabled: !isOnline,
+              action: () => setShowConversionDialog(true),
+            },
+          ]
         : []),
       {
         id: MENU_ITEM_ID.LOGOUT_BUTTON,
@@ -411,11 +412,7 @@ const ChatHeader: React.FC<Readonly<ChatHeaderProps>> = ({
             text: (
               <>
                 {t("chat.chatHeader.anonymousAccountWarning")}
-                <HighlightedSpan>
-                  {" "}
-                  {t("chat.chatHeader.logoutWarningAnonymous")}
-                </HighlightedSpan>
-                .
+                <HighlightedSpan> {t("chat.chatHeader.logoutWarningAnonymous")}</HighlightedSpan>.
               </>
             ),
           },
@@ -423,7 +420,8 @@ const ChatHeader: React.FC<Readonly<ChatHeaderProps>> = ({
             id: "3",
             text: (
               <>
-                <HighlightedSpan>{t("chat.chatHeader.createAccountToSaveProgress")}</HighlightedSpan> {t("chat.chatHeader.continueYourJourneyLater")}
+                <HighlightedSpan>{t("chat.chatHeader.createAccountToSaveProgress")}</HighlightedSpan>{" "}
+                {t("chat.chatHeader.continueYourJourneyLater")}
               </>
             ),
           },

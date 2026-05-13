@@ -134,8 +134,7 @@ stringFieldName:
 
     test("should clean up on unmount", async () => {
       // GIVEN a pending fetch that never resolves
-      fetchSpy = setupAPIServiceSpy(200, new Promise(() => {
-      }), "");
+      fetchSpy = setupAPIServiceSpy(200, new Promise(() => {}), "");
 
       // WHEN the hook is mounted and then unmounted
       const { unmount } = renderHook(() => useFieldsConfig());

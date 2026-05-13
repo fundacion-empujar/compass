@@ -1,7 +1,7 @@
 import "src/_test_utilities/consoleMock";
-import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
-import { useFieldsConfig } from './useFieldsConfig';
+import React from "react";
+import { render, screen, waitFor } from "@testing-library/react";
+import { useFieldsConfig } from "./useFieldsConfig";
 import { setupAPIServiceSpy } from "src/_test_utilities/fetchSpy";
 import { ConfigurationError } from "src/error/commonErrors";
 
@@ -14,14 +14,13 @@ const TestComponent = () => {
   return <div>Fields loaded: {fields.length}</div>;
 };
 
-describe('Fields Configuration Validation', () => {
-
+describe("Fields Configuration Validation", () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
 
   // GIVEN a valid configuration
-  test('should load and validate a correct configuration', async () => {
+  test("should load and validate a correct configuration", async () => {
     // GIVEN the example config from fields.example.yaml
     const validConfig = `
 stringFieldName:
@@ -33,7 +32,7 @@ stringFieldName:
     pattern: ^[\\p{L}]{1,48}$
     errorMessage: String Field should contain only letters
 `;
-    
+
     // WHEN the config is fetched
     setupAPIServiceSpy(200, validConfig, "");
 
@@ -45,7 +44,7 @@ stringFieldName:
   });
 
   // GIVEN an invalid configuration with duplicate dataKeys
-  test('should fail validation when dataKeys are not unique', async () => {
+  test("should fail validation when dataKeys are not unique", async () => {
     // GIVEN a config with duplicate dataKeys
     const invalidConfig = `
 field1:
@@ -74,7 +73,7 @@ field2:
   });
 
   // GIVEN an invalid configuration with wrong field types
-  test('should fail validation when field types are incorrect', async () => {
+  test("should fail validation when field types are incorrect", async () => {
     // GIVEN a config with incorrect field types
     const invalidConfig = `
 enumField:
@@ -97,11 +96,13 @@ enumField:
     });
 
     // AND expect an error to be logged to the console
-    expect(console.error).toHaveBeenCalledWith(new ConfigurationError("SensitiveData: Field values must be an array of strings"));
+    expect(console.error).toHaveBeenCalledWith(
+      new ConfigurationError("SensitiveData: Field values must be an array of strings")
+    );
   });
 
   // GIVEN an invalid configuration with missing required fields
-  test('should fail validation when required fields are missing', async () => {
+  test("should fail validation when required fields are missing", async () => {
     // GIVEN a config with missing required fields
     const invalidConfig = `
 stringField:
@@ -119,11 +120,13 @@ stringField:
     });
 
     // AND expect an error to be logged to the console
-    expect(console.error).toHaveBeenCalledWith(new ConfigurationError("SensitiveData: Field 'required' is required and must be a boolean"));
+    expect(console.error).toHaveBeenCalledWith(
+      new ConfigurationError("SensitiveData: Field 'required' is required and must be a boolean")
+    );
   });
 
   // GIVEN an invalid configuration with wrong ENUM setup
-  test('should fail validation when ENUM field has no values', async () => {
+  test("should fail validation when ENUM field has no values", async () => {
     // GIVEN a config with ENUM field missing values
     const invalidConfig = `
 enumField:
@@ -143,6 +146,8 @@ enumField:
     });
 
     // AND expect an error to be logged to the console
-    expect(console.error).toHaveBeenCalledWith(new ConfigurationError("SensitiveData: Field values must be an array of strings"));
+    expect(console.error).toHaveBeenCalledWith(
+      new ConfigurationError("SensitiveData: Field values must be an array of strings")
+    );
   });
-}); 
+});

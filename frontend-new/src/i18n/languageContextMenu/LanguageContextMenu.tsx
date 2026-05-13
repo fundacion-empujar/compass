@@ -81,16 +81,15 @@ const LanguageContextMenu: React.FC<LanguageContextMenuProps> = ({ removeMargin 
       text: MENU_ITEM_TEXT.SPANISH_ARGENTINA,
       disabled: !supportedLanguages.includes(Locale.ES_AR),
       action: () => changeLanguage(Locale.ES_AR),
-    }
+    },
   ];
 
   // --- Filter out languages that are disabled
-  let visibleMenuItems = allMenuItems.filter(item => !item.disabled);
-
+  let visibleMenuItems = allMenuItems.filter((item) => !item.disabled);
 
   // --- Ensure at least English is included if nothing is present
   if (visibleMenuItems.length === 0) {
-    const englishItem = allMenuItems.find(item => item.text === MENU_ITEM_TEXT.ENGLISH);
+    const englishItem = allMenuItems.find((item) => item.text === MENU_ITEM_TEXT.ENGLISH);
     if (englishItem) visibleMenuItems = [englishItem];
   }
 

@@ -21,7 +21,12 @@ import CustomLink from "src/theme/CustomLink/CustomLink";
 import { FirebaseErrorCodes } from "src/error/FirebaseError/firebaseError.constants";
 import { INVITATIONS_PARAM_NAME } from "src/auth/auth.types";
 import { getApplicationRegistrationCode, getSocialAuthDisabled } from "src/envService";
-import { REGISTRATION_CODE_FIELD_LABEL, REGISTRATION_CODE_QUERY_PARAM, REGISTRATION_CODE_TOAST_ID, REPORT_TOKEN_QUERY_PARAM } from "src/config/registrationCode";
+import {
+  REGISTRATION_CODE_FIELD_LABEL,
+  REGISTRATION_CODE_QUERY_PARAM,
+  REGISTRATION_CODE_TOAST_ID,
+  REPORT_TOKEN_QUERY_PARAM,
+} from "src/config/registrationCode";
 import { invitationsService } from "src/auth/services/invitationsService/invitations.service";
 import { InvitationStatus } from "src/auth/services/invitationsService/invitations.types";
 import { registrationStore } from "src/state/registrationStore";
@@ -166,7 +171,10 @@ const Register: React.FC = () => {
     if (!codeToUse) {
       throw new Error(t("auth.errors.firebase.invalidRegistrationCode"));
     }
-    const response = await invitationsService.checkInvitationCodeStatus(codeToUse, codeLocked ? reportToken : undefined);
+    const response = await invitationsService.checkInvitationCodeStatus(
+      codeToUse,
+      codeLocked ? reportToken : undefined
+    );
     setCodeStatus(response.status);
     if (response.status !== InvitationStatus.VALID) {
       throw new Error(t("auth.errors.firebase.invalidRegistrationCode"));
@@ -199,8 +207,8 @@ const Register: React.FC = () => {
       if (!prefs?.accepted_tc || isNaN(prefs?.accepted_tc.getTime())) {
         navigate(routerPaths.CONSENT, { replace: true });
       } else {
-  navigate(routerPaths.ROOT, { replace: true });
-  enqueueSnackbar(t("auth.pages.login.welcomeBack"), { variant: "success" });
+        navigate(routerPaths.ROOT, { replace: true });
+        enqueueSnackbar(t("auth.pages.login.welcomeBack"), { variant: "success" });
       }
     } catch (error) {
       const firebaseSocialAuthServiceInstance = FirebaseSocialAuthenticationService.getInstance();
@@ -296,15 +304,15 @@ const Register: React.FC = () => {
         )}
         {!applicationRegistrationCode && (
           <Divider textAlign="center" style={{ width: "100%" }}>
-            <Typography
-              variant="subtitle2"
-              padding={theme.fixedSpacing(theme.tabiyaSpacing.sm)}
-              aria-hidden="true"
-            />
+            <Typography variant="subtitle2" padding={theme.fixedSpacing(theme.tabiyaSpacing.sm)} aria-hidden="true" />
           </Divider>
         )}
         <RegisterWithEmailForm
-          disabled={!registrationCode && !applicationRegistrationCode || codeStatus === InvitationStatus.INVALID || codeStatus === InvitationStatus.USED}
+          disabled={
+            (!registrationCode && !applicationRegistrationCode) ||
+            codeStatus === InvitationStatus.INVALID ||
+            codeStatus === InvitationStatus.USED
+          }
           notifyOnRegister={handleRegister}
           isRegistering={isLoading}
         />
@@ -312,7 +320,11 @@ const Register: React.FC = () => {
           <SocialAuth
             postLoginHandler={handlePostLogin}
             isLoading={isLoading}
-            disabled={!registrationCode && !applicationRegistrationCode || codeStatus === InvitationStatus.INVALID || codeStatus === InvitationStatus.USED}
+            disabled={
+              (!registrationCode && !applicationRegistrationCode) ||
+              codeStatus === InvitationStatus.INVALID ||
+              codeStatus === InvitationStatus.USED
+            }
             label={t("auth.pages.register.registerWithGoogle")}
             notifyOnLoading={notifyOnSocialLoading}
             registrationCode={registrationCode || applicationRegistrationCode}
@@ -320,7 +332,8 @@ const Register: React.FC = () => {
           />
         )}
         <Typography variant="caption" data-testid={DATA_TEST_ID.LOGIN_LINK}>
-          {t("auth.pages.register.alreadyHaveAccount")} <CustomLink onClick={() => navigate(routerPaths.LOGIN)}>{t("common.buttons.login")}</CustomLink>
+          {t("auth.pages.register.alreadyHaveAccount")}{" "}
+          <CustomLink onClick={() => navigate(routerPaths.LOGIN)}>{t("common.buttons.login")}</CustomLink>
         </Typography>
         {!applicationRegistrationCode && <RequestInvitationCode invitationCodeType={InvitationType.REGISTER} />}
       </Box>

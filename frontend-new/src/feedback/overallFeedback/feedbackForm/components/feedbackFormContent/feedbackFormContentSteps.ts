@@ -20,7 +20,7 @@ const getQuestions = (t: TFunction) => {
 // Convert to a function that accepts translation function
 const getFeedbackFormContentSteps = (t: TFunction): Step[] => {
   const questions = getQuestions(t);
-  
+
   return [
     {
       label: t("steps.biasAndExperience"),
@@ -36,9 +36,9 @@ const getFeedbackFormContentSteps = (t: TFunction): Step[] => {
           type: QuestionType.Checkbox,
           questionId: "work_experience_accuracy",
           questionText: questions["work_experience_accuracy"].question_text,
-          options: Object.entries(questions["work_experience_accuracy"].options).map(([key, value]) => ({ 
-            key, 
-            value: value as string 
+          options: Object.entries(questions["work_experience_accuracy"].options).map(([key, value]) => ({
+            key,
+            value: value as string,
           })),
           lowRatingLabel: t("labels.inaccurate"),
           highRatingLabel: t("labels.veryAccurate"),

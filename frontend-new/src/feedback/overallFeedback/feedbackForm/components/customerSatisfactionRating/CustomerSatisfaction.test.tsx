@@ -5,7 +5,9 @@ import React from "react";
 import { render, screen, act, waitFor } from "src/_test_utilities/test-utils";
 import CustomerSatisfactionRating, { UI_TEXT, DATA_TEST_ID } from "./CustomerSatisfaction";
 import i18n from "src/i18n/i18n";
-import CustomRating, { DATA_TEST_ID as CUSTOM_RATING_DATA_TEST_ID } from "src/feedback/overallFeedback/feedbackForm/components/customRating/CustomRating";
+import CustomRating, {
+  DATA_TEST_ID as CUSTOM_RATING_DATA_TEST_ID,
+} from "src/feedback/overallFeedback/feedbackForm/components/customRating/CustomRating";
 import { DATA_TEST_ID as BACKDROP_DATA_TEST_ID } from "src/theme/Backdrop/Backdrop";
 import UserPreferencesStateService from "src/userPreferences/UserPreferencesStateService";
 import OverallFeedbackService from "src/feedback/overallFeedback/overallFeedbackService/OverallFeedback.service";
@@ -18,7 +20,10 @@ import {
 import { FeedbackError } from "src/error/commonErrors";
 import { mockBrowserIsOnLine } from "src/_test_utilities/mockBrowserIsOnline";
 import { resetAllMethodMocks } from "src/_test_utilities/resetAllMethodMocks";
-import { FeedbackResponse, QUESTION_KEYS } from "src/feedback/overallFeedback/overallFeedbackService/OverallFeedback.service.types";
+import {
+  FeedbackResponse,
+  QUESTION_KEYS,
+} from "src/feedback/overallFeedback/overallFeedbackService/OverallFeedback.service.types";
 import { QuestionType } from "src/feedback/overallFeedback/feedbackForm/feedbackForm.types";
 
 // mock the snackbar provider
@@ -61,17 +66,18 @@ const mockFeedbackResponse: FeedbackResponse = {
     frontend: "foo-frontend",
     backend: "foo-backend",
   },
-  feedback_items: [{
-    question_id: "foo-question_id",
-    simplified_answer: {
-      rating_numeric: 5,
+  feedback_items: [
+    {
+      question_id: "foo-question_id",
+      simplified_answer: {
+        rating_numeric: 5,
+      },
     },
-  }],
+  ],
   created_at: new Date().toISOString(),
 };
 
 describe("CustomerSatisfactionRating", () => {
-
   beforeEach(() => {
     jest.clearAllMocks();
     mockBrowserIsOnLine(true);
@@ -96,17 +102,20 @@ describe("CustomerSatisfactionRating", () => {
     expect(screen.getByTestId(DATA_TEST_ID.CUSTOMER_SATISFACTION_RATING_CONTAINER)).toBeInTheDocument();
 
     // AND the custom rating component should be called with the correct props
-    expect(CustomRating).toHaveBeenCalledWith({
-      questionId: QUESTION_KEYS.CUSTOMER_SATISFACTION,
-      questionText: UI_TEXT.CUSTOMER_SATISFACTION_QUESTION_TEXT,
-      ratingValue: null,
-      notifyChange: expect.any(Function),
-      lowRatingLabel: UI_TEXT.RATING_LABEL_LOW,
-      highRatingLabel: UI_TEXT.RATING_LABEL_HIGH,
-      maxRating: 5,
-      disabled: false,
-      type: QuestionType.Rating
-    }, {});
+    expect(CustomRating).toHaveBeenCalledWith(
+      {
+        questionId: QUESTION_KEYS.CUSTOMER_SATISFACTION,
+        questionText: UI_TEXT.CUSTOMER_SATISFACTION_QUESTION_TEXT,
+        ratingValue: null,
+        notifyChange: expect.any(Function),
+        lowRatingLabel: UI_TEXT.RATING_LABEL_LOW,
+        highRatingLabel: UI_TEXT.RATING_LABEL_HIGH,
+        maxRating: 5,
+        disabled: false,
+        type: QuestionType.Rating,
+      },
+      {}
+    );
     // AND the custom rating container to be in the document
     expect(screen.getByTestId(CUSTOM_RATING_DATA_TEST_ID.CUSTOM_RATING_CONTAINER)).toBeInTheDocument();
     // AND expect no errors or warning to have occurred
@@ -139,9 +148,12 @@ describe("CustomerSatisfactionRating", () => {
     // AND a backdrop to have been shown while the rating is being submitted
     expect(screen.getByTestId(BACKDROP_DATA_TEST_ID.BACKDROP_CONTAINER)).toBeInTheDocument();
     // AND the success snackbar to be shown
-    expect(useSnackbar().enqueueSnackbar).toHaveBeenCalledWith(i18n.t("feedback.overallFeedback.feedbackForm.components.customerSatisfactionRating.submitSuccess"), {
-      variant: "success",
-    });
+    expect(useSnackbar().enqueueSnackbar).toHaveBeenCalledWith(
+      i18n.t("feedback.overallFeedback.feedbackForm.components.customerSatisfactionRating.submitSuccess"),
+      {
+        variant: "success",
+      }
+    );
     // AND expect no errors or warning to have occurred
     expect(console.error).not.toHaveBeenCalled();
     expect(console.warn).not.toHaveBeenCalled();
@@ -165,9 +177,12 @@ describe("CustomerSatisfactionRating", () => {
 
     // THEN expect the error snackbar to be shown
     await waitFor(() => {
-      expect(useSnackbar().enqueueSnackbar).toHaveBeenCalledWith(i18n.t("feedback.overallFeedback.feedbackForm.components.customerSatisfactionRating.submitError"), {
-        variant: "error",
-      });
+      expect(useSnackbar().enqueueSnackbar).toHaveBeenCalledWith(
+        i18n.t("feedback.overallFeedback.feedbackForm.components.customerSatisfactionRating.submitError"),
+        {
+          variant: "error",
+        }
+      );
     });
     // AND the given callback to not have been called
     expect(givenNotifyOnSubmitted).not.toHaveBeenCalled();
@@ -195,9 +210,12 @@ describe("CustomerSatisfactionRating", () => {
 
     // THEN expect the error snackbar to be shown
     await waitFor(() => {
-      expect(useSnackbar().enqueueSnackbar).toHaveBeenCalledWith(i18n.t("feedback.overallFeedback.feedbackForm.components.customerSatisfactionRating.submitError"), {
-        variant: "error",
-      });
+      expect(useSnackbar().enqueueSnackbar).toHaveBeenCalledWith(
+        i18n.t("feedback.overallFeedback.feedbackForm.components.customerSatisfactionRating.submitError"),
+        {
+          variant: "error",
+        }
+      );
     });
     // AND the given callback to not have been called
     expect(givenNotifyOnSubmitted).not.toHaveBeenCalled();
@@ -216,11 +234,11 @@ describe("CustomerSatisfactionRating", () => {
     mockBrowserIsOnLine(false);
 
     // WHEN the component is rendered
-    jest.spyOn(OverallFeedbackService.getInstance(), "sendFeedback")
+    jest.spyOn(OverallFeedbackService.getInstance(), "sendFeedback");
     const givenNotifyOnSubmitted = jest.fn();
     render(<CustomerSatisfactionRating notifyOnCustomerSatisfactionRatingSubmitted={givenNotifyOnSubmitted} />);
 
     // THEN expect the rating to be disabled
     expect((CustomRating as jest.Mock).mock.calls.at(-1)[0].disabled).toBe(true);
   });
-}); 
+});

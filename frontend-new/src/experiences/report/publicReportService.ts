@@ -3,44 +3,44 @@ import { customFetch } from "src/utils/customFetch/customFetch";
 import { Experience } from "src/experiences/experienceService/experiences.types";
 
 export interface PublicReportData {
-    user_id: string;
-    experiences: Experience[];
-    conversation_conducted_at: string | null;
+  user_id: string;
+  experiences: Experience[];
+  conversation_conducted_at: string | null;
 }
 
 export class PublicReportService {
-    private static instance: PublicReportService;
-    private readonly baseUrl: string;
+  private static instance: PublicReportService;
+  private readonly baseUrl: string;
 
-    private constructor() {
-        this.baseUrl = `${getBackendUrl()}/reports`;
+  private constructor() {
+    this.baseUrl = `${getBackendUrl()}/reports`;
+  }
+
+  public static getInstance(): PublicReportService {
+    if (!PublicReportService.instance) {
+      PublicReportService.instance = new PublicReportService();
     }
+    return PublicReportService.instance;
+  }
 
-    public static getInstance(): PublicReportService {
-        if (!PublicReportService.instance) {
-            PublicReportService.instance = new PublicReportService();
-        }
-        return PublicReportService.instance;
+  public async getPublicReport(identifier: string, token?: string | null): Promise<PublicReportData> {
+    let url = `${this.baseUrl}/${identifier}`;
+    if (token) {
+      url += `?token=${encodeURIComponent(token)}`;
     }
+    const response = await customFetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      authRequired: false, // This is a public endpoint
+      expectedStatusCode: 200,
+      serviceName: "PublicReportService",
+      serviceFunction: "getPublicReport",
+      failureMessage: `Failed to fetch public report for identifier ${identifier}`,
+      expectedContentType: "application/json",
+    });
 
-    public async getPublicReport(identifier: string, token?: string | null): Promise<PublicReportData> {
-        let url = `${this.baseUrl}/${identifier}`;
-        if (token) {
-            url += `?token=${encodeURIComponent(token)}`;
-        }
-        const response = await customFetch(url, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            authRequired: false, // This is a public endpoint
-            expectedStatusCode: 200,
-            serviceName: "PublicReportService",
-            serviceFunction: "getPublicReport",
-            failureMessage: `Failed to fetch public report for identifier ${identifier}`,
-            expectedContentType: "application/json",
-        });
-
-        return (await response.json()) as PublicReportData;
-    }
+    return (await response.json()) as PublicReportData;
+  }
 }

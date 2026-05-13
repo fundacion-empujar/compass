@@ -67,7 +67,7 @@ class TestAuthenticationService extends AuthenticationService {
   }
 
   async isProviderSessionValid(): Promise<boolean> {
-    return false
+    return false;
   }
 }
 
@@ -103,7 +103,6 @@ describe("AuthenticationService", () => {
   });
 
   describe("onSuccessfulLogout", () => {
-
     test("should clear user data and login method", async () => {
       // setup mocks
       jest.spyOn(AuthenticationStateService.getInstance(), "clearUser");
@@ -130,7 +129,6 @@ describe("AuthenticationService", () => {
   });
 
   describe("onSuccessfulLogin", () => {
-
     test("should set user data and preferences on successful login", async () => {
       // GIVEN a token from a given user
       const givenToken = "test-token";
@@ -144,9 +142,11 @@ describe("AuthenticationService", () => {
       // AND the given user has some preferences
       const givenUserPreferences: UserPreference = {
         user_id: "foo-id",
-        sessions:[]
+        sessions: [],
       } as unknown as UserPreference;
-      jest.spyOn(UserPreferencesService.getInstance(), "getUserPreferences").mockResolvedValueOnce(givenUserPreferences);
+      jest
+        .spyOn(UserPreferencesService.getInstance(), "getUserPreferences")
+        .mockResolvedValueOnce(givenUserPreferences);
       const givenRegistrationState = { code: "foo", locked: true, reportToken: undefined, source: "link" };
       (getRegistrationState as jest.Mock).mockReturnValueOnce(givenRegistrationState);
 
@@ -202,7 +202,7 @@ describe("AuthenticationService", () => {
         "/",
         StatusCodes.NOT_FOUND,
         "Not Found",
-        "",
+        ""
       );
       jest.spyOn(UserPreferencesService.getInstance(), "getUserPreferences").mockRejectedValueOnce(givenError);
 
@@ -219,7 +219,7 @@ describe("AuthenticationService", () => {
       expect(UserPreferencesStateService.getInstance().getUserPreferences()).toBeNull();
       // AND an info message should be logged
       expect(console.info).toHaveBeenCalledWith(
-        `User has not registered! Preferences could not be found for userId: ${givenUser.id}`,
+        `User has not registered! Preferences could not be found for userId: ${givenUser.id}`
       );
       expect(resolveAndSetUserIdentity).toHaveBeenCalledWith({
         userId: givenUser.id,
@@ -254,7 +254,6 @@ describe("AuthenticationService", () => {
   });
 
   describe("onSuccessfulRegistration", () => {
-
     test("should set user data and create preferences on successful registration", async () => {
       // GIVEN a registration code
       const givenRegistrationCode = "test-registration-code";
@@ -271,9 +270,11 @@ describe("AuthenticationService", () => {
       // AND some user preferences will be created for the user
       const givenReturnedPrefs: UserPreference = {
         user_id: "foo-id",
-        sessions:[]
+        sessions: [],
       } as unknown as UserPreference;
-      jest.spyOn(UserPreferencesService.getInstance(), "createUserPreferences").mockResolvedValueOnce(givenReturnedPrefs);
+      jest
+        .spyOn(UserPreferencesService.getInstance(), "createUserPreferences")
+        .mockResolvedValueOnce(givenReturnedPrefs);
 
       // WHEN onSuccessfulRegistration is called for the given token and registration code
       await service.onSuccessfulRegistration(givenToken, givenRegistrationCode);
@@ -285,7 +286,7 @@ describe("AuthenticationService", () => {
       expect(AuthenticationStateService.getInstance().getUser()).toEqual(givenUser);
 
       // AND new user preferences should be created for the user with the registration code
-      expect((UserPreferencesService.getInstance().createUserPreferences)).toHaveBeenCalledWith({
+      expect(UserPreferencesService.getInstance().createUserPreferences).toHaveBeenCalledWith({
         user_id: givenUser.id,
         invitation_code: givenRegistrationCode,
         registration_code: undefined,
@@ -332,7 +333,9 @@ describe("AuthenticationService", () => {
         user_id: givenUser.id,
         sessions: [],
       } as unknown as UserPreference;
-      jest.spyOn(UserPreferencesService.getInstance(), "createUserPreferences").mockResolvedValueOnce(givenReturnedPrefs);
+      jest
+        .spyOn(UserPreferencesService.getInstance(), "createUserPreferences")
+        .mockResolvedValueOnce(givenReturnedPrefs);
 
       await service.onSuccessfulRegistration(givenToken, givenRegistrationCode, givenReportToken);
 

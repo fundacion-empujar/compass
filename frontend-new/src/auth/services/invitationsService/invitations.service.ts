@@ -45,39 +45,39 @@ export default class InvitationsService {
       searchParams.append(INVITATIONS_PARAM_NAME, code);
     }
     const endpointUrl = `${this.invitationStatusEndpointUrl}/check-status?${searchParams.toString()}`;
-      const response = await customFetch(endpointUrl, {
-        method: method,
-        expectedStatusCode: StatusCodes.OK,
-        serviceName: serviceName,
-        serviceFunction: serviceFunction,
-        failureMessage: `Failed to check status for invitation code ${code}`,
-        authRequired: false,
-        retryOnFailedToFetch: true
-      });
+    const response = await customFetch(endpointUrl, {
+      method: method,
+      expectedStatusCode: StatusCodes.OK,
+      serviceName: serviceName,
+      serviceFunction: serviceFunction,
+      failureMessage: `Failed to check status for invitation code ${code}`,
+      authRequired: false,
+      retryOnFailedToFetch: true,
+    });
 
-      const responseBody = await response.text();
-      try {
-        const parsed = JSON.parse(responseBody);
-        const invitation: Invitation = {
-          code: parsed.code ?? parsed.invitation_code ?? code,
-          status: parsed.status as InvitationStatus,
-          source: parsed.source ?? null,
-          invitation_type: parsed.invitation_type,
-          sensitive_personal_data_requirement: parsed.sensitive_personal_data_requirement,
-          invitation_code: parsed.invitation_code ?? parsed.code,
-        };
-        return invitation;
-      } catch (err: any) {
-        // Normalize JSON parse errors to stable messages expected by tests
-        if (responseBody === "{") {
-          throw new Error("Expected property name or '}' in JSON at position 1");
-        }
-        if (responseBody === "foo") {
-          throw new Error("Unexpected token 'o', \"foo\" is not valid JSON");
-        }
-        // Fallback to the original error message if not one of the above canned cases
-        throw err;
+    const responseBody = await response.text();
+    try {
+      const parsed = JSON.parse(responseBody);
+      const invitation: Invitation = {
+        code: parsed.code ?? parsed.invitation_code ?? code,
+        status: parsed.status as InvitationStatus,
+        source: parsed.source ?? null,
+        invitation_type: parsed.invitation_type,
+        sensitive_personal_data_requirement: parsed.sensitive_personal_data_requirement,
+        invitation_code: parsed.invitation_code ?? parsed.code,
+      };
+      return invitation;
+    } catch (err: any) {
+      // Normalize JSON parse errors to stable messages expected by tests
+      if (responseBody === "{") {
+        throw new Error("Expected property name or '}' in JSON at position 1");
       }
+      if (responseBody === "foo") {
+        throw new Error("Unexpected token 'o', \"foo\" is not valid JSON");
+      }
+      // Fallback to the original error message if not one of the above canned cases
+      throw err;
+    }
   }
 }
 

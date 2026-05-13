@@ -79,12 +79,8 @@ describe("BulkDownloadReportsService", () => {
     });
 
     it("should handle multiple batches in stream", async () => {
-      const batch1: BulkReportData[] = [
-        { user_id: "user1", experiences: [], conversation_conducted_at: null },
-      ];
-      const batch2: BulkReportData[] = [
-        { user_id: "user2", experiences: [], conversation_conducted_at: null },
-      ];
+      const batch1: BulkReportData[] = [{ user_id: "user1", experiences: [], conversation_conducted_at: null }];
+      const batch2: BulkReportData[] = [{ user_id: "user2", experiences: [], conversation_conducted_at: null }];
 
       const mockStream = {
         getReader: () => ({
@@ -207,9 +203,7 @@ describe("BulkDownloadReportsService", () => {
         body: null,
       });
 
-      await expect(service.streamReports("test-token", {}, jest.fn())).rejects.toThrow(
-        "Response body is null"
-      );
+      await expect(service.streamReports("test-token", {}, jest.fn())).rejects.toThrow("Response body is null");
     });
 
     it("should handle JSON parse errors gracefully", async () => {
@@ -237,12 +231,7 @@ describe("BulkDownloadReportsService", () => {
       await service.streamReports("test-token", {}, onBatch);
 
       expect(onBatch).not.toHaveBeenCalled();
-      expect(consoleSpy).toHaveBeenCalledWith(
-        "Error parsing batch line:",
-        expect.any(Error),
-        "Line:",
-        "invalid json"
-      );
+      expect(consoleSpy).toHaveBeenCalledWith("Error parsing batch line:", expect.any(Error), "Line:", "invalid json");
 
       consoleSpy.mockRestore();
     });

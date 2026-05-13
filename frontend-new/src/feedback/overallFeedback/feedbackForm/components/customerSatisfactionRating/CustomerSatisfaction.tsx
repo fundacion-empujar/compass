@@ -26,7 +26,8 @@ export const DATA_TEST_ID = {
 };
 
 export const UI_TEXT = {
-  CUSTOMER_SATISFACTION_QUESTION_TEXT: "Finally, we'd love to hear your thoughts on your experience so far! How satisfied are you with Brújula?",
+  CUSTOMER_SATISFACTION_QUESTION_TEXT:
+    "Finally, we'd love to hear your thoughts on your experience so far! How satisfied are you with Brújula?",
   RATING_LABEL_LOW: "Unsatisfied",
   RATING_LABEL_HIGH: "Satisfied",
 };
@@ -45,30 +46,25 @@ const CustomerSatisfactionRating: React.FC<CustomerSatisfactionRatingProps> = ({
   /**
    * Function to dynamically import the correct questions file according to locale.
    */
-  const loadQuestions = useCallback(
-    async (locale: string) => {
+  const loadQuestions = useCallback(async (locale: string) => {
+    try {
+      const module = await import(
+        /* @vite-ignore */ `src/feedback/overallFeedback/feedbackForm/questions-${locale}.json`
+      );
+      setQuestionsData(module.default || module);
+    } catch (error) {
+      console.error(`❌ Failed to load questions for locale '${locale}'.`, error);
 
-      try {
-        const module = await import(
-          /* @vite-ignore */ `src/feedback/overallFeedback/feedbackForm/questions-${locale}.json`
-        );
-        setQuestionsData(module.default || module);
-      } catch (error) {
-        console.error(`❌ Failed to load questions for locale '${locale}'.`, error);
-
-        if (locale !== DEFAULT_LOCALE) {
-          console.info(`Attempting fallback to '${DEFAULT_LOCALE}' locale...`);
-          await loadQuestions(DEFAULT_LOCALE);
-          return;
-        }
-        console.error(`Fallback '${DEFAULT_LOCALE}' locale also failed to load.`);
-        setQuestionsData({});
-      } finally {
-
+      if (locale !== DEFAULT_LOCALE) {
+        console.info(`Attempting fallback to '${DEFAULT_LOCALE}' locale...`);
+        await loadQuestions(DEFAULT_LOCALE);
+        return;
       }
-    },
-    []
-  );
+      console.error(`Fallback '${DEFAULT_LOCALE}' locale also failed to load.`);
+      setQuestionsData({});
+    } finally {
+    }
+  }, []);
 
   // Load locale-specific questions on mount and when locale changes
   useEffect(() => {
@@ -93,10 +89,14 @@ const CustomerSatisfactionRating: React.FC<CustomerSatisfactionRatingProps> = ({
       await feedbackService.sendFeedback(sessionId, [formattedData]);
 
       notifyOnCustomerSatisfactionRatingSubmitted();
-      enqueueSnackbar(t("feedback.overallFeedback.feedbackForm.components.customerSatisfactionRating.submitSuccess"), { variant: "success" });
+      enqueueSnackbar(t("feedback.overallFeedback.feedbackForm.components.customerSatisfactionRating.submitSuccess"), {
+        variant: "success",
+      });
     } catch (error) {
       console.error(new FeedbackError("Feedback submission failed:", error));
-      enqueueSnackbar(t("feedback.overallFeedback.feedbackForm.components.customerSatisfactionRating.submitError"), { variant: "error" });
+      enqueueSnackbar(t("feedback.overallFeedback.feedbackForm.components.customerSatisfactionRating.submitError"), {
+        variant: "error",
+      });
     } finally {
       setIsSubmittingRating(false);
       setSelectedRating(null);
@@ -119,7 +119,9 @@ const CustomerSatisfactionRating: React.FC<CustomerSatisfactionRatingProps> = ({
           handleInputChange(QUESTION_KEYS.CUSTOMER_SATISFACTION, { rating_numeric: value, comment: comments })
         }
         lowRatingLabel={t("feedback.overallFeedback.feedbackForm.components.customerSatisfactionRating.ratingLabelLow")}
-        highRatingLabel={t("feedback.overallFeedback.feedbackForm.components.customerSatisfactionRating.ratingLabelHigh")}
+        highRatingLabel={t(
+          "feedback.overallFeedback.feedbackForm.components.customerSatisfactionRating.ratingLabelHigh"
+        )}
         maxRating={5}
         disabled={!isOnline || isSubmittingRating}
       />

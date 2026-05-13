@@ -58,7 +58,7 @@ describe("InvitationsService", () => {
           failureMessage: "Failed to check status for invitation code test-code",
           serviceFunction: "checkInvitationCodeStatus",
           serviceName: "InvitationsService",
-          retryOnFailedToFetch: true
+          retryOnFailedToFetch: true,
         }
       );
 
@@ -90,7 +90,7 @@ describe("InvitationsService", () => {
         // GIVEN the GET invitations REST API will respond with OK and some invalid response
         const mockResponse = new Response(givenResponse, {
           status: StatusCodes.OK,
-          headers: { "content-type": "application/json;charset=UTF-8" }
+          headers: { "content-type": "application/json;charset=UTF-8" },
         });
         jest.spyOn(CustomFetchModule, "customFetch").mockResolvedValue(mockResponse);
 

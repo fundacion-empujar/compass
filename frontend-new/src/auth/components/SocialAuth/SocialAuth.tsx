@@ -3,8 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useSnackbar } from "src/theme/SnackbarProvider/SnackbarProvider";
 import { IsOnlineContext } from "src/app/isOnlineProvider/IsOnlineProvider";
 import { Box, Button, Divider, Typography, useTheme } from "@mui/material";
-import FirebaseSocialAuthenticationService
-  from "src/auth/services/FirebaseAuthenticationService/socialAuth/FirebaseSocialAuthentication.service";
+import FirebaseSocialAuthenticationService from "src/auth/services/FirebaseAuthenticationService/socialAuth/FirebaseSocialAuthentication.service";
 import { FirebaseError, getUserFriendlyFirebaseErrorMessage } from "src/error/FirebaseError/firebaseError";
 import { GoogleIcon } from "src/theme/Icons/GoogleIcon";
 import { getUserFriendlyErrorMessage, RestAPIError } from "src/error/restAPIError/RestAPIError";
@@ -41,14 +40,14 @@ export interface SocialAuthProps {
 }
 
 const SocialAuth: React.FC<Readonly<SocialAuthProps>> = ({
-                                                           registrationCode,
-                                                           reportToken,
-                                                           disabled = false,
-                                                           label,
-                                                           postLoginHandler,
-                                                           isLoading,
-                                                           notifyOnLoading,
-                                                         }) => {
+  registrationCode,
+  reportToken,
+  disabled = false,
+  label,
+  postLoginHandler,
+  isLoading,
+  notifyOnLoading,
+}) => {
   const isOnline = useContext(IsOnlineContext);
   const { t } = useTranslation();
   const theme = useTheme();
@@ -58,7 +57,7 @@ const SocialAuth: React.FC<Readonly<SocialAuthProps>> = ({
   const [_reportToken, setReportToken] = useState(reportToken);
 
   const [showRegistrationCodeForm, setShowRegistrationCodeForm] = useState<RegistrationCodeFormModalState>(
-    RegistrationCodeFormModalState.HIDE,
+    RegistrationCodeFormModalState.HIDE
   );
 
   useEffect(() => {
@@ -85,9 +84,11 @@ const SocialAuth: React.FC<Readonly<SocialAuthProps>> = ({
       }
 
       console.error(error);
-      enqueueSnackbar(t("auth.components.socialAuth.socialFailedLoginWithMessage", { message: errorMessage }), { variant: "error" });
+      enqueueSnackbar(t("auth.components.socialAuth.socialFailedLoginWithMessage", { message: errorMessage }), {
+        variant: "error",
+      });
     },
-    [enqueueSnackbar, registrationCode, t],
+    [enqueueSnackbar, registrationCode, t]
   );
 
   const registerUser = useCallback(
@@ -122,7 +123,7 @@ const SocialAuth: React.FC<Readonly<SocialAuthProps>> = ({
         await handleError(error);
       }
     },
-    [handleError],
+    [handleError]
   );
 
   const loginWithPopup = useCallback(async () => {
@@ -158,7 +159,16 @@ const SocialAuth: React.FC<Readonly<SocialAuthProps>> = ({
     } finally {
       notifyOnLoading(false);
     }
-  }, [notifyOnLoading, postLoginHandler, _registrationCode, _reportToken, registerUser, enqueueSnackbar, handleError, t]);
+  }, [
+    notifyOnLoading,
+    postLoginHandler,
+    _registrationCode,
+    _reportToken,
+    registerUser,
+    enqueueSnackbar,
+    handleError,
+    t,
+  ]);
 
   const handleRegistrationCodeSuccess = useCallback(
     async (registrationCode: string) => {
@@ -168,7 +178,7 @@ const SocialAuth: React.FC<Readonly<SocialAuthProps>> = ({
       postLoginHandler();
       setShowRegistrationCodeForm(RegistrationCodeFormModalState.HIDE);
     },
-    [registerUser, postLoginHandler],
+    [registerUser, postLoginHandler]
   );
 
   const socialAuthLoading = isLoading || !isOnline || disabled;
