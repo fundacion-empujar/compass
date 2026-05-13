@@ -23,9 +23,12 @@ async def test_get_public_report_success(app):
     mock_exp_service = MagicMock(spec=IExperienceService)
     
     mock_preferences = MagicMock()
+    mock_preferences.user_id = "user-1"
+    mock_preferences.registration_code = None
     mock_preferences.sessions = [123]
     mock_preferences.accepted_tc = None
     mock_pref_repo.get_user_preference_by_user_id = AsyncMock(return_value=mock_preferences)
+    mock_pref_repo.get_user_preference_by_registration_code = AsyncMock(return_value=None)
     
     # Mock ExperienceEntity and phase
     mock_entity = MagicMock(spec=ExperienceEntity)
@@ -59,10 +62,14 @@ async def test_get_public_report_success(app):
 @pytest.mark.asyncio
 async def test_get_public_report_not_found(app):
     mock_pref_repo = MagicMock(spec=IUserPreferenceRepository)
+    mock_pref_repo.get_user_preference_by_registration_code = AsyncMock(return_value=None)
     mock_pref_repo.get_user_preference_by_user_id = AsyncMock(return_value=None)
-    
+
+    mock_exp_service = MagicMock(spec=IExperienceService)
+
     app.dependency_overrides[get_user_preferences_repository] = lambda: mock_pref_repo
-    
+    app.dependency_overrides[get_experience_service] = lambda: mock_exp_service
+
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         response = await ac.get("/reports/user-2")
     

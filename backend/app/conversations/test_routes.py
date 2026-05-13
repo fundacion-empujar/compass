@@ -72,6 +72,12 @@ def _create_test_client_with_mocks(auth) -> TestClientWithMocks:
         async def set_experiment_by_user_id(self, user_id: str, experiment_id: str, experiment_class: str) -> None:
             raise NotImplementedError()
 
+        async def get_user_preference_by_registration_code(self, registration_code: str):
+            raise NotImplementedError()
+
+        async def stream_user_preferences(self, page_size: int, started_before, started_after):
+            raise NotImplementedError()
+
     _instance_user_preferences_repository = MockUserPreferencesRepository()
 
     def get_mock_user_preferences_repository():

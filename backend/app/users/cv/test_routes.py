@@ -471,9 +471,17 @@ class TestPublicReportRoutes:
         from app.conversations.experience.get_experience_service import get_experience_service
         
         mock_user_prefs_repo = MagicMock()
-        mock_user_prefs_repo.get_user_preference_by_user_id = AsyncMock(return_value=SimpleNamespace(
+        mock_user_prefs_repo.get_user_preference_by_registration_code = AsyncMock(return_value=SimpleNamespace(
+            user_id="user-123",
             sessions=["session-1"],
-            accepted_tc=datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+            accepted_tc=datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
+            registration_code=None,
+        ))
+        mock_user_prefs_repo.get_user_preference_by_user_id = AsyncMock(return_value=SimpleNamespace(
+            user_id="user-123",
+            sessions=["session-1"],
+            accepted_tc=datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
+            registration_code=None,
         ))
         
         mock_experience_service = MagicMock()
