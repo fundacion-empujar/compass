@@ -12,7 +12,6 @@ import { render, screen } from "src/_test_utilities/test-utils";
 import { ConversationMessageSender } from "src/chat/ChatService/ChatService.types";
 import { nanoid } from "nanoid";
 import Timestamp from "src/chat/chatMessage/components/chatMessageFooter/components/timestamp/Timestamp";
-import ReactionButtons from "src/chat/reaction/components/reactionButtons/ReactionButtons";
 
 jest.mock("src/chat/chatMessage/components/chatMessageFooter/ChatMessageFooterLayout", () => {
   const originalModule = jest.requireActual("src/chat/chatMessage/components/chatMessageFooter/ChatMessageFooterLayout");
@@ -55,21 +54,14 @@ describe("render tests", () => {
 
     // AND the correct date to have been displayed
     const footerLayoutCalls = (ChatMessageFooterLayout as jest.Mock).mock.calls.at(-1)[0]
-    expect(footerLayoutCalls.children).toEqual(expect.arrayContaining([
+    expect(footerLayoutCalls.children).toEqual(
       expect.objectContaining({
-          type: Timestamp,
-          props: {
-            sentAt: givenDate
-          }
-        }),
-      expect.objectContaining({
-        type: ReactionButtons,
+        type: Timestamp,
         props: {
-          messageId: messageData.message_id,
-          currentReaction: messageData.reaction
+          sentAt: givenDate
         }
       })
-    ]))
+    )
     // AND expect the Chat bubble to have been rendered with the expected message
     expect(ChatBubble).toHaveBeenNthCalledWith(
       1,

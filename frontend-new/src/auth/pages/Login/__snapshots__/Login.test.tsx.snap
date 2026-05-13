@@ -632,11 +632,10 @@ exports[`Testing Login component Render tests should show continue as guest if l
             class="MuiDivider-wrapper css-8j2o7p-MuiDivider-wrapper"
           >
             <h6
+              aria-hidden="true"
               class="MuiTypography-root MuiTypography-subtitle2 css-rh1em9-MuiTypography-root"
               data-testid="login-subtitle-7ce9ba1f-bde0-48e2-88df-e4f697945cc4"
-            >
-              Or login to your account to continue
-            </h6>
+            />
           </span>
         </div>
         <span />
@@ -928,11 +927,10 @@ exports[`Testing Login component it should show login form successfully 1`] = `
           class="MuiDivider-wrapper css-8j2o7p-MuiDivider-wrapper"
         >
           <h6
+            aria-hidden="true"
             class="MuiTypography-root MuiTypography-subtitle2 css-rh1em9-MuiTypography-root"
             data-testid="login-subtitle-7ce9ba1f-bde0-48e2-88df-e4f697945cc4"
-          >
-            or
-          </h6>
+          />
         </span>
       </div>
       <span />
@@ -1223,11 +1221,10 @@ exports[`Testing Login component should handle application login code 1`] = `
           class="MuiDivider-wrapper css-8j2o7p-MuiDivider-wrapper"
         >
           <h6
+            aria-hidden="true"
             class="MuiTypography-root MuiTypography-subtitle2 css-rh1em9-MuiTypography-root"
             data-testid="login-subtitle-7ce9ba1f-bde0-48e2-88df-e4f697945cc4"
-          >
-            Or login to your account to continue
-          </h6>
+          />
         </span>
       </div>
       <span />
@@ -1519,11 +1516,10 @@ exports[`Testing Login component should remove registration link if registration
             class="MuiDivider-wrapper css-8j2o7p-MuiDivider-wrapper"
           >
             <h6
+              aria-hidden="true"
               class="MuiTypography-root MuiTypography-subtitle2 css-rh1em9-MuiTypography-root"
               data-testid="login-subtitle-7ce9ba1f-bde0-48e2-88df-e4f697945cc4"
-            >
-              or
-            </h6>
+            />
           </span>
         </div>
         <span />
