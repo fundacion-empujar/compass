@@ -10,7 +10,6 @@ from fastapi import FastAPI
 from httpx import AsyncClient, ASGITransport
 
 from app.users.cv.routes import add_public_report_routes
-from app.users.cv.rate_limiter import bulk_download_rate_limiter
 from app.users.repositories import IUserPreferenceRepository
 from app.conversations.experience.service import IExperienceService
 from app.conversations.experience.get_experience_service import get_experience_service
@@ -36,8 +35,6 @@ def setup_environment():
     # Clean up
     if "SEC_TOKEN" in os.environ:
         del os.environ["SEC_TOKEN"]
-    # Reset rate limiter between tests
-    bulk_download_rate_limiter._requests.clear()
 
 
 @pytest.fixture
@@ -123,9 +120,6 @@ async def test_stream_reports_with_token_validation(app):  # pylint: disable=red
     app.dependency_overrides[get_experience_service] = lambda: mock_exp_service
 
     with patch.dict(os.environ, {"SEC_TOKEN": "valid-token"}):
-        # Reset rate limiter for this test
-        bulk_download_rate_limiter._requests.clear()
-        
         # Test without token
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
             response = await ac.get("/reports?page_size=10")

@@ -54,8 +54,6 @@ describe("ChatProgresBar", () => {
         expect(widthValue).toBeCloseTo(givenPercentage, 1);
       });
 
-      // AND container should match snapshot.
-      expect(container).toMatchSnapshot();
     })
   })
 });

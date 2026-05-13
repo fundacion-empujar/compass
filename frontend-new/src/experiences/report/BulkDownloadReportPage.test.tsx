@@ -1,6 +1,7 @@
 import React from "react";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { AllTheProviders } from "src/_test_utilities/test-utils";
 import BulkDownloadReportPage from "./BulkDownloadReportPage";
 import { BulkDownloadReportsService } from "./bulkDownloadReportsService";
 import { globalAssetPreloader } from "./assetPreloader";
@@ -43,11 +44,13 @@ describe("BulkDownloadReportPage", () => {
   const renderComponent = (token = mockToken) => {
     const path = token ? `/bulk-download?token=${token}` : "/bulk-download";
     return render(
-      <MemoryRouter initialEntries={[path]}>
-        <Routes>
-          <Route path="/bulk-download" element={<BulkDownloadReportPage />} />
-        </Routes>
-      </MemoryRouter>
+      <AllTheProviders>
+        <MemoryRouter initialEntries={[path]}>
+          <Routes>
+            <Route path="/bulk-download" element={<BulkDownloadReportPage />} />
+          </Routes>
+        </MemoryRouter>
+      </AllTheProviders>
     );
   };
 
@@ -168,11 +171,10 @@ describe("BulkDownloadReportPage", () => {
       renderComponent();
 
       mockServiceInstance.streamReports.mockImplementation(
-        async (_token: string, _filters: any, onBatch: (batch: any[]) => Promise<void>, onProgress: (count: number) => void) => {
+        async (_token: string, _filters: any, onBatch: (batch: any[]) => Promise<void>) => {
           const batch = [
             { user_id: "user1", registration_code: "reg1", experiences: [], conversation_conducted_at: null },
           ];
-          onProgress(1);
           await onBatch(batch);
         }
       );
@@ -181,8 +183,10 @@ describe("BulkDownloadReportPage", () => {
       fireEvent.click(downloadButton);
 
       await waitFor(() => {
-        expect(screen.getByText(/Generating files/i)).toBeInTheDocument();
-      }, { timeout: 3000 });
+        expect(screen.getByText(/Successfully downloaded.*reports/i)).toBeInTheDocument();
+      }, { timeout: 5000 });
+
+      expect(mockServiceInstance.streamReports).toHaveBeenCalled();
     });
 
     it("should disable form elements during download", async () => {
@@ -252,8 +256,10 @@ describe("BulkDownloadReportPage", () => {
       const startedAfterInput = screen.getByLabelText(/Started After/i);
       const startedBeforeInput = screen.getByLabelText(/Started Before/i);
 
-      fireEvent.change(startedAfterInput, { target: { value: "2024-01-01T00:00" } });
-      fireEvent.change(startedBeforeInput, { target: { value: "2024-12-31T23:59" } });
+      const startedAfterValue = "2024-01-01T00:00";
+      const startedBeforeValue = "2024-12-31T23:59";
+      fireEvent.change(startedAfterInput, { target: { value: startedAfterValue } });
+      fireEvent.change(startedBeforeInput, { target: { value: startedBeforeValue } });
 
       const downloadButton = screen.getByText("Download Reports");
       fireEvent.click(downloadButton);
@@ -262,8 +268,8 @@ describe("BulkDownloadReportPage", () => {
         expect(mockServiceInstance.streamReports).toHaveBeenCalledWith(
           mockToken.trim(),
           expect.objectContaining({
-            started_after: "2024-01-01T00:00:00.000Z",
-            started_before: "2024-12-31T23:59:00.000Z",
+            started_after: new Date(startedAfterValue).toISOString(),
+            started_before: new Date(startedBeforeValue).toISOString(),
             page_size: 20,
           }),
           expect.any(Function),

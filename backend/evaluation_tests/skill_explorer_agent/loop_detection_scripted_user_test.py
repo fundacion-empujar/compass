@@ -65,7 +65,7 @@ test_cases: list[ScriptedLoopDetectionTestCase] = [
         name="production_session_52870822099790_pay_point_manager",
         simulated_user_prompt="Scripted user: real production session 52870822099790",
         evaluations=[],
-        country_of_user=Country.ZAMBIA,
+        country_of_user=Country.UNSPECIFIED,
         looping_message=(
             "Thank you for sharing that. It sounds like you were responsible for maintaining order at the pay point.\n\n"
             "What were some of the challenges you faced as a Pay Point Manager?"
@@ -73,7 +73,6 @@ test_cases: list[ScriptedLoopDetectionTestCase] = [
         given_experience=ExperienceEntity(
             experience_title="Pay Point Manager",
             company="Social Cash Transfer",
-            location="Luanshya",
             timeline=Timeline(start="1993", end="2000"),
             work_type=WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT,
         ),
@@ -125,7 +124,7 @@ test_cases: list[ScriptedLoopDetectionTestCase] = [
         name="production_session_85833153862014_helping_family_church",
         simulated_user_prompt="Scripted user: real production session 85833153862014",
         evaluations=[],
-        country_of_user=Country.ZAMBIA,
+        country_of_user=Country.UNSPECIFIED,
         looping_message=(
             "Thank you for sharing that. It sounds like you have a lot of important responsibilities in both your family and church.\n\n"
             "Could you tell me more about the specific tasks you were responsible for when helping your family?"
@@ -133,7 +132,6 @@ test_cases: list[ScriptedLoopDetectionTestCase] = [
         given_experience=ExperienceEntity(
             experience_title="Helping Family and Church",
             company=None,
-            location="Kisasa area, Kalumbila District, North Western Province",
             timeline=Timeline(start="2001", end=None),
             work_type=WorkType.UNSEEN_UNPAID,
         ),
