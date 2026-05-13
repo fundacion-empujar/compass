@@ -71,10 +71,9 @@ exports[`Testing Register component it should show register form successfully 1`
         class="MuiDivider-wrapper css-8j2o7p-MuiDivider-wrapper"
       >
         <h6
+          aria-hidden="true"
           class="MuiTypography-root MuiTypography-subtitle2 css-rh1em9-MuiTypography-root"
-        >
-          and either continue with
-        </h6>
+        />
       </span>
     </div>
     <span
