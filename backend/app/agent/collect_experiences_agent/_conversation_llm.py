@@ -186,7 +186,7 @@ class _ConversationLLM:
         if first_time_visit:
             # If this is the first time the user has visited the agent, the agent should get to the point
             # and not introduce itself or ask how the user is doing.
-            assert exploring_type is not None, "Exploring type must be set on first visit"
+            assert exploring_type is not None, "Exploring type must be set on first visit"  # nosec B101
             llm = GeminiGenerativeLLM(config=LLMConfig(
                 generation_config=temperature_config
             ))

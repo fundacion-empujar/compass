@@ -644,6 +644,9 @@ describe("Testing Register component", () => {
     await waitFor(() => {
       const input = screen.getByTestId(DATA_TEST_ID.REGISTRATION_CODE_INPUT) as HTMLInputElement;
       expect(input).toHaveValue(stored.code);
+    });
+    await waitFor(() => {
+      const input = screen.getByTestId(DATA_TEST_ID.REGISTRATION_CODE_INPUT) as HTMLInputElement;
       expect(input).toBeDisabled();
     });
   });
@@ -663,6 +666,9 @@ describe("Testing Register component", () => {
     await waitFor(() => {
       const input = screen.getByTestId(DATA_TEST_ID.REGISTRATION_CODE_INPUT) as HTMLInputElement;
       expect(input).toHaveValue("new-code");
+    });
+    await waitFor(() => {
+      const input = screen.getByTestId(DATA_TEST_ID.REGISTRATION_CODE_INPUT) as HTMLInputElement;
       expect(input).toBeDisabled();
     });
 
@@ -688,6 +694,9 @@ describe("Testing Register component", () => {
     await waitFor(() => {
       const input = screen.getByTestId(DATA_TEST_ID.REGISTRATION_CODE_INPUT) as HTMLInputElement;
       expect(input).toHaveValue("");
+    });
+    await waitFor(() => {
+      const input = screen.getByTestId(DATA_TEST_ID.REGISTRATION_CODE_INPUT) as HTMLInputElement;
       expect(input).not.toBeDisabled();
     });
 

@@ -107,27 +107,27 @@ describe("BulkDownloadReportPage", () => {
     it("should select PDF only format", () => {
       renderComponent();
 
-      const pdfButton = screen.getByText("PDF Only");
+      const pdfButton = screen.getByRole("button", { name: "PDF Only" });
       fireEvent.click(pdfButton);
 
       // PDF button should be contained (Material-UI uses "contained" variant for selected)
-      expect(pdfButton.closest("button")).toHaveClass("MuiButton-contained");
+      expect(pdfButton).toHaveClass("MuiButton-contained");
     });
 
     it("should select DOCX only format", () => {
       renderComponent();
 
-      const docxButton = screen.getByText("DOCX Only");
+      const docxButton = screen.getByRole("button", { name: "DOCX Only" });
       fireEvent.click(docxButton);
 
-      expect(docxButton.closest("button")).toHaveClass("MuiButton-contained");
+      expect(docxButton).toHaveClass("MuiButton-contained");
     });
 
     it("should default to Both format", () => {
       renderComponent();
 
-      const bothButton = screen.getByText("Both");
-      expect(bothButton.closest("button")).toHaveClass("MuiButton-contained");
+      const bothButton = screen.getByRole("button", { name: "Both" });
+      expect(bothButton).toHaveClass("MuiButton-contained");
     });
   });
 
@@ -197,7 +197,11 @@ describe("BulkDownloadReportPage", () => {
 
       await waitFor(() => {
         expect(screen.getByText("Downloading...")).toBeInTheDocument();
+      });
+      await waitFor(() => {
         expect(screen.getByLabelText(/Started After/i)).toBeDisabled();
+      });
+      await waitFor(() => {
         expect(screen.getByLabelText(/Started Before/i)).toBeDisabled();
       });
     });
@@ -222,9 +226,9 @@ describe("BulkDownloadReportPage", () => {
 
       await waitFor(() => {
         expect(mockSaveAs).toHaveBeenCalled();
-        const callArgs = mockSaveAs.mock.calls[0];
-        expect(callArgs[1]).toMatch(/brujula-reports-\d{4}-\d{2}-\d{2}\.zip/);
       }, { timeout: 5000 });
+      const callArgs = mockSaveAs.mock.calls[0];
+      expect(callArgs[1]).toMatch(/brujula-reports-\d{4}-\d{2}-\d{2}\.zip/);
     });
 
     it("should display error message on failure", async () => {
