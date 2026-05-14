@@ -14,3 +14,12 @@ client_id_ctx_var = contextvars.ContextVar("client_id", default=None)
 
 # The language the user is speaking.
 user_language_ctx_var = contextvars.ContextVar("user_language")
+
+# Active agent_type within the current iteration of the AgentDirector loop;
+# used for observability logging during agent execution.
+agent_type_ctx_var = contextvars.ContextVar("agent_type", default=":none:")
+
+# Current conversation phase; updated when the AgentDirector transitions phases.
+# Typed as str | int because ConversationPhase is an int-valued Enum, so .set()
+# receives either the enum's int value during transitions or the ":none:" sentinel.
+phase_ctx_var: contextvars.ContextVar[str | int] = contextvars.ContextVar("phase", default=":none:")

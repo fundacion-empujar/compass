@@ -6,10 +6,11 @@ from app.agent.explore_experiences_agent_director import ExploreExperiencesAgent
 from app.agent.farewell_agent import FarewellAgent
 from app.agent.linking_and_ranking_pipeline import ExperiencePipelineConfig
 from app.agent.welcome_agent import WelcomeAgent
+from app.app_config import get_application_config
+from app.context_vars import agent_type_ctx_var, phase_ctx_var
 from app.conversation_memory.conversation_memory_manager import ConversationMemoryManager
 from app.conversation_memory.conversation_memory_types import ConversationContext
 from app.vector_search.vector_search_dependencies import SearchServices
-from app.i18n.translation_service import t
 from app.i18n.translation_service import t
 
 
@@ -143,6 +144,7 @@ class LLMAgentDirector(AbstractAgentDirector):
                     user_input=clean_input,
                     phase=self._state.current_phase,
                     context=context)
+                agent_type_ctx_var.set(suitable_agent_type.value if suitable_agent_type else ":none:")
                 self._logger.debug("Running agent: %s", {suitable_agent_type})
                 agent_for_task = self._agents[suitable_agent_type]
 
@@ -153,11 +155,10 @@ class LLMAgentDirector(AbstractAgentDirector):
                 # whether to save this agent's response to history.
                 new_phase = self._get_new_phase(agent_output)
                 _will_transition = self._state.current_phase != new_phase
-                _will_transition_to_preference = (
-                    agent_output.finished
-                    and agent_output.agent_type == AgentType.EXPLORE_EXPERIENCES_AGENT
-                    and self._state.counseling_sub_phase == CounselingSubPhase.PREFERENCE_ELICITATION
-                )
+                # Empujar has no preference-elicitation sub-phase. Keep this constant False
+                # until/unless `CounselingSubPhase` + `AgentDirectorState.counseling_sub_phase`
+                # are ported from the Zambia fork.
+                _will_transition_to_preference = False
                 _transitioning = _will_transition or _will_transition_to_preference
 
                 if not agent_for_task.is_responsible_for_conversation_history():

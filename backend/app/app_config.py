@@ -38,6 +38,14 @@ class ApplicationConfig(BaseModel):
     The default country of the user.
     """
 
+    inline_phase_transition: bool = False
+    """
+    When True, the AgentDirector stops looping after a phase transition and lets
+    the user message back to advance. When False (default), it auto-advances by
+    injecting a synthetic "(silence)" user input so the next agent runs in the
+    same `execute()` call. Defaults to False to match historical Empujar behavior.
+    """
+
     taxonomy_model_id: str
     """
     The taxonomy model id.
