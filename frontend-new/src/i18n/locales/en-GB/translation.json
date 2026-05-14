@@ -272,6 +272,7 @@
         "registeringYou": "Registering you...",
         "enterRegistrationCode": "Enter your registration code",
         "registrationCode": "Registration code",
+        "andEitherContinueWith": "And either continue with",
         "components": {
           "registerWithEmailForm": {
             "registeringAria": "Registering"

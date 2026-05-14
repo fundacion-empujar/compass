@@ -17,7 +17,7 @@ import BugReportButton from "src/feedback/bugReport/bugReportButton/BugReportBut
 import FirebaseSocialAuthenticationService from "src/auth/services/FirebaseAuthenticationService/socialAuth/FirebaseSocialAuthentication.service";
 import RequestInvitationCode from "src/auth/components/requestInvitationCode/RequestInvitationCode";
 import { InvitationType } from "src/auth/services/invitationsService/invitations.types";
-import CustomLink from "src/theme/CustomLink/CustomLink";
+import PrimaryButton from "src/theme/PrimaryButton/PrimaryButton";
 import { FirebaseErrorCodes } from "src/error/FirebaseError/firebaseError.constants";
 import { INVITATIONS_PARAM_NAME } from "src/auth/auth.types";
 import { getApplicationRegistrationCode, getSocialAuthDisabled } from "src/envService";
@@ -50,7 +50,7 @@ export const DATA_TEST_ID = {
   FORGOT_PASSWORD_LINK: `register-forgot-password-link-${uniqueId}`,
   REGISTER_USING: `register-using-${uniqueId}`,
   FIREBASE_AUTH_CONTAINER: `firebase-auth-container-${uniqueId}`,
-  LOGIN_LINK: `register-login-link-${uniqueId}`,
+  LOGIN_BUTTON: `register-login-button-${uniqueId}`,
   LANGUAGE_SELECTOR: `register-language-selector-${uniqueId}`,
 };
 
@@ -304,7 +304,9 @@ const Register: React.FC = () => {
         )}
         {!applicationRegistrationCode && (
           <Divider textAlign="center" style={{ width: "100%" }}>
-            <Typography variant="subtitle2" padding={theme.fixedSpacing(theme.tabiyaSpacing.sm)} aria-hidden="true" />
+            <Typography variant="subtitle2" padding={theme.fixedSpacing(theme.tabiyaSpacing.sm)} aria-hidden="true">
+              {t("auth.pages.register.andEitherContinueWith")}
+            </Typography>
           </Divider>
         )}
         <RegisterWithEmailForm
@@ -331,10 +333,23 @@ const Register: React.FC = () => {
             reportToken={codeLocked ? reportToken : undefined}
           />
         )}
-        <Typography variant="caption" data-testid={DATA_TEST_ID.LOGIN_LINK}>
-          {t("auth.pages.register.alreadyHaveAccount")}{" "}
-          <CustomLink onClick={() => navigate(routerPaths.LOGIN)}>{t("common.buttons.login")}</CustomLink>
+        <Typography
+          variant="body1"
+          textAlign="center"
+          fontWeight={600}
+          paddingTop={theme.fixedSpacing(theme.tabiyaSpacing.sm)}
+        >
+          {t("auth.pages.register.alreadyHaveAccount")}
         </Typography>
+        <PrimaryButton
+          fullWidth
+          variant="outlined"
+          color="secondary"
+          onClick={() => navigate(routerPaths.LOGIN)}
+          data-testid={DATA_TEST_ID.LOGIN_BUTTON}
+        >
+          {t("common.buttons.login")}
+        </PrimaryButton>
         {!applicationRegistrationCode && <RequestInvitationCode invitationCodeType={InvitationType.REGISTER} />}
       </Box>
       <BugReportButton bottomAlign={true} />

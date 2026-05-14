@@ -85,18 +85,22 @@ exports[`Testing Login component Render tests should hide login code related ele
       <span
         data-testid="firebase-auth-container-f0324e97-83fd-49e6-95c3-1043751fa1db"
       />
-      <span
-        class="MuiTypography-root MuiTypography-caption css-lljkun-MuiTypography-root"
-        data-testid="login-register-link-7ce9ba1f-bde0-48e2-88df-e4f697945cc4"
+      <p
+        class="MuiTypography-root MuiTypography-body1 css-17lv5rr-MuiTypography-root"
       >
         Don't have an account? 
-        <a
-          aria-disabled="false"
-          class="MuiTypography-root MuiTypography-inherit MuiLink-root MuiLink-underlineAlways css-1ryri3t-MuiTypography-root-MuiLink-root"
-        >
-          Register
-        </a>
-      </span>
+      </p>
+      <button
+        class="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedSecondary MuiButton-sizeMedium MuiButton-outlinedSizeMedium MuiButton-colorSecondary MuiButton-disableElevation MuiButton-fullWidth MuiButton-root MuiButton-outlined MuiButton-outlinedSecondary MuiButton-sizeMedium MuiButton-outlinedSizeMedium MuiButton-colorSecondary MuiButton-disableElevation MuiButton-fullWidth css-10y4eqn-MuiButtonBase-root-MuiButton-root"
+        data-testid="login-register-button-7ce9ba1f-bde0-48e2-88df-e4f697945cc4"
+        tabindex="0"
+        type="button"
+      >
+        Register
+        <span
+          class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+        />
+      </button>
     </div>
     <span
       data-testid="bug-report-button-container-31d2b110-8308-4035-90a6-519e89e7f6fa"
@@ -363,18 +367,22 @@ exports[`Testing Login component Render tests should hide login code related ele
       <span
         data-testid="firebase-auth-container-f0324e97-83fd-49e6-95c3-1043751fa1db"
       />
-      <span
-        class="MuiTypography-root MuiTypography-caption css-lljkun-MuiTypography-root"
-        data-testid="login-register-link-7ce9ba1f-bde0-48e2-88df-e4f697945cc4"
+      <p
+        class="MuiTypography-root MuiTypography-body1 css-17lv5rr-MuiTypography-root"
       >
         Don't have an account? 
-        <a
-          aria-disabled="false"
-          class="MuiTypography-root MuiTypography-inherit MuiLink-root MuiLink-underlineAlways css-1ryri3t-MuiTypography-root-MuiLink-root"
-        >
-          Register
-        </a>
-      </span>
+      </p>
+      <button
+        class="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedSecondary MuiButton-sizeMedium MuiButton-outlinedSizeMedium MuiButton-colorSecondary MuiButton-disableElevation MuiButton-fullWidth MuiButton-root MuiButton-outlined MuiButton-outlinedSecondary MuiButton-sizeMedium MuiButton-outlinedSizeMedium MuiButton-colorSecondary MuiButton-disableElevation MuiButton-fullWidth css-10y4eqn-MuiButtonBase-root-MuiButton-root"
+        data-testid="login-register-button-7ce9ba1f-bde0-48e2-88df-e4f697945cc4"
+        tabindex="0"
+        type="button"
+      >
+        Register
+        <span
+          class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+        />
+      </button>
     </div>
     <span
       data-testid="bug-report-button-container-31d2b110-8308-4035-90a6-519e89e7f6fa"
@@ -635,7 +643,9 @@ exports[`Testing Login component Render tests should show continue as guest if l
               aria-hidden="true"
               class="MuiTypography-root MuiTypography-subtitle2 css-rh1em9-MuiTypography-root"
               data-testid="login-subtitle-7ce9ba1f-bde0-48e2-88df-e4f697945cc4"
-            />
+            >
+              or
+            </h6>
           </span>
         </div>
         <span />
@@ -656,18 +666,22 @@ exports[`Testing Login component Render tests should show continue as guest if l
       <span
         data-testid="firebase-auth-container-f0324e97-83fd-49e6-95c3-1043751fa1db"
       />
-      <span
-        class="MuiTypography-root MuiTypography-caption css-lljkun-MuiTypography-root"
-        data-testid="login-register-link-7ce9ba1f-bde0-48e2-88df-e4f697945cc4"
+      <p
+        class="MuiTypography-root MuiTypography-body1 css-17lv5rr-MuiTypography-root"
       >
         Don't have an account? 
-        <a
-          aria-disabled="false"
-          class="MuiTypography-root MuiTypography-inherit MuiLink-root MuiLink-underlineAlways css-1ryri3t-MuiTypography-root-MuiLink-root"
-        >
-          Register
-        </a>
-      </span>
+      </p>
+      <button
+        class="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedSecondary MuiButton-sizeMedium MuiButton-outlinedSizeMedium MuiButton-colorSecondary MuiButton-disableElevation MuiButton-fullWidth MuiButton-root MuiButton-outlined MuiButton-outlinedSecondary MuiButton-sizeMedium MuiButton-outlinedSizeMedium MuiButton-colorSecondary MuiButton-disableElevation MuiButton-fullWidth css-10y4eqn-MuiButtonBase-root-MuiButton-root"
+        data-testid="login-register-button-7ce9ba1f-bde0-48e2-88df-e4f697945cc4"
+        tabindex="0"
+        type="button"
+      >
+        Register
+        <span
+          class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+        />
+      </button>
     </div>
     <span
       data-testid="bug-report-button-container-31d2b110-8308-4035-90a6-519e89e7f6fa"
@@ -930,7 +944,9 @@ exports[`Testing Login component it should show login form successfully 1`] = `
             aria-hidden="true"
             class="MuiTypography-root MuiTypography-subtitle2 css-rh1em9-MuiTypography-root"
             data-testid="login-subtitle-7ce9ba1f-bde0-48e2-88df-e4f697945cc4"
-          />
+          >
+            or
+          </h6>
         </span>
       </div>
       <span />
@@ -951,18 +967,22 @@ exports[`Testing Login component it should show login form successfully 1`] = `
     <span
       data-testid="firebase-auth-container-f0324e97-83fd-49e6-95c3-1043751fa1db"
     />
-    <span
-      class="MuiTypography-root MuiTypography-caption css-lljkun-MuiTypography-root"
-      data-testid="login-register-link-7ce9ba1f-bde0-48e2-88df-e4f697945cc4"
+    <p
+      class="MuiTypography-root MuiTypography-body1 css-17lv5rr-MuiTypography-root"
     >
       Don't have an account? 
-      <a
-        aria-disabled="false"
-        class="MuiTypography-root MuiTypography-inherit MuiLink-root MuiLink-underlineAlways css-1ryri3t-MuiTypography-root-MuiLink-root"
-      >
-        Register
-      </a>
-    </span>
+    </p>
+    <button
+      class="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedSecondary MuiButton-sizeMedium MuiButton-outlinedSizeMedium MuiButton-colorSecondary MuiButton-disableElevation MuiButton-fullWidth MuiButton-root MuiButton-outlined MuiButton-outlinedSecondary MuiButton-sizeMedium MuiButton-outlinedSizeMedium MuiButton-colorSecondary MuiButton-disableElevation MuiButton-fullWidth css-10y4eqn-MuiButtonBase-root-MuiButton-root"
+      data-testid="login-register-button-7ce9ba1f-bde0-48e2-88df-e4f697945cc4"
+      tabindex="0"
+      type="button"
+    >
+      Register
+      <span
+        class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+      />
+    </button>
     <span
       data-testid="request-invitation-code-link-7ce9ba1f-bde0-48e2-88df-e4f697945cc4"
     />
@@ -1224,7 +1244,9 @@ exports[`Testing Login component should handle application login code 1`] = `
             aria-hidden="true"
             class="MuiTypography-root MuiTypography-subtitle2 css-rh1em9-MuiTypography-root"
             data-testid="login-subtitle-7ce9ba1f-bde0-48e2-88df-e4f697945cc4"
-          />
+          >
+            or
+          </h6>
         </span>
       </div>
       <span />
@@ -1245,18 +1267,22 @@ exports[`Testing Login component should handle application login code 1`] = `
     <span
       data-testid="firebase-auth-container-f0324e97-83fd-49e6-95c3-1043751fa1db"
     />
-    <span
-      class="MuiTypography-root MuiTypography-caption css-lljkun-MuiTypography-root"
-      data-testid="login-register-link-7ce9ba1f-bde0-48e2-88df-e4f697945cc4"
+    <p
+      class="MuiTypography-root MuiTypography-body1 css-17lv5rr-MuiTypography-root"
     >
       Don't have an account? 
-      <a
-        aria-disabled="false"
-        class="MuiTypography-root MuiTypography-inherit MuiLink-root MuiLink-underlineAlways css-1ryri3t-MuiTypography-root-MuiLink-root"
-      >
-        Register
-      </a>
-    </span>
+    </p>
+    <button
+      class="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedSecondary MuiButton-sizeMedium MuiButton-outlinedSizeMedium MuiButton-colorSecondary MuiButton-disableElevation MuiButton-fullWidth MuiButton-root MuiButton-outlined MuiButton-outlinedSecondary MuiButton-sizeMedium MuiButton-outlinedSizeMedium MuiButton-colorSecondary MuiButton-disableElevation MuiButton-fullWidth css-10y4eqn-MuiButtonBase-root-MuiButton-root"
+      data-testid="login-register-button-7ce9ba1f-bde0-48e2-88df-e4f697945cc4"
+      tabindex="0"
+      type="button"
+    >
+      Register
+      <span
+        class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+      />
+    </button>
   </div>
   <span
     data-testid="bug-report-button-container-31d2b110-8308-4035-90a6-519e89e7f6fa"
@@ -1519,7 +1545,9 @@ exports[`Testing Login component should remove registration link if registration
               aria-hidden="true"
               class="MuiTypography-root MuiTypography-subtitle2 css-rh1em9-MuiTypography-root"
               data-testid="login-subtitle-7ce9ba1f-bde0-48e2-88df-e4f697945cc4"
-            />
+            >
+              or
+            </h6>
           </span>
         </div>
         <span />

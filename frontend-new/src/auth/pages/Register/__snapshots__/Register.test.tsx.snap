@@ -73,7 +73,9 @@ exports[`Testing Register component it should show register form successfully 1`
         <h6
           aria-hidden="true"
           class="MuiTypography-root MuiTypography-subtitle2 css-rh1em9-MuiTypography-root"
-        />
+        >
+          And either continue with
+        </h6>
       </span>
     </div>
     <span
@@ -82,19 +84,22 @@ exports[`Testing Register component it should show register form successfully 1`
     <span
       data-testid="firebase-auth-container-f0324e97-83fd-49e6-95c3-1043751fa1db"
     />
-    <span
-      class="MuiTypography-root MuiTypography-caption css-lljkun-MuiTypography-root"
-      data-testid="register-login-link-ab02918f-d559-47ba-9662-ea6b3a3606d0"
+    <p
+      class="MuiTypography-root MuiTypography-body1 css-17lv5rr-MuiTypography-root"
     >
       Already have an account?
-       
-      <a
-        aria-disabled="false"
-        class="MuiTypography-root MuiTypography-inherit MuiLink-root MuiLink-underlineAlways css-1ryri3t-MuiTypography-root-MuiLink-root"
-      >
-        Login
-      </a>
-    </span>
+    </p>
+    <button
+      class="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedSecondary MuiButton-sizeMedium MuiButton-outlinedSizeMedium MuiButton-colorSecondary MuiButton-disableElevation MuiButton-fullWidth MuiButton-root MuiButton-outlined MuiButton-outlinedSecondary MuiButton-sizeMedium MuiButton-outlinedSizeMedium MuiButton-colorSecondary MuiButton-disableElevation MuiButton-fullWidth css-10y4eqn-MuiButtonBase-root-MuiButton-root"
+      data-testid="register-login-button-ab02918f-d559-47ba-9662-ea6b3a3606d0"
+      tabindex="0"
+      type="button"
+    >
+      Login
+      <span
+        class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+      />
+    </button>
     <span
       data-testid="request-invitation-code-link-7ce9ba1f-bde0-48e2-88df-e4f697945cc4"
     />
@@ -295,19 +300,22 @@ exports[`Testing Register component should handle application registration code 
     <span
       data-testid="firebase-auth-container-f0324e97-83fd-49e6-95c3-1043751fa1db"
     />
-    <span
-      class="MuiTypography-root MuiTypography-caption css-lljkun-MuiTypography-root"
-      data-testid="register-login-link-ab02918f-d559-47ba-9662-ea6b3a3606d0"
+    <p
+      class="MuiTypography-root MuiTypography-body1 css-17lv5rr-MuiTypography-root"
     >
       Already have an account?
-       
-      <a
-        aria-disabled="false"
-        class="MuiTypography-root MuiTypography-inherit MuiLink-root MuiLink-underlineAlways css-1ryri3t-MuiTypography-root-MuiLink-root"
-      >
-        Login
-      </a>
-    </span>
+    </p>
+    <button
+      class="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedSecondary MuiButton-sizeMedium MuiButton-outlinedSizeMedium MuiButton-colorSecondary MuiButton-disableElevation MuiButton-fullWidth MuiButton-root MuiButton-outlined MuiButton-outlinedSecondary MuiButton-sizeMedium MuiButton-outlinedSizeMedium MuiButton-colorSecondary MuiButton-disableElevation MuiButton-fullWidth css-10y4eqn-MuiButtonBase-root-MuiButton-root"
+      data-testid="register-login-button-ab02918f-d559-47ba-9662-ea6b3a3606d0"
+      tabindex="0"
+      type="button"
+    >
+      Login
+      <span
+        class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+      />
+    </button>
   </div>
   <span
     data-testid="bug-report-button-container-31d2b110-8308-4035-90a6-519e89e7f6fa"

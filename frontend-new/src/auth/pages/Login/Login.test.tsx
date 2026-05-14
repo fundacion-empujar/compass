@@ -307,7 +307,7 @@ describe("Testing Login component", () => {
     expect(LoginWithInviteCodeForm).toHaveBeenCalled();
 
     // AND the link to register if of no user dosn't have an should be present
-    expect(screen.getByTestId(DATA_TEST_ID.REGISTER_LINK)).toBeInTheDocument();
+    expect(screen.getByTestId(DATA_TEST_ID.REGISTER_BUTTON)).toBeInTheDocument();
 
     // AND the component should match the snapshot
     expect(screen.getByTestId(DATA_TEST_ID.LOGIN_CONTAINER)).toMatchSnapshot();
@@ -380,7 +380,7 @@ describe("Testing Login component", () => {
     const { container } = render(<Login />);
 
     // THEN the registration link should not be present
-    expect(screen.queryByTestId(DATA_TEST_ID.REGISTER_LINK)).toBeNull();
+    expect(screen.queryByTestId(DATA_TEST_ID.REGISTER_BUTTON)).toBeNull();
 
     // AND the component should match the snapshot
     expect(container).toMatchSnapshot();
