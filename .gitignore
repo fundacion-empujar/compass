@@ -11,6 +11,7 @@ credentials*.json
 .specify
 CLAUDE.md
 .claude
+.mcp.json
 
 # deployments
 be-report.md
