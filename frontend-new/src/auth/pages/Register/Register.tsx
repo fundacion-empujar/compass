@@ -7,6 +7,7 @@ import SocialAuth from "src/auth/components/SocialAuth/SocialAuth";
 import { useSnackbar } from "src/theme/SnackbarProvider/SnackbarProvider";
 import RegisterWithEmailForm from "src/auth/pages/Register/components/RegisterWithEmailForm/RegisterWithEmailForm";
 import AuthHeader from "src/auth/components/AuthHeader/AuthHeader";
+import TestEnvironmentBanner from "src/auth/components/TestEnvironmentBanner/TestEnvironmentBanner";
 import InvitationCodeField from "src/auth/components/InvitationCodeField";
 import { FirebaseError, getUserFriendlyFirebaseErrorMessage } from "src/error/FirebaseError/firebaseError";
 import FirebaseEmailAuthService from "src/auth/services/FirebaseAuthenticationService/emailAuth/FirebaseEmailAuthentication.service";
@@ -269,92 +270,95 @@ const Register: React.FC = () => {
   }, []);
 
   return (
-    <Container
-      maxWidth="xs"
-      sx={{ height: "100%", padding: theme.fixedSpacing(theme.tabiyaSpacing.lg) }}
-      data-testid={DATA_TEST_ID.REGISTER_CONTAINER}
-    >
-      <Box
-        display="flex"
-        flexDirection="column"
-        alignItems="center"
-        justifyContent={"space-evenly"}
-        gap={theme.fixedSpacing(theme.tabiyaSpacing.sm)}
-        width={"100%"}
+    <>
+      <TestEnvironmentBanner />
+      <Container
+        maxWidth="xs"
+        sx={{ height: "100%", padding: theme.fixedSpacing(theme.tabiyaSpacing.lg) }}
+        data-testid={DATA_TEST_ID.REGISTER_CONTAINER}
       >
-        <AuthHeader
-          title={t("auth.pages.login.welcomeTitle")}
-          subtitle={
-            <Typography variant="body2" gutterBottom>
-              {t("auth.pages.register.subtitle")}
-            </Typography>
-          }
-        />
-        {!applicationRegistrationCode && (
-          <React.Fragment>
-            <Typography variant="subtitle2">{t("auth.pages.register.enterRegistrationCode")}</Typography>
-            <InvitationCodeField
-              value={registrationCode}
-              locked={codeLocked}
-              label={t("auth.pages.register.registrationCode") || REGISTRATION_CODE_FIELD_LABEL}
-              onChange={handleRegistrationCodeChanged}
-              dataTestId={DATA_TEST_ID.REGISTRATION_CODE_INPUT}
-            />
-          </React.Fragment>
-        )}
-        {!applicationRegistrationCode && (
-          <Divider textAlign="center" style={{ width: "100%" }}>
-            <Typography variant="subtitle2" padding={theme.fixedSpacing(theme.tabiyaSpacing.sm)} aria-hidden="true">
-              {t("auth.pages.register.andEitherContinueWith")}
-            </Typography>
-          </Divider>
-        )}
-        <RegisterWithEmailForm
-          disabled={
-            (!registrationCode && !applicationRegistrationCode) ||
-            codeStatus === InvitationStatus.INVALID ||
-            codeStatus === InvitationStatus.USED
-          }
-          notifyOnRegister={handleRegister}
-          isRegistering={isLoading}
-        />
-        {!socialAuthDisabled && (
-          <SocialAuth
-            postLoginHandler={handlePostLogin}
-            isLoading={isLoading}
+        <Box
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
+          justifyContent={"space-evenly"}
+          gap={theme.fixedSpacing(theme.tabiyaSpacing.sm)}
+          width={"100%"}
+        >
+          <AuthHeader
+            title={t("auth.pages.login.welcomeTitle")}
+            subtitle={
+              <Typography variant="body2" gutterBottom>
+                {t("auth.pages.register.subtitle")}
+              </Typography>
+            }
+          />
+          {!applicationRegistrationCode && (
+            <React.Fragment>
+              <Typography variant="subtitle2">{t("auth.pages.register.enterRegistrationCode")}</Typography>
+              <InvitationCodeField
+                value={registrationCode}
+                locked={codeLocked}
+                label={t("auth.pages.register.registrationCode") || REGISTRATION_CODE_FIELD_LABEL}
+                onChange={handleRegistrationCodeChanged}
+                dataTestId={DATA_TEST_ID.REGISTRATION_CODE_INPUT}
+              />
+            </React.Fragment>
+          )}
+          {!applicationRegistrationCode && (
+            <Divider textAlign="center" style={{ width: "100%" }}>
+              <Typography variant="subtitle2" padding={theme.fixedSpacing(theme.tabiyaSpacing.sm)} aria-hidden="true">
+                {t("auth.pages.register.andEitherContinueWith")}
+              </Typography>
+            </Divider>
+          )}
+          <RegisterWithEmailForm
             disabled={
               (!registrationCode && !applicationRegistrationCode) ||
               codeStatus === InvitationStatus.INVALID ||
               codeStatus === InvitationStatus.USED
             }
-            label={t("auth.pages.register.registerWithGoogle")}
-            notifyOnLoading={notifyOnSocialLoading}
-            registrationCode={registrationCode || applicationRegistrationCode}
-            reportToken={codeLocked ? reportToken : undefined}
+            notifyOnRegister={handleRegister}
+            isRegistering={isLoading}
           />
-        )}
-        <Typography
-          variant="body1"
-          textAlign="center"
-          fontWeight={600}
-          paddingTop={theme.fixedSpacing(theme.tabiyaSpacing.sm)}
-        >
-          {t("auth.pages.register.alreadyHaveAccount")}
-        </Typography>
-        <PrimaryButton
-          fullWidth
-          variant="outlined"
-          color="secondary"
-          onClick={() => navigate(routerPaths.LOGIN)}
-          data-testid={DATA_TEST_ID.LOGIN_BUTTON}
-        >
-          {t("common.buttons.login")}
-        </PrimaryButton>
-        {!applicationRegistrationCode && <RequestInvitationCode invitationCodeType={InvitationType.REGISTER} />}
-      </Box>
-      <BugReportButton bottomAlign={true} />
-      <Backdrop isShown={isLoading} message={t("auth.pages.register.registeringYou")} />
-    </Container>
+          {!socialAuthDisabled && (
+            <SocialAuth
+              postLoginHandler={handlePostLogin}
+              isLoading={isLoading}
+              disabled={
+                (!registrationCode && !applicationRegistrationCode) ||
+                codeStatus === InvitationStatus.INVALID ||
+                codeStatus === InvitationStatus.USED
+              }
+              label={t("auth.pages.register.registerWithGoogle")}
+              notifyOnLoading={notifyOnSocialLoading}
+              registrationCode={registrationCode || applicationRegistrationCode}
+              reportToken={codeLocked ? reportToken : undefined}
+            />
+          )}
+          <Typography
+            variant="body1"
+            textAlign="center"
+            fontWeight={600}
+            paddingTop={theme.fixedSpacing(theme.tabiyaSpacing.sm)}
+          >
+            {t("auth.pages.register.alreadyHaveAccount")}
+          </Typography>
+          <PrimaryButton
+            fullWidth
+            variant="outlined"
+            color="secondary"
+            onClick={() => navigate(routerPaths.LOGIN)}
+            data-testid={DATA_TEST_ID.LOGIN_BUTTON}
+          >
+            {t("common.buttons.login")}
+          </PrimaryButton>
+          {!applicationRegistrationCode && <RequestInvitationCode invitationCodeType={InvitationType.REGISTER} />}
+        </Box>
+        <BugReportButton bottomAlign={true} />
+        <Backdrop isShown={isLoading} message={t("auth.pages.register.registeringYou")} />
+      </Container>
+    </>
   );
 };
 

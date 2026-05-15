@@ -1,4 +1,9 @@
 {
+  "testEnvironmentBanner": {
+    "message": "You're using the test version of Brújula. The chatbot only replies in English here. For the Spanish version, visit",
+    "linkLabel": "Brújula",
+    "closeAriaLabel": "Dismiss test environment banner"
+  },
   "common": {
     "buttons": {
       "login": "Login",

@@ -1,4 +1,9 @@
 {
+  "testEnvironmentBanner": {
+    "message": "Estás usando la versión de prueba de Brújula. Aquí el chatbot solo responde en inglés. Para la versión en español, visita",
+    "linkLabel": "Brújula",
+    "closeAriaLabel": "Cerrar el aviso del entorno de prueba"
+  },
   "common": {
     "buttons": {
       "login": "Iniciar sesión",

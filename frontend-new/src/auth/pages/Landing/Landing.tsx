@@ -7,6 +7,7 @@ import PrimaryButton from "src/theme/PrimaryButton/PrimaryButton";
 import SecondaryButton from "src/theme/SecondaryButton/SecondaryButton";
 import CustomLink from "src/theme/CustomLink/CustomLink";
 import AuthHeader from "src/auth/components/AuthHeader/AuthHeader";
+import TestEnvironmentBanner from "src/auth/components/TestEnvironmentBanner/TestEnvironmentBanner";
 import BugReportButton from "src/feedback/bugReport/bugReportButton/BugReportButton";
 import { getLoginCodeDisabled, getApplicationLoginCode, getRegistrationDisabled } from "src/envService";
 import FirebaseInvitationCodeAuthenticationService from "src/auth/services/FirebaseAuthenticationService/invitationCodeAuth/FirebaseInvitationCodeAuthenticationService";
@@ -108,6 +109,7 @@ const Landing: React.FC = () => {
 
   return (
     <>
+      <TestEnvironmentBanner />
       <Dialog
         open={true}
         maxWidth="xs"
