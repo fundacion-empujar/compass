@@ -43,13 +43,18 @@ DECRYPT_SCRIPT_USERDATA_MONGODB_URI=<MONGODB_URI>
 
 # The name of the database where the user data is stored
 DECRYPT_SCRIPT_USERDATA_DB_NAME=<USERDATA_DATABASE_NAME>
+
+# The password protecting the RSA private key used to decrypt the data
+DECRYPT_SCRIPT_PRIVATE_KEY_PASSWORD=<PRIVATE_KEY_PASSWORD>
 ```
 
 In addition to the environment variables, you will need:
 
 - A private key file (in PEM format).
-- The password used to generate the private key.
 - An output location to save the decrypted data.
+
+> The password used to generate the private key is supplied via the
+> `DECRYPT_SCRIPT_PRIVATE_KEY_PASSWORD` environment variable above, not as a CLI flag.
 
 #### Usage
 
