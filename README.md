@@ -46,6 +46,8 @@ To work with this repository you should have a system with a bash compatible ter
 4. After making your changes, ensure the code is clean, properly formatted and passes all tests.
 
     You can use the provided script, `run-before-merge.sh`, for assistance. This script performs checking of the code formatting, linting, building, and testing on the subprojects of the repository. To run it, use the following command:
+
+    > **Note:** `run-before-merge.sh` only covers `backend/` and the legacy `frontend/` proof-of-concept. It does **not** validate `frontend-new/` (the active frontend). For `frontend-new/` changes, run `yarn lint`, `yarn format:check`, `yarn test`, and `yarn build` in that directory manually.
       
     ```bash
     ./run-before-merge.sh

@@ -9,19 +9,22 @@ This guide covers adding a new language to both the backend and `frontend-new`. 
     *   Translate the values, keeping keys and placeholders (e.g., `{end_date}`) identical.
 
 2.  **Enable Language**:
-    *   Add your locale code to `BACKEND_DEFAULT_LOCALE` in your backend `.env` file (e.g., `BACKEND_DEFAULT_LOCALE='en-US'`). The first item is the default.
+    *   Add your locale code to the `BACKEND_SUPPORTED_LANGUAGES` JSON array in your backend `.env` file (e.g., `BACKEND_SUPPORTED_LANGUAGES='["en-US", "<your-locale>"]'`). This is what actually enables the language.
+    *   Optionally set `BACKEND_DEFAULT_LOCALE` (a single locale, e.g., `BACKEND_DEFAULT_LOCALE=en-US`) if this language should be the default. It must be one of the supported languages.
 
 3.  **Verify** (Optional):
-    *   Run `poetry run python app/i18n/i18n_manager.py --verify` in the `backend` directory to check for missing keys.
+    *   Run `poetry run pytest app/i18n/test_i18n.py` in the `backend` directory to check translation-key consistency across all supported locales.
 
 ### 2. Frontend (`frontend-new`)
 
 1.  **Create Locale Files**:
-    *   Copy `frontend-new/src/locales/en-GB/translation.json` to `frontend-new/src/locales/<your-locale>/translation.json`.
+    *   Copy `frontend-new/src/i18n/locales/en-GB/translation.json` to `frontend-new/src/i18n/locales/<your-locale>/translation.json`.
     *   Translate the values.
 
 2.  **Register Locale**:
-    *   In `frontend-new/src/i18n/i18n.ts`, import your new `translation.json` and add it to the `resources` map (include both case variants if needed, e.g., `fr-FR` and `fr-fr`).
+    *   Add your locale to the `Locale` enum in `frontend-new/src/i18n/constants.ts`.
+    *   In `frontend-new/src/i18n/i18n.ts`, import your new `translation.json` and add it to the `resources` map, keyed by the `Locale` enum value (no lowercase variants — the map is keyed by the enum, not raw strings).
+    *   Add a `questions-<your-locale>.json` file under `frontend-new/src/feedback/overallFeedback/feedbackForm/` and import it in `i18n.ts`. Every supported locale has one; a new locale without it will fail to load.
 
 3.  **Update Language Menu**:
     *   In `frontend-new/src/i18n/languageContextMenu/LanguageContextMenu.tsx`, add a new menu item pointing to your locale.

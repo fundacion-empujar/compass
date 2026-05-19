@@ -15,7 +15,7 @@ _______
 
 - A recent version of [git](https://git-scm.com/) (e.g. ^2.37 )
 
-- [Python 3.8 or higher](https://www.python.org/downloads/)
+- [Python 3.11 or higher](https://www.python.org/downloads/)
 - [Pulumi CLI](https://www.pulumi.com/docs/install/).
 - [Google Cloud SDK (gcloud)](https://cloud.google.com/sdk/docs/install)
 
@@ -357,8 +357,10 @@ This application uses **MongoDB** for data storage.
         TAXONOMY_DATABASE_NAME=<database-name>
         # Model ID of an imported model
         TAXONOMY_MODEL_ID=<model-id>
-        # The region of the Vertex API to use for embedding and genrative AI models
-        VERTEX_API_REGION=<REGION>
+        # Regions of the Vertex API to use. Embeddings and generative AI
+        # models can run in different regions, so each has its own variable.
+        VERTEX_API_EMBEDDINGS_REGION=<REGION>
+        VERTEX_API_GEN_AI_REGION=<REGION>
         # The name of the embeddings service to use
         # Currently only Google Vertex AI is supported
         EMBEDDINGS_SERVICE_NAME=GOOGLE-VERTEX-AI
@@ -430,8 +432,9 @@ After completing the previous steps, most required values for the **`.env` file*
 Here are some additional fields.
 
 ```dotenv
-# Region where the Vertex API is deployed  
-VERTEX_API_REGION=<region>
+# Regions where the Vertex API models are deployed (embeddings and generative AI models can run in different regions)  
+VERTEX_API_EMBEDDINGS_REGION=<region>
+VERTEX_API_GEN_AI_REGION=<region>
 # Enable or disable Sentry for this environment
 BACKEND_ENABLE_SENTRY=<True/False>
 FRONTEND_ENABLE_SENTRY=<True/False>
@@ -520,12 +523,12 @@ Once the `setup_env.py` script is completed, the environment is ready for deploy
 Deployment can be done **automatically** via the GitHub pipeline (on push or release) or **manually** using the following steps:
 
 1. **Prepare the Deployment**
-   Run the [`prepare_env.py`](/iac/scripts/prepare.py) script to:  
+   Run the [`prepare.py`](/iac/scripts/prepare.py) script to:  
    - **Download artifacts** and configurations from the realm’s root project.  
    - **Verify deployment configurations** against the uploaded artifacts using templates.
 
     ```shell
-    ./scripts/prepare_env.py --help
+    ./scripts/prepare.py --help
     ```
 
 2. **Deploy the Environment**

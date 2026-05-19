@@ -2,6 +2,11 @@
 
 This is a checklist for deploying a new realm and setting up the first environment.
 
+> **Deploying the Brújula fork to an existing environment (e.g. dev/test)?**
+> This checklist covers a first-time realm/environment bring-up. For routine
+> fork deployments — the `build → setup_env.py → prepare.py → up.py` round-trip —
+> follow [the fork deployment procedure](deployment-producedure-fork.md) instead.
+
 - [ ] Set up a working environment. [docs](deployment-procedure.md#step-0-set-up-the-working-environment)
 
 - [ ] Create Realm.

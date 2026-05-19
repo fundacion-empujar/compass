@@ -249,12 +249,12 @@ LOG_CONFIG_FILE=logging.cfg.dev.yaml
 To run the backend, use the following command from the root directory of the backend project:
 
 ```shell
-python server.py
+poetry run python app/server.py
 ```
 
 > NOTE: when running the backend locally, make sure to set the environment variables as described in
 > the [Environment Variables & Configuration](#environment-variables--configuration) section.
-> You should set the `TABIYA_MONGODB_URI` and `TABIYA_DB_NAME` environment variables to point to the mongodb cloud instance where the ESCO embeddings are
+> You should set the `TAXONOMY_MONGODB_URI` and `TAXONOMY_DATABASE_NAME` environment variables to point to the mongodb cloud instance where the ESCO embeddings are
 > stored.
 > For the application database, set the `APPLICATION_MONGODB_URI` and `APPLICATION_DATABASE_NAME` environment variables to point a local running mongodb
 > instance.
@@ -275,7 +275,7 @@ To run the image, you'll need to mount a volume with the service account key and
 the container:
 
 ```shell
-docker run -v "<PATH_TO_KEY_FILE>:/code/credentials.json" -e GOOGLE_APPLICATION_CREDENTIALS="/code/credentials.json" -e MONGODB_URI="<URI_TO_MONGODB>" -e VERTEX_API_REGION="<REGION>" -p 8080:8080 brujula-backend
+docker run -v "<PATH_TO_KEY_FILE>:/code/credentials.json" -e GOOGLE_APPLICATION_CREDENTIALS="/code/credentials.json" -e VERTEX_API_EMBEDDINGS_REGION="<REGION>" -e VERTEX_API_GEN_AI_REGION="<REGION>" -e TAXONOMY_MONGODB_URI="<URI_TO_MONGODB>" -p 8080:8080 brujula-backend
 ```
 
 If you have set up the `.env` file, you can run the image using the `--env-file` option.
@@ -301,9 +301,8 @@ USERDATA_MONGODB_URI=mongodb://localhost:27017
 USERDATA_DATABASE_NAME=_compass-users-local
 METRICS_MONGODB_URI=mongodb://localhost:27017
 METRICS_DATABASE_NAME=<METRICS_DATABASE_NAME>
-GOOGLE_APPLICATION_CREDENTIALS=keys/credentials.json
-VERTEX_API_REGION=<REGION>
-EMBEDDINGS_SERVICE_VERSION=<EMBEDDINGS_SERVICE_VERSION>
+EMBEDDINGS_SERVICE_NAME=GOOGLE-VERTEX-AI
+EMBEDDINGS_MODEL_NAME=text-embedding-005
 LOG_CONFIG_FILE=logging.cfg.dev.yaml
 # allow all origins
 BACKEND_URL=*
