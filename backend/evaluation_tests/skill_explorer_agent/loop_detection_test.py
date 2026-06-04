@@ -14,6 +14,10 @@ contains N repetitions of the looping message, then lets a simulated user
 (who keeps giving brief disengagement responses) drive one more round.
 We assert that the agent finishes cleanly (finished=True) rather than
 repeating the message again.
+
+NOTE (locale): the seeded history is language-specific, so we cover the same behaviour in both.
+es-AR mirrors (`argentina_*`, locale=ES_AR) run by default; the English cases default to EN_US
+and are skipped (run with `--locales_to_run all`). See EVALUATION_TESTS_README.md.
 """
 
 import logging
@@ -32,6 +36,7 @@ from app.conversation_memory.conversation_memory_manager import ConversationMemo
 from app.conversation_memory.conversation_memory_types import ConversationMemoryManagerState
 from app.countries import Country
 from app.i18n.translation_service import get_i18n_manager
+from app.i18n.types import Locale
 from app.server_config import UNSUMMARIZED_WINDOW_SIZE, TO_BE_SUMMARIZED_WINDOW_SIZE
 from common_libs.test_utilities import get_random_session_id
 from common_libs.test_utilities.guard_caplog import guard_caplog, assert_log_error_warnings
@@ -50,12 +55,40 @@ from .skills_explorer_agent_executor import (
     SkillsExplorerAgentIsFinished,
 )
 
+# --- English scaffolding for the seeded pre-loop history (defaults) ---
+_OPENING_QUESTION = "Could you tell me about your role? What did a typical day look like?"
+_FIRST_ANSWER = "I managed the queue, checked IDs, and kept order at the pay point."
+_CHALLENGES_QUESTION = (
+    "Thank you for sharing that. "
+    "What were some of the challenges you faced in this role?"
+)
+_SECOND_ANSWER = "Sometimes people got angry in the queues. I had to stay calm."
+_LOOP_FILLER = "okay"
+
 _COMPLETION_MSG = (
     "Thank you for sharing these details! I have all the information I need."
 )
 _LOOPING_QUESTION = (
     "Thank you for sharing that. "
     "What do you think is important when working in a paid job or for an employer?"
+)
+
+# --- es-AR scaffolding + looping messages (run by default in this fork) ---
+_OPENING_QUESTION_ES = "¿Me podrías contar sobre tu rol? ¿Cómo era un día típico?"
+_FIRST_ANSWER_ES = "Atendía a los clientes, ordenaba la mercadería y cobraba en la caja."
+_CHALLENGES_QUESTION_ES = (
+    "Gracias por compartir eso. "
+    "¿Cuáles fueron algunos de los desafíos que enfrentaste en este rol?"
+)
+_SECOND_ANSWER_ES = "A veces los clientes se enojaban en la cola. Tenía que mantener la calma."
+_LOOP_FILLER_ES = "está bien"
+
+_COMPLETION_MSG_ES = (
+    "¡Gracias por compartir estos detalles! Tengo toda la información que necesito."
+)
+_LOOPING_QUESTION_ES = (
+    "Gracias por compartir eso. "
+    "¿Qué creés que es importante al trabajar en un empleo pago o para un empleador?"
 )
 
 
@@ -72,6 +105,11 @@ class LoopSeededSkillsExplorerAgentExecutor(SkillsExplorerAgentExecutor):
         experience: ExperienceEntity,
         looping_message: str,
         n_repeats: int,
+        opening_question: str,
+        first_answer: str,
+        challenges_question: str,
+        second_answer: str,
+        loop_filler: str,
     ):
         super().__init__(
             conversation_manager=conversation_manager,
@@ -80,6 +118,11 @@ class LoopSeededSkillsExplorerAgentExecutor(SkillsExplorerAgentExecutor):
         )
         self._looping_message = looping_message
         self._n_repeats = n_repeats
+        self._opening_question = opening_question
+        self._first_answer = first_answer
+        self._challenges_question = challenges_question
+        self._second_answer = second_answer
+        self._loop_filler = loop_filler
         self._seeded = False
 
     async def _seed_history(self) -> None:
@@ -88,9 +131,7 @@ class LoopSeededSkillsExplorerAgentExecutor(SkillsExplorerAgentExecutor):
         await self._conversation_manager.update_history(
             AgentInput(message="", is_artificial=True),
             AgentOutput(
-                message_for_user=(
-                    "Could you tell me about your role? What did a typical day look like?"
-                ),
+                message_for_user=self._opening_question,
                 finished=False,
                 agent_type=None,
                 agent_response_time_in_sec=0,
@@ -99,12 +140,9 @@ class LoopSeededSkillsExplorerAgentExecutor(SkillsExplorerAgentExecutor):
         )
         # User gives a first real answer
         await self._conversation_manager.update_history(
-            AgentInput(message="I managed the queue, checked IDs, and kept order at the pay point."),
+            AgentInput(message=self._first_answer),
             AgentOutput(
-                message_for_user=(
-                    "Thank you for sharing that. "
-                    "What were some of the challenges you faced in this role?"
-                ),
+                message_for_user=self._challenges_question,
                 finished=False,
                 agent_type=None,
                 agent_response_time_in_sec=0,
@@ -113,7 +151,7 @@ class LoopSeededSkillsExplorerAgentExecutor(SkillsExplorerAgentExecutor):
         )
         # User answers challenges question
         await self._conversation_manager.update_history(
-            AgentInput(message="Sometimes people got angry in the queues. I had to stay calm."),
+            AgentInput(message=self._second_answer),
             AgentOutput(
                 message_for_user=self._looping_message,
                 finished=False,
@@ -125,7 +163,7 @@ class LoopSeededSkillsExplorerAgentExecutor(SkillsExplorerAgentExecutor):
         # Repeat the looping message n_repeats - 1 more times
         for _ in range(self._n_repeats - 1):
             await self._conversation_manager.update_history(
-                AgentInput(message="okay"),
+                AgentInput(message=self._loop_filler),
                 AgentOutput(
                     message_for_user=self._looping_message,
                     finished=False,
@@ -152,6 +190,13 @@ class LoopDetectionTestCase(EvaluationTestCase):
     Set to False for engaged-user cases where the agent is expected to stay in
     conversation — the only assertion then is that the looping message is not repeated.
     """
+    # Seeded pre-loop messages (history + agent state). English by default; es-AR cases override
+    # them with Spanish so the whole seeded conversation stays single-language.
+    seed_opening_question: str = _OPENING_QUESTION
+    seed_first_answer: str = _FIRST_ANSWER
+    seed_challenges_question: str = _CHALLENGES_QUESTION
+    seed_second_answer: str = _SECOND_ANSWER
+    seed_loop_filler: str = _LOOP_FILLER
 
 
 _disengagement_prompt = dedent("""
@@ -164,6 +209,18 @@ _engagement_prompt= dedent("""
     You are a user who is engaged and cooperative. Answer the agent's questions
     in a detailed and thoughtful manner, providing as much relevant information
     as possible about your work experience, skills, and preferences.
+""")
+_disengagement_prompt_es = dedent("""
+    Sos un usuario que ya respondió todas las preguntas del agente y solo querés
+    avanzar. Respondé a cada mensaje del agente con una única señal breve de
+    desinterés, como "ok", "siguiente" o "no tengo nada más para agregar".
+    No aportes información nueva. Respondé siempre en español.
+""")
+_engagement_prompt_es = dedent("""
+    Sos un usuario comprometido y colaborador. Respondé las preguntas del agente
+    de manera detallada y reflexiva, aportando toda la información relevante que
+    puedas sobre tu experiencia laboral, tus habilidades y tus preferencias.
+    Respondé siempre en español.
 """)
 
 test_cases: list[LoopDetectionTestCase] = [
@@ -222,7 +279,89 @@ test_cases: list[LoopDetectionTestCase] = [
             timeline=Timeline(start="2021", end="2023"),
             work_type=WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT,
         ),
-    )
+    ),
+    # es-AR mirrors (run by default) — Spanish scaffolding + looping message; see module docstring.
+    LoopDetectionTestCase(
+        name="argentina_mild_loop_completion_msg",
+        locale=Locale.ES_AR,
+        country_of_user=Country.ARGENTINA,
+        simulated_user_prompt=_disengagement_prompt_es,
+        evaluations=[],
+        looping_message=_COMPLETION_MSG_ES,
+        n_repeats=3,
+        seed_opening_question=_OPENING_QUESTION_ES,
+        seed_first_answer=_FIRST_ANSWER_ES,
+        seed_challenges_question=_CHALLENGES_QUESTION_ES,
+        seed_second_answer=_SECOND_ANSWER_ES,
+        seed_loop_filler=_LOOP_FILLER_ES,
+        given_experience=ExperienceEntity(
+            experience_title="Vendedora en un local de ropa",
+            company="Local de ropa",
+            timeline=Timeline(start="2021", end="2023"),
+            work_type=WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT,
+        ),
+    ),
+    LoopDetectionTestCase(
+        name="argentina_severe_loop_completion_msg",
+        locale=Locale.ES_AR,
+        country_of_user=Country.ARGENTINA,
+        simulated_user_prompt=_disengagement_prompt_es,
+        evaluations=[],
+        looping_message=_COMPLETION_MSG_ES,
+        n_repeats=6,
+        seed_opening_question=_OPENING_QUESTION_ES,
+        seed_first_answer=_FIRST_ANSWER_ES,
+        seed_challenges_question=_CHALLENGES_QUESTION_ES,
+        seed_second_answer=_SECOND_ANSWER_ES,
+        seed_loop_filler=_LOOP_FILLER_ES,
+        given_experience=ExperienceEntity(
+            experience_title="Vendedora en un local de ropa",
+            company="Local de ropa",
+            timeline=Timeline(start="2021", end="2023"),
+            work_type=WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT,
+        ),
+    ),
+    LoopDetectionTestCase(
+        name="argentina_loop_on_question",
+        locale=Locale.ES_AR,
+        country_of_user=Country.ARGENTINA,
+        simulated_user_prompt=_disengagement_prompt_es,
+        evaluations=[],
+        looping_message=_LOOPING_QUESTION_ES,
+        n_repeats=3,
+        seed_opening_question=_OPENING_QUESTION_ES,
+        seed_first_answer=_FIRST_ANSWER_ES,
+        seed_challenges_question=_CHALLENGES_QUESTION_ES,
+        seed_second_answer=_SECOND_ANSWER_ES,
+        seed_loop_filler=_LOOP_FILLER_ES,
+        given_experience=ExperienceEntity(
+            experience_title="Vendedora en un local de ropa",
+            company="Local de ropa",
+            timeline=Timeline(start="2021", end="2023"),
+            work_type=WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT,
+        ),
+    ),
+    LoopDetectionTestCase(
+        name="argentina_engaged_user_loop_on_question",
+        locale=Locale.ES_AR,
+        country_of_user=Country.ARGENTINA,
+        simulated_user_prompt=_engagement_prompt_es,
+        evaluations=[],
+        looping_message=_LOOPING_QUESTION_ES,
+        n_repeats=3,
+        assert_finished=False,
+        seed_opening_question=_OPENING_QUESTION_ES,
+        seed_first_answer=_FIRST_ANSWER_ES,
+        seed_challenges_question=_CHALLENGES_QUESTION_ES,
+        seed_second_answer=_SECOND_ANSWER_ES,
+        seed_loop_filler=_LOOP_FILLER_ES,
+        given_experience=ExperienceEntity(
+            experience_title="Vendedora en un local de ropa",
+            company="Local de ropa",
+            timeline=Timeline(start="2021", end="2023"),
+            work_type=WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT,
+        ),
+    ),
 ]
 
 @pytest.mark.asyncio
@@ -263,12 +402,12 @@ async def test_skills_explorer_agent_loop_detection(
         session_id=session_id,
         country_of_user=test_case.country_of_user,
         question_asked_until_now=[
-            "Could you tell me about your role? What did a typical day look like?",
-            "Thank you for sharing that. What were some of the challenges you faced in this role?",
+            test_case.seed_opening_question,
+            test_case.seed_challenges_question,
         ],
         answers_provided=[
-            "I managed the queue, checked IDs, and kept order at the pay point.",
-            "Sometimes people got angry in the queues. I had to stay calm.",
+            test_case.seed_first_answer,
+            test_case.seed_second_answer,
         ],
     )
 
@@ -278,6 +417,11 @@ async def test_skills_explorer_agent_loop_detection(
         experience=given_experience,
         looping_message=test_case.looping_message,
         n_repeats=test_case.n_repeats,
+        opening_question=test_case.seed_opening_question,
+        first_answer=test_case.seed_first_answer,
+        challenges_question=test_case.seed_challenges_question,
+        second_answer=test_case.seed_second_answer,
+        loop_filler=test_case.seed_loop_filler,
     )
 
     config = ConversationTestConfig(

@@ -17,6 +17,7 @@ class OccupationFound(BaseModel):
 
 
 class InferOccupationToolTestCase(CompassTestCase):
+    language_agnostic: bool = True  # ESCO occupation-inference capability test
     given_experience_title: str
     given_company: Optional[str] = None
     given_work_type: WorkType

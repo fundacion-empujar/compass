@@ -16,6 +16,7 @@ from evaluation_tests.get_test_cases_to_run_func import get_test_cases_to_run
 
 
 class SkillLinkingToolTestCase(CompassTestCase):
+    language_agnostic: bool = True  # ESCO skill-linking capability test
     given_occupation_code: Optional[str] = None
     given_occupation_title: Optional[str] = None
     given_responsibilities: list[str]

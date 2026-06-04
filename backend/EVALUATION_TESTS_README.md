@@ -156,3 +156,38 @@ If you are adding a new feature:
   in `evaluation_tests/core_e2e_tests_cases.py` file.
 - Add any new evaluation to test the correctness, if possible.
 - Keep it high-level and do not depend on any implementation detail.
+
+### Minimum es-AR coverage (Brújula / Empujar fork)
+
+This fork serves **es-AR** users only. **Conversational** cases run es-AR-only by default; English conversational
+cases stay in the tree but are skipped at runtime. Language-agnostic capability tests always run (see table).
+
+**Standard:** every *active conversational* agent has ≥1 es-AR happy-path case, pinned to the current flow, asserting
+`EvaluationType.SINGLE_LANGUAGE = 100` plus a key flow behaviour (e.g. experiences extracted with **no `location`**).
+Active agents (via `LLMAgentDirector`): Welcome, LLM Router, Collect-Experiences, Skill-Explorer, full E2E.
+Out of scope: `QnaAgent` / `SimpleAgentDirector` (dead code) and Farewell (untested upstream too).
+
+**Running** (filter lives in `get_test_cases_to_run_func.py`):
+
+```bash
+pytest -m evaluation_test                                # default: es-AR + language-agnostic
+pytest -m evaluation_test --locales_to_run es-AR,en-GB   # specific locales
+pytest -m evaluation_test --locales_to_run all           # everything, incl. English
+```
+
+**What runs by default:**
+
+| Test kind | Default | Selected by |
+|---|:---:|---|
+| es-AR conversational | ✅ | `locale=Locale.ES_AR` on the case (required — default is `EN_US`) |
+| English conversational | ⛔ | `EN_US` default; run with `--locales_to_run all` |
+| Language-agnostic capability (ESCO linking/ranking/occupation/clustering) | ✅ | `language_agnostic = True` on the test-case class |
+| `loop_detection_test.py` (synthetic) | ✅ es-AR mirrors | `argentina_*` run; English cases skipped |
+| `loop_detection_scripted_user_test.py` (real EN session replay) | ⛔ | English by nature; `--locales_to_run all` |
+| English parsing sub-tools (entity/intent/temporal/responsibilities/decomposition) | ⛔ | language-specific, no es-AR twin yet |
+
+Standalone (non-parametrized) tests can't use the filter — guard them with
+`@pytest.mark.skipif(not locale_should_run(Locale.EN_US), ...)` (English-only) or `Locale.ES_AR` (Spanish-only).
+
+**Keep in sync:** when you change conversation flow or agent behaviour, update/add the es-AR eval in the same PR
+(on the PR checklist).

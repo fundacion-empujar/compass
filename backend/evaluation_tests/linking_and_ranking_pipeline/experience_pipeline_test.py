@@ -13,6 +13,7 @@ from evaluation_tests.get_test_cases_to_run_func import get_test_cases_to_run
 
 
 class ExperiencePipelineTestCase(CompassTestCase):
+    language_agnostic: bool = True  # full ESCO experience pipeline test
     given_experience_title: str
     given_responsibilities: list[str]
     given_company_name: Optional[str]

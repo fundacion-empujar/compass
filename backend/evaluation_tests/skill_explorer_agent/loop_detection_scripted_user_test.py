@@ -9,6 +9,12 @@ the agent state matches production.
 
 The agent must finish cleanly (finished=True) within the scripted turns rather
 than continuing to repeat the same message.
+
+NOTE: this fork runs es-AR cases only by default. These cases replay real ENGLISH
+production sessions and set no `locale` (default EN_US), so the default run SKIPS them.
+They are language-neutral behavioural regression tests — do NOT tag them `locale=ES_AR`
+(the agent would then answer in Spanish and the English looping-message assertion would
+pass vacuously). Run them with `--locales_to_run all`. See EVALUATION_TESTS_README.md.
 """
 
 import logging
