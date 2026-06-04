@@ -7,6 +7,7 @@ from app.agent.collect_experiences_agent import CollectExperiencesAgentState
 from app.agent.collect_experiences_agent._types import CollectedData
 from app.agent.experience import WorkType
 from app.countries import Country
+from app.i18n.types import Locale
 from evaluation_tests.conversation_libs.conversation_test_function import EvaluationTestCase, Evaluation
 from evaluation_tests.conversation_libs.evaluators.evaluation_result import EvaluationType
 from evaluation_tests.discovered_experience_test_case import DiscoveredExperienceTestCase
@@ -49,6 +50,44 @@ class CollectExperiencesAgentTestCase(EvaluationTestCase, DiscoveredExperienceTe
 
 
 test_cases = [
+    # es-AR minimum coverage for the Collect Experiences agent (this fork is es-AR-only).
+    # Mirrors the English single-experience scenarios but in Argentinian Spanish and reflects the
+    # fork's current flow: NO `location` is asked for or asserted (the field was removed from the
+    # CollectedData model), and the conversation must stay in Spanish (SINGLE_LANGUAGE).
+    # Conservative on purpose: deterministic `matchers=["matcher"]` only (as in the es-AR e2e case),
+    # and `work_type` is pinned via `expected_work_types` ranges rather than in
+    # `expected_experience_data`, since "el local de mi viejo" is ambiguous (waged vs self-employment).
+    CollectExperiencesAgentTestCase(
+        name='argentina_asistente_ventas_collect_es',
+        locale=Locale.ES_AR,
+        country_of_user=Country.ARGENTINA,
+        simulated_user_prompt=dedent("""
+            Actuá como una persona joven de Argentina. Estás chateando con un bot para armar tu CV.
+            Usá jerga argentina (laburo, guita, viejo/vieja, dale, buenísimo). Sé conciso/a.
+            No inventes información.
+
+            Tu única experiencia es:
+            - Asistente de ventas en el local de tu viejo, desde enero de 2015 hasta diciembre de 2022.
+
+            No tenés otras experiencias: nunca tuviste otro laburo, nunca hiciste una pasantía,
+            nunca tuviste tu propio negocio, nunca fuiste voluntario/a ni hiciste trabajo freelance.
+            Respondé "sí" o "no" cuando corresponda. Decí "así está bien" si te piden confirmar.
+            """),
+        evaluations=[Evaluation(type=EvaluationType.SINGLE_LANGUAGE, expected=100)],
+        expected_experiences_count_min=1,
+        expected_experiences_count_max=1,
+        expected_work_types={WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT: (0, 1),
+                             WorkType.SELF_EMPLOYMENT: (0, 1),
+                             WorkType.FORMAL_SECTOR_UNPAID_TRAINEE_WORK: (0, 0),
+                             WorkType.UNSEEN_UNPAID: (0, 0)},
+        matchers=["matcher"],
+        expected_experience_data=[{
+            # No "location" key: the field was removed from the flow/model in this fork.
+            "experience_title": AnyOf(ContainsString("asistente"), ContainsString("vent")),
+            "company": AnyOf(ContainsString("viejo"), ContainsString("padre"), ContainsString("local")),
+            "timeline": {"start": ContainsString("2015"), "end": ContainsString("2022")},
+        }]
+    ),
     CollectExperiencesAgentTestCase(
         name='monther_of_two_e2e',
         simulated_user_prompt=dedent("""

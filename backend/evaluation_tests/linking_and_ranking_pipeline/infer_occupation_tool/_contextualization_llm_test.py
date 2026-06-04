@@ -14,6 +14,7 @@ from evaluation_tests.get_test_cases_to_run_func import get_test_cases_to_run
 
 
 class ContextualizationTestCase(CompassTestCase):
+    language_agnostic: bool = True  # occupation contextualization capability test
     given_experience_title: str
     given_company: Optional[str] = None
     given_work_type: WorkType

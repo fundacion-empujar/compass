@@ -14,6 +14,7 @@ from evaluation_tests.linking_and_ranking_pipeline.get_test_skill_entity import 
 
 
 class RelevantSkillsClassifierLLMTestCase(CompassTestCase):
+    language_agnostic: bool = True  # ESCO skill-relevance capability test
     given_job_titles: list[str]
     given_responsibility: str
     given_skills: list[SkillEntity]

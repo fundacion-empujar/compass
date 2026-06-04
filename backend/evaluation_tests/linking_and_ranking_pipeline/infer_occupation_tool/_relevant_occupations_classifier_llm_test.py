@@ -39,6 +39,7 @@ def _get_occupation_entity(*,
 
 
 class RelevantOccupationClassifierLLMTestCase(CompassTestCase):
+    language_agnostic: bool = True  # ESCO occupation-relevance capability test
     given_job_titles: list[str]
     given_responsibilities: list[str]
     given_occupations: list[OccupationEntity]

@@ -7,6 +7,7 @@ from _pytest.logging import LogCaptureFixture
 from app.agent.skill_explorer_agent import SkillsExplorerAgentState
 from app.conversation_memory.conversation_memory_manager import ConversationMemoryManager
 from app.conversation_memory.conversation_memory_types import ConversationMemoryManagerState
+from app.i18n.translation_service import get_i18n_manager
 from app.server_config import UNSUMMARIZED_WINDOW_SIZE, TO_BE_SUMMARIZED_WINDOW_SIZE
 from common_libs.test_utilities import get_random_session_id
 from common_libs.test_utilities.guard_caplog import guard_caplog, assert_log_error_warnings
@@ -20,7 +21,7 @@ from evaluation_tests.get_test_cases_to_run_func import get_test_cases_to_run
 
 
 @pytest.mark.asyncio
-@pytest.mark.evaluation_test("gemini-2.0-flash-001/")
+@pytest.mark.evaluation_test("gemini-2.5-flash-lite/")
 @pytest.mark.repeat(3)
 @pytest.mark.parametrize('test_case', get_test_cases_to_run(test_cases),
                          ids=[case.name for case in get_test_cases_to_run(test_cases)])
@@ -30,6 +31,8 @@ async def test_skills_explorer_agent_simulated_user(max_iterations: int, test_ca
     Tests the skills explorer agent with a simulated user.
     """
     print(f"Running test case {test_case.name}")
+    # Set the locale so the agent reads the user_language context var (matches the real request flow).
+    get_i18n_manager().set_locale(test_case.locale)
 
     session_id = get_random_session_id()
     output_folder = os.path.join(os.getcwd(), 'test_output/skills_explorer_agent/simulated_user/', test_case.name)

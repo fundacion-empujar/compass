@@ -11,6 +11,10 @@ def pytest_addoption(parser):
     parser.addoption("--max_iterations", action="store", default="5")
     parser.addoption("--test_cases_to_run", action="store", default="")
     parser.addoption("--test_cases_to_exclude", action="store", default="")
+    # This fork (Brújula/Empujar) serves es-AR users only, so by default the evaluation
+    # suite runs only Spanish (Argentina) cases. Override with e.g. --locales_to_run es-AR,en-GB
+    # or --locales_to_run all to run every locale. See get_test_cases_to_run_func.py.
+    parser.addoption("--locales_to_run", action="store", default="")
 
 
 def pytest_generate_tests(metafunc):

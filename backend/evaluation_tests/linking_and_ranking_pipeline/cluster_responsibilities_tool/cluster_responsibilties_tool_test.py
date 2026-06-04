@@ -11,6 +11,7 @@ from evaluation_tests.get_test_cases_to_run_func import get_test_cases_to_run
 
 
 class ClusterResponsibilitiesToolTestCase(CompassTestCase):
+    language_agnostic: bool = True  # responsibility-clustering capability test
     given_responsibilities: list[str]
     given_number_of_clusters: int = 5
     expected_clusters: list[Cluster]

@@ -92,7 +92,6 @@ test_cases = [
     ),
     ScriptedUserEvaluationTestCase(
         name='user_delays_questions_es',
-        skip_force="force",
         locale=Locale.ES_AR,
         simulated_user_prompt="Scripted user: user is uncertain and asks various questions",
         scripted_user=[
@@ -133,6 +132,7 @@ test_cases = [
         scripted_user=[
             "Che, hola. ¿Cómo va? Busco laburo.",
             # Greeting with slang -> Hey, hi. How's it going? I'm looking for a job.
+            "Dale, buenísimo. Empecemos."  # Agrees to start -> agent should finish
         ],
         evaluations=[Evaluation(type=EvaluationType.SINGLE_LANGUAGE, expected=100)]
     ),
@@ -145,7 +145,7 @@ test_cases = [
         scripted_user=[
             "¿De qué trata esta app?",  # -> What is this app about?
             "¿Quién te desarrolló?",  # -> who developed you
-            "Sigamos."  # -> Let's continue
+            "Dale, entiendo. Empecemos."  # -> Ok, I get it. Let's start. -> agent should finish
         ],
         evaluations=[Evaluation(type=EvaluationType.SINGLE_LANGUAGE, expected=100)]
     ),

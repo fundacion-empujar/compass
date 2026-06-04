@@ -6,6 +6,7 @@ from pydantic import ConfigDict
 from app.agent.agent_director._llm_router import LLMRouter
 from app.agent.agent_director.abstract_agent_director import ConversationPhase
 from app.agent.agent_types import AgentInput, AgentOutput, AgentType
+from app.i18n.types import Locale
 from app.conversation_memory.conversation_memory_types import ConversationContext, ConversationHistory, ConversationTurn
 from common_libs.test_utilities.guard_caplog import guard_caplog, assert_log_error_warnings
 from evaluation_tests.compass_test_case import CompassTestCase
@@ -162,6 +163,7 @@ test_cases_router = [
     ),
     RouterTestCase(
         name="argentina_route_to_explore",
+        locale=Locale.ES_AR,
         summary="",
         turns=[
             ("(silence)", "¡Hola! Bienvenid@ a Brújula. Vamos a arrancar explorando tus experiencias. Decime 'empezar' cuando estés listo/a."),
@@ -173,6 +175,7 @@ test_cases_router = [
     ),
     RouterTestCase(
         name="argentina_route_to_welcome",
+        locale=Locale.ES_AR,
         summary="",
         turns=[
             ("(silence)", "¡Hola! Bienvenid@ a Brújula. Vamos a arrancar explorando tus experiencias. Decime 'empezar' cuando estés listo/a."),
@@ -187,7 +190,7 @@ test_cases_router = [
 
 
 @pytest.mark.asyncio
-@pytest.mark.evaluation_test("gemini-2.0-flash-001/")
+@pytest.mark.evaluation_test("gemini-2.5-flash/")
 @pytest.mark.repeat(3)
 @pytest.mark.parametrize('test_case', get_test_cases_to_run(test_cases_router),
                          ids=[case.name for case in get_test_cases_to_run(test_cases_router)])

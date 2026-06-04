@@ -19,6 +19,12 @@ class CompassTestCase(BaseModel):
     The locale to be used for the test case.
     """
 
+    language_agnostic: bool = False
+    """
+    If True, the case is always run regardless of --locales_to_run: it tests a language-neutral
+    capability (e.g. the ESCO linking/ranking pipeline), not conversation behaviour. Set on the class.
+    """
+
     skip_force: Optional[Literal['skip', 'force', '']] = None
     """
     If set to 'skip', the test case will be skipped.

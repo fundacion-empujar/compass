@@ -12,6 +12,7 @@ from evaluation_tests.linking_and_ranking_pipeline.get_test_skill_entity import 
 
 
 class PickTopSkillToolTestCase(CompassTestCase):
+    language_agnostic: bool = True  # skill-ranking capability test
     given_job_titles: list[str]
     given_responsibilities_group_name: str
     given_responsibilities: list[str]

@@ -6,9 +6,10 @@
 
 credentials*.json
 .run/
-.github/
+.github/agents
+.github/instructions
+.github/copilot-instructions.md
 
-.specify
 CLAUDE.md
 .claude
 .mcp.json
