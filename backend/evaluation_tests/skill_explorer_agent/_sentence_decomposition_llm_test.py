@@ -1,9 +1,12 @@
 import logging
+from typing import Any, cast
+from unittest.mock import AsyncMock
 
 import pytest
 
 from app.agent.agent_types import AgentInput, AgentOutput
-from app.agent.skill_explorer_agent._sentence_decomposition_llm import _SentenceDecompositionLLM
+from app.agent.skill_explorer_agent._sentence_decomposition_llm import _SentenceDecompositionLLM, \
+    _SentenceDecompositionFirstPassResponse
 from app.conversation_memory.conversation_memory_types import ConversationContext, ConversationTurn
 from evaluation_tests.compass_test_case import CompassTestCase
 from evaluation_tests.get_test_cases_to_run_func import get_test_cases_to_run
@@ -164,3 +167,48 @@ def _add_turn_to_context(user_input: str, agent_output: str, context: Conversati
     )
     context.history.turns.append(turn)
     context.all_history.turns.append(turn)
+
+
+# No-LLM unit tests for the first/second-pass None guards: the LLM caller returns None once
+# its retries are exhausted, and execute() must not dereference it.
+def _build_decomposition_llm_without_init() -> _SentenceDecompositionLLM:
+    # __init__ is bypassed so the tests need no Vertex credentials or i18n locale context.
+    llm = cast(_SentenceDecompositionLLM, object.__new__(_SentenceDecompositionLLM))
+    llm.logger = logging.getLogger(__name__)
+    # Passed straight through to the mocked callers, so the real handles are never used.
+    llm.llm_first_pass = cast(Any, None)
+    llm.llm_second_pass = cast(Any, None)
+    return llm
+
+
+@pytest.mark.asyncio
+async def test_first_pass_none_falls_back_without_raising():
+    # GIVEN the first pass returns None (the LLM caller exhausted its retries)
+    llm = _build_decomposition_llm_without_init()
+    llm._llm_caller_first_pass = cast(Any, AsyncMock(call_llm=AsyncMock(return_value=(None, []))))
+    llm._llm_caller_second_pass = cast(Any, AsyncMock(call_llm=AsyncMock(return_value=(None, []))))
+
+    # WHEN sentence decomposition is executed
+    response, _ = await llm.execute(last_user_input="Atiendo el kiosco y cobro a los clientes",
+                                    context=ConversationContext())
+
+    # THEN it returns a safe empty decomposition instead of raising, and never runs the second pass
+    assert response.decomposed_and_dereferenced == []
+    llm._llm_caller_second_pass.call_llm.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_second_pass_none_falls_back_to_first_pass():
+    # GIVEN the first pass succeeds but the second pass returns None
+    llm = _build_decomposition_llm_without_init()
+    first_pass = _SentenceDecompositionFirstPassResponse(
+        resolved_pronouns=["I run the kiosk.", "I charge the customers."])
+    llm._llm_caller_first_pass = cast(Any, AsyncMock(call_llm=AsyncMock(return_value=(first_pass, []))))
+    llm._llm_caller_second_pass = cast(Any, AsyncMock(call_llm=AsyncMock(return_value=(None, []))))
+
+    # WHEN sentence decomposition is executed
+    response, _ = await llm.execute(last_user_input="Atiendo el kiosco y cobro a los clientes",
+                                    context=ConversationContext())
+
+    # THEN it falls back to the first-pass resolved pronouns
+    assert response.decomposed_and_dereferenced == ["I run the kiosk.", "I charge the customers."]

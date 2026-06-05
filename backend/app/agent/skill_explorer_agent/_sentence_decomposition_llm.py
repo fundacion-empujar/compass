@@ -97,6 +97,10 @@ class _SentenceDecompositionLLM:
                                                                                                  llm_input=_SentenceDecompositionLLM._first_pass_prompt_template(
                                                                                                      context=context, last_user_input=last_user_input),
                                                                                                  logger=self.logger)
+        if not llm_first_pass_output:
+            self.logger.warning("The LLM did not return any output for sentence decomposition first pass")
+            return _SentenceDecompositionResponse(decomposed_and_dereferenced=[]), llm_first_pass_stats
+
         self.logger.debug("LLM first pass output: %s", llm_first_pass_output.model_dump())
         # Run the seconds pass
 
