@@ -167,6 +167,13 @@ cases stay in the tree but are skipped at runtime. Language-agnostic capability 
 Active agents (via `LLMAgentDirector`): Welcome, LLM Router, Collect-Experiences, Skill-Explorer, full E2E.
 Out of scope: `QnaAgent` / `SimpleAgentDirector` (dead code) and Farewell (untested upstream too).
 
+**es-AR e2e archetypes** (`core_e2e_tests_cases.py`, run by default): beyond the 2 baseline cases, the suite mirrors
+the English e2e archetypes as authentic Argentine scenarios — asks-about-process, care-work, CV-bulk-dump,
+open-persona, many-experiences (3–6 experiences) — each asserting `SINGLE_LANGUAGE = 100` + `CONCISENESS`
+(+ extraction where applicable), pinned to the deployed pipeline config (4 clusters × 2). Single-experience cases pass;
+the three multi-experience cases currently fail **conciseness only**, on a separately-tracked agent repetition /
+duplicate-question issue — they double as its regression signal.
+
 **Running** (filter lives in `get_test_cases_to_run_func.py`):
 
 ```bash
