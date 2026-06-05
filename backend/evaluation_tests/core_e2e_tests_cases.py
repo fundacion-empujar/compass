@@ -432,5 +432,211 @@ test_cases = [
                 "timeline": {"start": ContainsString("2022"), "end": ContainsString("2025")},
             }
         ]
+    ),
+    # --- es-AR breadth cases: authentic Argentine mirrors of the English e2e archetypes.
+    # All pinned to the deployed pipeline config (given_number_of_clusters=4, top-skills default 2
+    # -> top-skills assertion is >= 8). Each asserts SINGLE_LANGUAGE + CONCISENESS; extraction-bearing
+    # cases use deterministic, lenient matchers (matchers=["matcher"]).
+    # Mirror of asks_about_process_e2e: user interrupts with process/CV/timing questions (router robustness).
+    E2ESpecificTestCase(
+        country_of_user=Country.ARGENTINA,
+        conversation_rounds=50,
+        name='argentina_asks_about_process_e2e',
+        locale=Locale.ES_AR,
+        simulated_user_prompt=dedent("""
+            Sos una persona joven de Argentina que vive sola. Tenés una sola experiencia como empleado:
+            - Cajero en un supermercado chino en Lomas de Zamora, desde 2021 hasta hoy.
+            Cuando te pregunten, das toda la información de esta experiencia de una sola vez, en un solo mensaje.
+            Nunca tuviste otro laburo aparte del de cajero. Tampoco hiciste pasantías, nunca tuviste tu propio
+            negocio, nunca fuiste voluntario ni hiciste trabajos free-lance.
+            Sé lo más conciso posible y no te inventes información.
+
+            Cuando te pregunten si estás listo para empezar la conversación,
+            antes de aceptar hacé una pregunta sobre cómo es el proceso.
+
+            Más adelante, cuando te pregunten los datos básicos de tu experiencia,
+            aprovechá para hacer también una pregunta sobre el proceso o sobre tu CV.
+
+            En la parte en la que te piden describir las tareas que hacías en tu laburo,
+            preguntá cuánto va a tardar en terminar la conversación.
+
+            Hablás en español argentino, con jerga (laburo, guita, dale).
+            """) + system_instruction_prompt,
+        evaluations=[
+            Evaluation(type=EvaluationType.SINGLE_LANGUAGE, expected=100),
+            Evaluation(type=EvaluationType.CONCISENESS, expected=60),
+        ],
+        expected_experiences_count_min=1,
+        expected_experiences_count_max=1,
+        expected_work_types={
+            WorkType.SELF_EMPLOYMENT: (0, 0),
+            WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT: (1, 1),
+            WorkType.FORMAL_SECTOR_UNPAID_TRAINEE_WORK: (0, 0),
+            WorkType.UNSEEN_UNPAID: (0, 0),
+        },
+        matchers=["matcher"],
+        expected_experience_data=[{
+            "experience_title": AnyOf(ContainsString("cajero"), ContainsString("caja")),
+            "company": AnyOf(ContainsString("supermercado"), ContainsString("chino")),
+            "timeline": {"start": ContainsString("2021"), "end": AnyOf(ContainsString("present"), "")},
+        }],
+        given_number_of_clusters=4,
+    ),
+    # Mirror of young_monther_unseen / minimal_user_unseen: a single unseen/unpaid caregiving experience.
+    E2ESpecificTestCase(
+        country_of_user=Country.ARGENTINA,
+        conversation_rounds=50,
+        name='argentina_care_work_unseen_e2e',
+        locale=Locale.ES_AR,
+        simulated_user_prompt=dedent("""
+            Sos una mujer joven de un barrio del conurbano bonaerense. Desde 2020 te ocupás de tu casa:
+            cuidás a tus dos hijos chiquitos y a tu mamá, que está enferma. Te encargás de la comida,
+            la limpieza, los turnos médicos y de llevar a los chicos a la escuela.
+            Nunca tuviste un trabajo pago de ningún tipo: nunca fuiste empleada, nunca hiciste una pasantía,
+            nunca tuviste tu propio negocio, nunca hiciste trabajos free-lance ni changas.
+            Sé conciso y no te inventes información.
+            Hablás en español argentino.
+            """) + system_instruction_prompt,
+        evaluations=[
+            Evaluation(type=EvaluationType.SINGLE_LANGUAGE, expected=100),
+            Evaluation(type=EvaluationType.CONCISENESS, expected=60),
+        ],
+        expected_experiences_count_min=1,
+        expected_experiences_count_max=2,
+        expected_work_types={
+            WorkType.SELF_EMPLOYMENT: (0, 0),
+            WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT: (0, 0),
+            WorkType.FORMAL_SECTOR_UNPAID_TRAINEE_WORK: (0, 0),
+            WorkType.UNSEEN_UNPAID: (1, 2),
+        },
+        matchers=["matcher"],
+        expected_experience_data=[{
+            "experience_title": AnyOf(ContainsString("casa"), ContainsString("cuid"), ContainsString("famil"), ContainsString("hogar")),
+            "timeline": {"start": ContainsString("2020"), "end": AnyOf(ContainsString("present"), "")},
+        }],
+        given_number_of_clusters=4,
+    ),
+    # Mirror of cv_upload_style_e2e: user pastes all experiences at once in CV/bullet format.
+    E2ESpecificTestCase(
+        country_of_user=Country.ARGENTINA,
+        conversation_rounds=60,
+        name='argentina_cv_bulk_dump_e2e',
+        locale=Locale.ES_AR,
+        simulated_user_prompt=dedent("""
+            Sos una persona de Argentina con varias experiencias laborales.
+            Si te preguntan si querés empezar la conversación, aceptá sin contar todavía nada de tus experiencias.
+            Recién cuando el agente te pregunte por tus experiencias, respondé en formato de CV con viñetas, todo de una:
+
+            <Mensaje>
+                Estas son mis experiencias:
+                • Cajera en una panadería en Rosario, de 2019 a 2021. Era un laburo pago en blanco.
+                • Empleada administrativa en una distribuidora de bebidas en Rosario, de 2021 a 2023.
+                • Tuve mi propio kiosco en mi barrio, del que era dueña, desde 2023 hasta hoy.
+            </Mensaje>
+
+            Vas a dar toda esta información de una sola vez cuando te pregunten por tus experiencias.
+            Dá la información exactamente como está en la sección <Mensaje />.
+
+            No vuelvas a dar la información más adelante; en lugar de eso referite a la lista que ya diste
+            diciendo "eso ya te lo pasé".
+
+            Si te dicen que no tienen acceso a esa información, salteá la experiencia diciendo
+            "no tengo esa info a mano ahora, salteémosla y sigamos".
+
+            Podés inventar actividades que hiciste en cada experiencia si te preguntan.
+            Hablás en español argentino, con jerga (laburo, guita, dale).
+            """) + system_instruction_prompt,
+        evaluations=[
+            Evaluation(type=EvaluationType.SINGLE_LANGUAGE, expected=100),
+            Evaluation(type=EvaluationType.CONCISENESS, expected=60),
+        ],
+        expected_experiences_count_min=3,
+        expected_experiences_count_max=3,
+        expected_work_types={
+            WorkType.SELF_EMPLOYMENT: (0, 2),
+            WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT: (1, 3),
+            WorkType.FORMAL_SECTOR_UNPAID_TRAINEE_WORK: (0, 1),
+            WorkType.UNSEEN_UNPAID: (0, 1),
+        },
+        matchers=["matcher"],
+        expected_experience_data=[
+            {
+                "experience_title": AnyOf(ContainsString("cajer"), ContainsString("panad")),
+                "timeline": {"start": ContainsString("2019"), "end": ContainsString("2021")},
+            },
+            {
+                "experience_title": AnyOf(ContainsString("administrativ"), ContainsString("emplead")),
+                "timeline": {"start": ContainsString("2021"), "end": ContainsString("2023")},
+            },
+            {
+                "experience_title": AnyOf(ContainsString("kiosc"), ContainsString("kiosquer"), ContainsString("dueñ")),
+                "timeline": {"start": ContainsString("2023"), "end": AnyOf(ContainsString("present"), "")},
+            },
+        ],
+        given_number_of_clusters=4,
+    ),
+    # Mirror of the open-ended persona cases (genZ_student / mechanical_engineer): free-form conversation,
+    # conciseness + language only (no extraction asserts).
+    E2ETestCase(
+        country_of_user=Country.ARGENTINA,
+        conversation_rounds=100,
+        name='argentina_open_persona_e2e',
+        locale=Locale.ES_AR,
+        simulated_user_prompt=dedent("""
+            Poné que sos Brian, un pibe de 22 años de González Catán, en el conurbano bonaerense.
+            Vivís con tu vieja y tus dos hermanos más chicos. Dejaste el secundario sin terminar.
+            Hacés changas: a veces albañilería con un tío, a veces delivery en moto. Los findes das una mano
+            en el comedor del barrio, ayudando a cocinar y a repartir la comida.
+            Estás buscando un laburo más estable porque querés ayudar en tu casa.
+            Hablás en español argentino, relajado y con jerga (laburo, changa, guita, posta, dale).
+            Sé conciso y respondé como si estuvieras chateando.
+            """) + system_instruction_prompt,
+        evaluations=[
+            Evaluation(type=EvaluationType.SINGLE_LANGUAGE, expected=100),
+            Evaluation(type=EvaluationType.CONCISENESS, expected=60),
+        ],
+        given_number_of_clusters=4,
+    ),
+    # Mirror of comprehensive_multi_experience_e2e + repro harness for the too-many-experiences storage
+    # concern (task #9): 6 experiences across all work types. Count-only assertion (no per-field matching)
+    # so the signal is purely "were all 6 stored". Work-type ranges are tolerant; the total count is strict.
+    E2ESpecificTestCase(
+        country_of_user=Country.ARGENTINA,
+        conversation_rounds=100,
+        name='argentina_many_experiences_e2e',
+        locale=Locale.ES_AR,
+        simulated_user_prompt=dedent("""
+            Sos una persona joven de Argentina con una historia laboral variada, con varias experiencias de
+            distinto tipo. Si te preguntan si querés empezar la conversación, aceptá sin contar todavía nada.
+
+            Tenés estas experiencias:
+
+            • Trabajaste como moza en un bar en Mar del Plata, de 2017 a 2019. Era un laburo pago en blanco.
+            • Tuviste tu propio emprendimiento de pastelería casera, vendiendo tortas por Instagram, de 2019 a 2021. Eras la dueña.
+            • Hiciste una pasantía no paga como asistente de marketing en una agencia en CABA, en 2020.
+            • Fuiste voluntaria en un merendero del barrio, ayudando con los chicos, de 2020 a 2022.
+            • Trabajaste como vendedora en un local de ropa en un shopping de Avellaneda, de 2021 a 2023. Laburo pago.
+            • Cuidaste a tu abuela enferma en tu casa, de 2022 hasta hoy.
+
+            Cuando el agente te pregunte por tus experiencias, dá la información de forma natural a medida que
+            te va preguntando. Sé específica con las fechas y el tipo de trabajo cuando te pregunten.
+            Estás orgullosa de tu experiencia diversa y querés compartirla toda.
+            Podés dar varias experiencias juntas o de a una, como el agente te vaya preguntando.
+            Podés inventar actividades y detalles concretos de cada experiencia cuando te pregunten.
+            Hablás en español argentino, con jerga (laburo, guita, dale).
+            """) + system_instruction_prompt,
+        evaluations=[
+            Evaluation(type=EvaluationType.SINGLE_LANGUAGE, expected=100),
+            Evaluation(type=EvaluationType.CONCISENESS, expected=30),
+        ],
+        expected_experiences_count_min=6,
+        expected_experiences_count_max=6,
+        expected_work_types={
+            WorkType.SELF_EMPLOYMENT: (1, 2),
+            WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT: (1, 3),
+            WorkType.FORMAL_SECTOR_UNPAID_TRAINEE_WORK: (0, 2),
+            WorkType.UNSEEN_UNPAID: (1, 3),
+        },
+        given_number_of_clusters=4,
     )
 ]

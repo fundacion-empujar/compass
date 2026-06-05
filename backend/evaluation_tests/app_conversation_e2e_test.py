@@ -27,6 +27,9 @@ def current_test_case(request) -> E2ETestCase:
 @pytest.mark.asyncio
 @pytest.mark.evaluation_test("gemini-2.5-flash-lite/")
 @pytest.mark.repeat(3)
+# Set up the application config like the real server does, so the agent director reads
+# inline_phase_transition (and other config) instead of raising "config not setup".
+@pytest.mark.usefixtures("setup_application_config")
 @pytest.mark.parametrize('current_test_case', get_test_cases_to_run(test_cases),
                          ids=[case.name for case in get_test_cases_to_run(test_cases)])
 async def test_main_app_chat(
