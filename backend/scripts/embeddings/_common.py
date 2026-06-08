@@ -281,6 +281,20 @@ async def create_skills_indexes(*, hot_run: bool,
                               id_field_name="skillId",
                               logger=logger,
                               )
+
+    # skillId-leading index for the $lookup that joins skills by skillId within a modelId;
+    # the existing modelId-leading index can't serve that access pattern.
+    await _upsert_index(
+        hot_run=hot_run,
+        collection=collection,
+        keys={
+            "skillId": 1,
+            "modelId": 1,
+        },
+        name="skill_id_model_id_index",
+        logger=logger,
+    )
+
     await _create_vector_search_index(hot_run=hot_run,
                                       collection=collection,
                                       logger=logger)
