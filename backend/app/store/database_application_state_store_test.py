@@ -27,6 +27,23 @@ from conftest import random_db_name
 
 logger = logging.getLogger()
 
+# The 6 per-session application-state collections, and the subset whose state carries
+# the user's country (used by the partial-state heal tests).
+_ALL_STATE_COLLECTIONS = [
+    Collections.AGENT_DIRECTOR_STATE,
+    Collections.WELCOME_AGENT_STATE,
+    Collections.EXPLORE_EXPERIENCES_DIRECTOR_STATE,
+    Collections.CONVERSATION_MEMORY_MANAGER_STATE,
+    Collections.COLLECT_EXPERIENCE_STATE,
+    Collections.SKILLS_EXPLORER_AGENT_STATE,
+]
+_COUNTRY_BEARING_COLLECTIONS = {
+    Collections.WELCOME_AGENT_STATE,
+    Collections.EXPLORE_EXPERIENCES_DIRECTOR_STATE,
+    Collections.COLLECT_EXPERIENCE_STATE,
+    Collections.SKILLS_EXPLORER_AGENT_STATE,
+}
+
 
 @pytest.fixture(scope='function')
 def in_memory_db(in_memory_mongo_server) -> AsyncIOMotorDatabase:
@@ -233,6 +250,18 @@ def get_test_application_state(given_session_id: int) -> ApplicationState:
     return state
 
 
+def get_test_application_state_with_country(given_session_id: int, country: Country) -> ApplicationState:
+    # The update_* helpers randomise (welcome/skills) or leave at UNSPECIFIED (explore/collect)
+    # the country, so pin all 4 country-bearing parts to a single country. This makes the
+    # heal-inheritance assertions deterministic (a healed default should adopt this country).
+    state = get_test_application_state(given_session_id)
+    state.welcome_agent_state.country_of_user = country
+    state.explore_experiences_director_state.country_of_user = country
+    state.collect_experience_state.country_of_user = country
+    state.skills_explorer_agent_state.country_of_user = country
+    return state
+
+
 class TestDatabaseApplicationStateStore:
     """
     Test class for the DatabaseApplicationStateStore.
@@ -375,25 +404,195 @@ class TestDatabaseApplicationStateStore:
         with caplog.at_level(logging.WARNING):
             guard_caplog(database_application_state_store._logger, caplog)
 
-            # GIVEN a session_id that exists in the database
+            # GIVEN a session that exists in the database with a full state saved,
+            # pinned to a single country so the heal-inheritance assertion is deterministic
             given_session_id = generate_new_session_id()
-            # Create a state with unique data
-            state = get_test_application_state(given_session_id)
-            # Save the state
-            await database_application_state_store.save_state(state)
+            given_state = get_test_application_state_with_country(given_session_id, Country.ARGENTINA)
+            await database_application_state_store.save_state(given_state)
 
-            # AND a state is missing for the given particular collection
-            # Delete the state for the given collection
+            # AND a snapshot of every surviving collection's document
+            given_surviving_docs: dict[str, dict] = {}
+            for name in _ALL_STATE_COLLECTIONS:
+                if name == collection_name:
+                    continue
+                doc = await in_memory_db.get_collection(name).find_one({"session_id": given_session_id}, {"_id": False})
+                assert doc is not None
+                given_surviving_docs[name] = doc
+
+            # AND the document for one collection is removed (partial-state shape)
             await in_memory_db.get_collection(collection_name).delete_one({"session_id": given_session_id})
 
             # WHEN getting the state for that session_id
             actual_fetched_state = await database_application_state_store.get_state(given_session_id)
 
-            # THEN the returned state is None
-            assert actual_fetched_state is None
+            # THEN a healed state is returned (NOT None, which would have wiped the survivors)
+            assert actual_fetched_state is not None
+            assert isinstance(actual_fetched_state, ApplicationState)
+            assert actual_fetched_state.session_id == given_session_id
 
-            # AND an error is logged
-            assert len(caplog.records) == 1
-            assert caplog.records[0].levelname == "ERROR"
-            assert caplog.records[
-                       0].message == f"Missing application state part(s) for session ID {given_session_id}. Missing part(s): ['{collection_name}']"
+            # AND every state part carries the correct session_id
+            for actual_part in [
+                actual_fetched_state.agent_director_state,
+                actual_fetched_state.welcome_agent_state,
+                actual_fetched_state.explore_experiences_director_state,
+                actual_fetched_state.conversation_memory_manager_state,
+                actual_fetched_state.collect_experience_state,
+                actual_fetched_state.skills_explorer_agent_state,
+            ]:
+                assert actual_part.session_id == given_session_id
+
+            # AND the previously-missing collection is refilled
+            actual_refilled_doc = await in_memory_db.get_collection(collection_name).find_one(
+                {"session_id": given_session_id}, {"_id": False}
+            )
+            assert actual_refilled_doc is not None
+            assert actual_refilled_doc["session_id"] == given_session_id
+
+            # AND a healed country-bearing part inherits the user's country from the survivors
+            if collection_name in _COUNTRY_BEARING_COLLECTIONS:
+                assert actual_refilled_doc["country_of_user"] == Country.ARGENTINA.name
+
+            # AND the surviving collections' documents are NOT overwritten (the anti-wipe guarantee)
+            for name, given_doc in given_surviving_docs.items():
+                actual_doc = await in_memory_db.get_collection(name).find_one(
+                    {"session_id": given_session_id}, {"_id": False}
+                )
+                assert actual_doc == given_doc, f"surviving collection '{name}' was modified by the heal"
+
+            # AND the partial-state error is logged (kept for monitoring continuity)
+            error_records = [r for r in caplog.records if r.levelname == "ERROR"]
+            assert len(error_records) == 1
+            assert error_records[0].message == (
+                f"Missing application state part(s) for session ID {given_session_id}. "
+                f"Missing part(s): ['{collection_name}']"
+            )
+
+            # AND a distinct healing warning is emitted
+            heal_records = [r for r in caplog.records if r.levelname == "WARNING"
+                            and r.message.startswith("Healing partial application state")]
+            assert len(heal_records) == 1
+            assert heal_records[0].message == (
+                f"Healing partial application state for session ID {given_session_id}. "
+                f"Filled with defaults: ['{collection_name}']"
+            )
+
+    @pytest.mark.asyncio
+    async def test_multiple_missing_parts_are_healed_together(self, in_memory_db: AsyncIOMotorDatabase,
+                                                              database_application_state_store: DatabaseApplicationStateStore,
+                                                              caplog: pytest.LogCaptureFixture):
+        """Several missing parts are healed in a single read: all refilled, none wiped."""
+        with caplog.at_level(logging.WARNING):
+            guard_caplog(database_application_state_store._logger, caplog)
+
+            # GIVEN a session with a full state saved, pinned to a single country
+            given_session_id = generate_new_session_id()
+            given_state = get_test_application_state_with_country(given_session_id, Country.ARGENTINA)
+            await database_application_state_store.save_state(given_state)
+
+            # AND three critical collections are deleted (welcome survives to carry the country)
+            given_deleted_collections = [
+                Collections.COLLECT_EXPERIENCE_STATE,
+                Collections.EXPLORE_EXPERIENCES_DIRECTOR_STATE,
+                Collections.SKILLS_EXPLORER_AGENT_STATE,
+            ]
+            for name in given_deleted_collections:
+                await in_memory_db.get_collection(name).delete_one({"session_id": given_session_id})
+
+            # WHEN getting the state for that session_id
+            actual_fetched_state = await database_application_state_store.get_state(given_session_id)
+
+            # THEN a healed state is returned
+            assert actual_fetched_state is not None
+            assert actual_fetched_state.session_id == given_session_id
+
+            # AND all three previously-missing collections are refilled, inheriting the country
+            for name in given_deleted_collections:
+                actual_doc = await in_memory_db.get_collection(name).find_one(
+                    {"session_id": given_session_id}, {"_id": False}
+                )
+                assert actual_doc is not None, f"collection {name} was not refilled"
+                assert actual_doc["country_of_user"] == Country.ARGENTINA.name
+
+            # AND a single error + single heal warning name all three missing parts
+            error_records = [r for r in caplog.records if r.levelname == "ERROR"]
+            heal_records = [r for r in caplog.records if r.levelname == "WARNING"
+                            and r.message.startswith("Healing partial application state")]
+            assert len(error_records) == 1
+            assert len(heal_records) == 1
+            for name in given_deleted_collections:
+                assert name in error_records[0].message
+                assert name in heal_records[0].message
+
+    @pytest.mark.asyncio
+    async def test_country_falls_back_to_unspecified_when_no_country_bearing_part_survives(
+            self, in_memory_db: AsyncIOMotorDatabase,
+            database_application_state_store: DatabaseApplicationStateStore,
+            caplog: pytest.LogCaptureFixture):
+        """When every country-bearing part is missing, healed defaults fall back to UNSPECIFIED."""
+        with caplog.at_level(logging.WARNING):
+            guard_caplog(database_application_state_store._logger, caplog)
+
+            # GIVEN a full state saved with a concrete country
+            given_session_id = generate_new_session_id()
+            given_state = get_test_application_state_with_country(given_session_id, Country.ARGENTINA)
+            await database_application_state_store.save_state(given_state)
+
+            # AND all four country-bearing collections are deleted (only the two
+            # non-country-bearing parts survive, so no country can be inferred)
+            for name in _COUNTRY_BEARING_COLLECTIONS:
+                await in_memory_db.get_collection(name).delete_one({"session_id": given_session_id})
+
+            # WHEN getting the state for that session_id
+            actual_fetched_state = await database_application_state_store.get_state(given_session_id)
+
+            # THEN a healed state is returned
+            assert actual_fetched_state is not None
+            assert actual_fetched_state.session_id == given_session_id
+
+            # AND every refilled country-bearing part falls back to UNSPECIFIED
+            for name in _COUNTRY_BEARING_COLLECTIONS:
+                actual_doc = await in_memory_db.get_collection(name).find_one(
+                    {"session_id": given_session_id}, {"_id": False}
+                )
+                assert actual_doc is not None, f"collection {name} was not refilled"
+                assert actual_doc["country_of_user"] == Country.UNSPECIFIED.name
+
+    @pytest.mark.asyncio
+    async def test_save_failure_during_heal_does_not_demote_return_to_none(self, in_memory_db: AsyncIOMotorDatabase,
+                                                                           database_application_state_store: DatabaseApplicationStateStore,
+                                                                           caplog: pytest.LogCaptureFixture,
+                                                                           mocker):
+        """A failed heal re-persist keeps the in-memory healed state instead of demoting to None."""
+        with caplog.at_level(logging.WARNING):
+            guard_caplog(database_application_state_store._logger, caplog)
+
+            # GIVEN a session with a full state saved
+            given_session_id = generate_new_session_id()
+            given_state = get_test_application_state_with_country(given_session_id, Country.ARGENTINA)
+            await database_application_state_store.save_state(given_state)
+
+            # AND one critical collection has been deleted (explore survives, so _upgrade_state
+            # will not itself call save_state — the only save_state call is the heal re-persist)
+            await in_memory_db.get_collection(Collections.COLLECT_EXPERIENCE_STATE).delete_one(
+                {"session_id": given_session_id}
+            )
+
+            # AND the heal re-persist (save_state) will fail
+            mocker.patch.object(
+                database_application_state_store,
+                "save_state",
+                side_effect=RuntimeError("simulated transient mongo failure during heal"),
+            )
+
+            # WHEN getting the state for that session_id
+            actual_fetched_state = await database_application_state_store.get_state(given_session_id)
+
+            # THEN the in-memory healed state is still returned (NOT demoted to None)
+            assert actual_fetched_state is not None
+            assert actual_fetched_state.session_id == given_session_id
+            assert actual_fetched_state.collect_experience_state.country_of_user == Country.ARGENTINA
+
+            # AND the persistence failure is logged as a warning
+            failure_records = [r for r in caplog.records if r.levelname == "WARNING"
+                               and r.message.startswith("Healed application state for session ID")]
+            assert len(failure_records) == 1
