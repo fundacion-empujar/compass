@@ -1,5 +1,5 @@
 import "src/_test_utilities/consoleMock";
-import { useEffect, Suspense } from "react";
+import { useEffect, Suspense, FC } from "react";
 import { lazyWithPreload } from "./PreloadableComponent";
 import { render, screen, waitFor } from "src/_test_utilities/test-utils";
 
@@ -124,5 +124,52 @@ describe("PreloadableComponent", () => {
     // AND expect no errors or warnings
     expect(console.error).not.toHaveBeenCalled();
     expect(console.warn).not.toHaveBeenCalled();
+  });
+
+  test("should retry the import once and render when it fails with a ChunkLoadError", async () => {
+    // GIVEN a factory that throws a ChunkLoadError on the first call, then resolves
+    let calls = 0;
+    const Component: FC = () => <div>loaded after retry</div>;
+    const factory = () => {
+      calls++;
+      if (calls === 1) {
+        const error = new Error("Loading chunk 5 failed.");
+        error.name = "ChunkLoadError";
+        return Promise.reject<{ default: FC }>(error);
+      }
+      return Promise.resolve({ default: Component });
+    };
+    // AND the factory is wrapped with lazyWithPreload
+    const PreloadableComponent = lazyWithPreload(factory);
+
+    // WHEN the component is rendered
+    render(
+      <Suspense fallback={<div>Loading...</div>}>
+        <PreloadableComponent />
+      </Suspense>
+    );
+
+    // THEN the component eventually renders after the retry
+    await waitFor(() => {
+      expect(screen.getByText("loaded after retry")).toBeInTheDocument();
+    });
+    // AND the factory was called twice (initial failure + one retry)
+    expect(calls).toBe(2);
+  });
+
+  test("should not retry the import when it fails with a non-ChunkLoadError", async () => {
+    // GIVEN a factory that always rejects with a non-chunk error
+    let calls = 0;
+    const factory = () => {
+      calls++;
+      return Promise.reject<{ default: FC }>(new Error("some other failure"));
+    };
+    // AND the factory is wrapped with lazyWithPreload
+    const PreloadableComponent = lazyWithPreload(factory);
+
+    // WHEN the wrapped import is invoked (preload exposes the retry-wrapped factory)
+    // THEN it rejects with the original error and is not retried
+    await expect(PreloadableComponent.preload()).rejects.toThrow("some other failure");
+    expect(calls).toBe(1);
   });
 });

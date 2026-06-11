@@ -59,6 +59,8 @@ jest.mock("react-router-dom", () => {
     Routes: jest.fn().mockImplementation(({ children }) => <div data-testid="routes-id">{children}</div>),
     NavLink: jest.fn().mockImplementation(({ children }) => <div data-testid="nav-link-id">{children}</div>),
     RouterProvider: jest.fn(),
+    Outlet: jest.fn().mockImplementation(() => null),
+    useRouteError: jest.fn().mockReturnValue(undefined),
   };
 });
 
