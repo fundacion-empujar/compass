@@ -1,7 +1,8 @@
 import React, { Suspense, startTransition, useEffect, useState } from "react";
-import { createHashRouter, RouterProvider } from "react-router-dom";
+import { createHashRouter, RouterProvider, Outlet, useRouteError } from "react-router-dom";
 import Login from "src/auth/pages/Login/Login";
 import ErrorPage from "src/error/errorPage/ErrorPage";
+import { AppErrorFallback } from "src/error/errorPage/AppErrorFallback";
 import Register from "src/auth/pages/Register/Register";
 import VerifyEmail from "src/auth/pages/VerifyEmail/VerifyEmail";
 import Consent from "src/consent/components/consentPage/Consent";
@@ -55,6 +56,12 @@ const ProtectedRouteKeys = {
 const NotFound: React.FC = () => {
   const { t } = useTranslation();
   return <ErrorPage errorMessage={t("error.errorPage.notFound")} />;
+};
+
+// Router-level error boundary: routes a chunk-load error to the refresh-button fallback.
+const RouterErrorBoundary: React.FC = () => {
+  const error = useRouteError();
+  return <AppErrorFallback error={error} />;
 };
 
 const App = () => {
@@ -251,77 +258,84 @@ const App = () => {
 
   const router = sentryCreateBrowserRouter([
     {
-      path: routerPaths.ROOT,
-      element: (
-        <ProtectedRoute key={ProtectedRouteKeys.ROOT}>
-          <LazyLoadedChat />
-        </ProtectedRoute>
-      ),
-    },
-    {
-      path: routerPaths.LANDING,
-      element: (
-        <ProtectedRoute key={ProtectedRouteKeys.LANDING}>
-          <Landing />
-        </ProtectedRoute>
-      ),
-    },
-    // Only include register route if registration is not disabled
-    ...(isRegistrationDisabled
-      ? []
-      : [
-          {
-            path: routerPaths.REGISTER,
-            element: (
-              <ProtectedRoute key={ProtectedRouteKeys.REGISTER}>
-                <Register />
-              </ProtectedRoute>
-            ),
-          },
-        ]),
-    {
-      path: routerPaths.LOGIN,
-      element: (
-        <ProtectedRoute key={ProtectedRouteKeys.LOGIN}>
-          <Login />
-        </ProtectedRoute>
-      ),
-    },
-    {
-      path: routerPaths.VERIFY_EMAIL,
-      element: (
-        <ProtectedRoute key={ProtectedRouteKeys.VERIFY_EMAIL}>
-          <VerifyEmail />
-        </ProtectedRoute>
-      ),
-    },
-    {
-      path: routerPaths.CONSENT,
-      element: (
-        <ProtectedRoute key={ProtectedRouteKeys.CONSENT}>
-          <Consent />
-        </ProtectedRoute>
-      ),
-    },
-    {
-      path: routerPaths.SENSITIVE_DATA,
-      element: (
-        <ProtectedRoute key={ProtectedRouteKeys.SENSITIVE_DATA}>
-          <LazyLoadedSensitiveDataForm />
-        </ProtectedRoute>
-      ),
-    },
-    {
-      path: routerPaths.REPORT,
-      element: <LazyLoadedPublicReport />,
-    },
-    {
-      path: routerPaths.BULK_DOWNLOAD_REPORTS,
-      element: <LazyLoadedBulkDownloadReports />,
-    },
-    {
-      path: "*",
-      element: <NotFound />,
+      // Pathless layout route so a single errorElement covers every child route.
+      element: <Outlet />,
+      errorElement: <RouterErrorBoundary />,
+      children: [
+        {
+          path: routerPaths.ROOT,
+          element: (
+            <ProtectedRoute key={ProtectedRouteKeys.ROOT}>
+              <LazyLoadedChat />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: routerPaths.LANDING,
+          element: (
+            <ProtectedRoute key={ProtectedRouteKeys.LANDING}>
+              <Landing />
+            </ProtectedRoute>
+          ),
+        },
+        // Only include register route if registration is not disabled
+        ...(isRegistrationDisabled
+          ? []
+          : [
+              {
+                path: routerPaths.REGISTER,
+                element: (
+                  <ProtectedRoute key={ProtectedRouteKeys.REGISTER}>
+                    <Register />
+                  </ProtectedRoute>
+                ),
+              },
+            ]),
+        {
+          path: routerPaths.LOGIN,
+          element: (
+            <ProtectedRoute key={ProtectedRouteKeys.LOGIN}>
+              <Login />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: routerPaths.VERIFY_EMAIL,
+          element: (
+            <ProtectedRoute key={ProtectedRouteKeys.VERIFY_EMAIL}>
+              <VerifyEmail />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: routerPaths.CONSENT,
+          element: (
+            <ProtectedRoute key={ProtectedRouteKeys.CONSENT}>
+              <Consent />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: routerPaths.SENSITIVE_DATA,
+          element: (
+            <ProtectedRoute key={ProtectedRouteKeys.SENSITIVE_DATA}>
+              <LazyLoadedSensitiveDataForm />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: routerPaths.REPORT,
+          element: <LazyLoadedPublicReport />,
+        },
+        {
+          path: routerPaths.BULK_DOWNLOAD_REPORTS,
+          element: <LazyLoadedBulkDownloadReports />,
+        },
+        {
+          path: "*",
+          element: <NotFound />,
+        },
+      ],
     },
   ]);
   return (

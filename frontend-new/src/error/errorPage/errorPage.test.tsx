@@ -3,7 +3,7 @@ import "src/_test_utilities/consoleMock";
 
 // standard sentry mock
 import "src/_test_utilities/sentryMock";
-import { render, screen } from "src/_test_utilities/test-utils";
+import { render, screen, fireEvent } from "src/_test_utilities/test-utils";
 import ErrorPage, { DATA_TEST_ID } from "src/error/errorPage/ErrorPage";
 import { DATA_TEST_ID as BUG_REPORT_DATA_TEST_ID } from "src/feedback/bugReport/bugReportButton/BugReportButton";
 import * as Sentry from "@sentry/react";
@@ -47,5 +47,44 @@ describe("ErrorPage", () => {
     // AND expect the bug report button to be rendered
     expect(screen.getByTestId(BUG_REPORT_DATA_TEST_ID.BUG_REPORT_BUTTON_CONTAINER)).toBeInTheDocument();
     // Snapshot omitted to avoid brittleness with style/classname changes
+  });
+
+  test("renders a refresh button that reloads the page when showRefreshButton is true", () => {
+    // GIVEN sentry is initialized
+    (Sentry.isInitialized as jest.Mock).mockReturnValue(true);
+    // AND location.reload is mocked (jsdom marks reload unforgeable, so replace the whole location)
+    const reloadMock = jest.fn();
+    const realLocation = window.location;
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: { ...realLocation, reload: reloadMock },
+    });
+
+    try {
+      // WHEN the ErrorPage is rendered with showRefreshButton
+      render(<ErrorPage errorMessage="Something went wrong" showRefreshButton={true} />);
+
+      // THEN the refresh button is rendered
+      const refreshButton = screen.getByTestId(DATA_TEST_ID.REFRESH_BUTTON);
+      expect(refreshButton).toBeInTheDocument();
+
+      // AND clicking it reloads the page exactly once
+      fireEvent.click(refreshButton);
+      expect(reloadMock).toHaveBeenCalledTimes(1);
+    } finally {
+      // restore the real location for the rest of the suite
+      Object.defineProperty(window, "location", { configurable: true, value: realLocation });
+    }
+  });
+
+  test("does not render a refresh button by default", () => {
+    // GIVEN sentry is initialized
+    (Sentry.isInitialized as jest.Mock).mockReturnValue(true);
+
+    // WHEN the ErrorPage is rendered without showRefreshButton
+    render(<ErrorPage errorMessage="Something went wrong" />);
+
+    // THEN no refresh button is rendered
+    expect(screen.queryByTestId(DATA_TEST_ID.REFRESH_BUTTON)).not.toBeInTheDocument();
   });
 });
