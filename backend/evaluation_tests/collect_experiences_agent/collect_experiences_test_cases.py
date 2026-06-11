@@ -69,6 +69,8 @@ test_cases = [
             Tu única experiencia es:
             - Asistente de ventas en el local de tu viejo, desde enero de 2015 hasta diciembre de 2022.
 
+            Cuando cuentes ese laburo, decí que eras asistente de ventas (no digas solo "laburé en el local").
+
             No tenés otras experiencias: nunca tuviste otro laburo, nunca hiciste una pasantía,
             nunca tuviste tu propio negocio, nunca fuiste voluntario/a ni hiciste trabajo freelance.
             Respondé "sí" o "no" cuando corresponda. Decí "así está bien" si te piden confirmar.
@@ -86,6 +88,52 @@ test_cases = [
             "experience_title": AnyOf(ContainsString("asistente"), ContainsString("vent")),
             "company": AnyOf(ContainsString("viejo"), ContainsString("padre"), ContainsString("local")),
             "timeline": {"start": ContainsString("2015"), "end": ContainsString("2022")},
+        }]
+    ),
+    # Regression case for the "~40% dead-end": mixed experiences where one is ongoing (no end date)
+    # and one has a declined company. The conversation must reach the recap and finish without
+    # getting stuck re-asking for fields the user declined or that don't apply (TransitionDecisionTool).
+    CollectExperiencesAgentTestCase(
+        name='argentina_mixed_experiences_ongoing_declined_es',
+        locale=Locale.ES_AR,
+        country_of_user=Country.ARGENTINA,
+        simulated_user_prompt=dedent("""
+            Actuá como una persona joven de Argentina. Estás chateando con un bot para armar tu CV.
+            Usá jerga argentina (laburo, guita, dale, buenísimo). Sé conciso/a. No inventes información.
+
+            Tus experiencias son exactamente estas tres:
+            - Repositor en el supermercado Coto, desde marzo de 2021 hasta febrero de 2023.
+            - Venta de tortas por tu cuenta, desde 2023 hasta hoy (sigue en curso, no terminó).
+            - Cuidado de tu abuela, desde 2020 hasta hoy (sigue en curso, no terminó).
+
+            Reglas importantes:
+            - Cuando menciones el laburo del supermercado, decí que eras repositor en el Coto.
+            - Para la venta de tortas: si te preguntan el nombre del negocio o emprendimiento, respondé "prefiero no decirlo" y nunca lo des.
+            - Para el cuidado de tu abuela: no hay empresa ni organización, es tu familia.
+            - Si te preguntan de nuevo algo que ya respondiste, repetí brevemente la misma respuesta.
+            - No tenés otras experiencias: nunca hiciste una pasantía, ni voluntariado, ni otro laburo.
+            Respondé "sí" o "no" cuando corresponda. Decí "así está bien, nada más" si te piden confirmar el resumen.
+            """),
+        evaluations=[Evaluation(type=EvaluationType.SINGLE_LANGUAGE, expected=100)],
+        expected_experiences_count_min=3,
+        expected_experiences_count_max=3,
+        expected_work_types={WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT: (1, 1),
+                             WorkType.SELF_EMPLOYMENT: (1, 1),
+                             WorkType.FORMAL_SECTOR_UNPAID_TRAINEE_WORK: (0, 0),
+                             WorkType.UNSEEN_UNPAID: (1, 1)},
+        matchers=["matcher"],
+        expected_experience_data=[{
+            "experience_title": AnyOf(ContainsString("repositor"), ContainsString("super")),
+            "company": AnyOf(ContainsString("coto"), ContainsString("super")),
+            "timeline": {"start": ContainsString("2021"), "end": ContainsString("2023")},
+        }, {
+            "experience_title": AnyOf(ContainsString("torta"), ContainsString("venta")),
+            # The company was explicitly declined; the end date is ongoing — both stay unasserted
+            # because their stored representation is flexible ("" vs "Presente"/"actualidad").
+            "timeline": DictContaining({"start": ContainsString("2023")}),
+        }, {
+            "experience_title": AnyOf(ContainsString("abuela"), ContainsString("cuidado")),
+            "timeline": DictContaining({"start": ContainsString("2020")}),
         }]
     ),
     CollectExperiencesAgentTestCase(

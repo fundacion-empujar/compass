@@ -58,18 +58,20 @@ class CollectedData(BaseModel):
         """
         Check if an experience is incomplete (has some but not all required fields).
         An experience is considered incomplete if it has a title but is missing other important details.
+        Empty strings ("") mean the user explicitly declined to provide information, so they are not considered missing.
+        Only None values indicate missing information that hasn't been asked for yet.
         """
         if CollectedData.all_fields_empty(experience):
             return False  # Completely empty, not incomplete
-        
+
         # Has a title but missing other important fields
-        has_title = experience.experience_title and experience.experience_title.strip() != ""
+        has_title = bool(experience.experience_title and experience.experience_title.strip() != "")
         missing_important_fields = (
-            (experience.start_date is None or experience.start_date.strip() == "") or
-            (experience.end_date is None or experience.end_date.strip() == "") or
-            (experience.company is None or experience.company.strip() == "")
+            experience.start_date is None or
+            experience.end_date is None or
+            experience.company is None
         )
-        
+
         return has_title and missing_important_fields
 
     @staticmethod
