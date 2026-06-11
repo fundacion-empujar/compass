@@ -6,8 +6,9 @@ from app.agent.agent import Agent
 from app.agent.agent_types import AgentInput, AgentOutput
 from app.agent.agent_types import AgentType
 from app.agent.collect_experiences_agent._conversation_llm import _ConversationLLM, ConversationLLMAgentOutput, \
-    _get_experience_type
+    _get_experience_type, fill_incomplete_fields_as_declined
 from app.agent.collect_experiences_agent._dataextraction_llm import _DataExtractionLLM
+from app.agent.collect_experiences_agent._transition_decision_tool import TransitionDecisionTool, TransitionDecision
 from app.agent.collect_experiences_agent._types import CollectedData
 from app.agent.experience.experience_entity import ExperienceEntity
 from app.agent.experience.timeline import Timeline
@@ -63,16 +64,6 @@ class CollectExperiencesAgentState(BaseModel):
     Whether this is the first time the agent is visited during the conversation.
     """
 
-    final_summary_sent: bool = False
-    """
-    Tracks if the recap has already been presented to the user.
-    """
-
-    final_summary_confirmed: bool = False
-    """
-    Tracks if the user has confirmed the recap so we can end the conversation.
-    """
-
     class Config:
         """
         Disallow extra fields in the model
@@ -121,9 +112,7 @@ class CollectExperiencesAgentState(BaseModel):
                                             collected_data=_doc["collected_data"],
                                             unexplored_types=_doc["unexplored_types"],
                                             explored_types=_doc["explored_types"],
-                                            first_time_visit=_doc["first_time_visit"],
-                                            final_summary_sent=_doc.get("final_summary_sent", False),
-                                            final_summary_confirmed=_doc.get("final_summary_confirmed", False))
+                                            first_time_visit=_doc["first_time_visit"])
 
 
 class CollectExperiencesAgent(Agent):
@@ -153,7 +142,6 @@ class CollectExperiencesAgent(Agent):
         collected_data = self._state.collected_data
         last_referenced_experience_index = -1
         data_extraction_llm_stats = []
-        user_made_updates = False
         if user_input.message == "":
             # If the user input is empty, set it to "(silence)"
             # This is to avoid the agent failing to respond to an empty input
@@ -168,23 +156,10 @@ class CollectExperiencesAgent(Agent):
                                                                   collected_experience_data_so_far=collected_data)
             last_referenced_experience_index = extraction_result.last_referenced_experience_index
             data_extraction_llm_stats = extraction_result.llm_stats
-            user_made_updates = extraction_result.has_user_updates
 
-        if self._state.final_summary_sent and user_made_updates:
-            self._state.final_summary_sent = False
-            self._state.final_summary_confirmed = False
-
-        if (self._state.final_summary_sent and not self._state.final_summary_confirmed
-                and not user_input.is_artificial and not user_made_updates):
-            self._state.final_summary_confirmed = True
-
-        conversion_llm = _ConversationLLM()
-        # TODO: Keep track of the last_referenced_experience_index and if it has changed it means that the user has
-        #   provided a new experience, we need to handle this as
-        #   a) if the user has not finished with the previous one we should ask them to complete it first
-        #   b) the model may have made a mistake interpreting the user input as we need to clarify
+        conversation_llm = _ConversationLLM()
         exploring_type = self._state.unexplored_types[0] if len(self._state.unexplored_types) > 0 else None
-        conversation_llm_output: ConversationLLMAgentOutput = await conversion_llm.execute(
+        conversation_llm_output: ConversationLLMAgentOutput = await conversation_llm.execute(
             first_time_visit=self._state.first_time_visit,
             context=context,
             user_input=user_input,
@@ -194,52 +169,108 @@ class CollectExperiencesAgent(Agent):
             exploring_type=exploring_type,
             unexplored_types=self._state.unexplored_types,
             explored_types=self._state.explored_types,
-            final_summary_sent=self._state.final_summary_sent,
-            final_summary_confirmed=self._state.final_summary_confirmed,
             logger=self.logger)
         self._state.first_time_visit = False  # The first time visit is over
-        if conversation_llm_output.exploring_type_finished and self._state.unexplored_types:
-            # The specific work type has already been explored, so we remove it from the list
-            # and allow the conversation to continue
-            explored_type = self._state.unexplored_types.pop(0)
-            exploring_type = self._state.unexplored_types[0] if len(self._state.unexplored_types) > 0 else None
-            self._state.explored_types.append(explored_type)
-            self.logger.info(
-                "Explored work type: %s"
-                "\n  - remaining types: %s"
-                "\n  - discovered experiences so far: %s",
-                explored_type,
-                self._state.unexplored_types,
-                self._state.collected_data
-            )
+
+        transition_decision_tool = TransitionDecisionTool(self.logger)
+        transition_decision, transition_reasoning, transition_llm_stats = await transition_decision_tool.execute(
+            collected_data=collected_data,
+            exploring_type=exploring_type,
+            unexplored_types=self._state.unexplored_types,
+            explored_types=self._state.explored_types,
+            conversation_context=context,
+            user_input=user_input
+        )
+
+        conversation_llm_output.llm_stats = data_extraction_llm_stats + conversation_llm_output.llm_stats + transition_llm_stats
+
+        reasoning_text = transition_reasoning.reasoning if transition_reasoning else "No reasoning provided"
+
+        if transition_decision == TransitionDecision.END_WORKTYPE:
+            did_update = False
+            # if decision is to end the exploration of the current work type, we update null fields to ""
+            if exploring_type is not None and exploring_type in self._state.unexplored_types:
+                fill_incomplete_fields_as_declined(
+                    self._state.collected_data, exploring_type
+                )
+                self._state.unexplored_types.remove(exploring_type)
+                self._state.explored_types.append(exploring_type)
+                did_update = True
+                self.logger.info(
+                    "Transition decision: END_WORKTYPE - Explored work type: %s"
+                    "\n  - remaining types: %s"
+                    "\n  - discovered experiences so far: %s"
+                    "\n  - reasoning: %s",
+                    exploring_type,
+                    self._state.unexplored_types,
+                    self._state.collected_data,
+                    reasoning_text
+                )
+            # Recap phase (no unexplored types left): END_WORKTYPE here means "no current type to
+            # continue AND recap not confirmed" (done_with_collection=false), e.g. an off-topic
+            # question. Only an explicit END_CONVERSATION may end the conversation, so pass the
+            # conversation output through. Deviation from upstream, which ends the conversation here.
+            if not did_update and not self._state.unexplored_types:
+                self.logger.info(
+                    "Transition decision: END_WORKTYPE with no unexplored types - "
+                    "recap not confirmed, continuing the conversation"
+                )
+                return conversation_llm_output
+
+            next_exploring_type = self._state.unexplored_types[0] if self._state.unexplored_types else None
             transition_message: str
-            if exploring_type is not None:
+            if next_exploring_type is not None:
                 transition_message = (
                     f"{user_input.message}\n"
-                    f"{t('messages', 'collectExperiences.askAboutType', experience_type=_get_experience_type(exploring_type))}"
+                    f"{t('messages', 'collectExperiences.askAboutType', experience_type=_get_experience_type(next_exploring_type))}"
                 )
             else:
                 transition_message = (
                     f"{user_input.message}\n"
                     f"{t('messages', 'collectExperiences.recapPrompt')}"
                 )
-            conversation_llm_output = await conversion_llm.execute(first_time_visit=self._state.first_time_visit,
-                                                                   context=context,
-                                                                   user_input=AgentInput(message=transition_message, is_artificial=True),
-                                                                   country_of_user=self._state.country_of_user,
-                                                                   collected_data=collected_data,
-                                                                   last_referenced_experience_index=last_referenced_experience_index,
-                                                                   exploring_type=exploring_type,
-                                                                   unexplored_types=self._state.unexplored_types,
-                                                                   explored_types=self._state.explored_types,
-                                                                   final_summary_sent=self._state.final_summary_sent,
-                                                                   final_summary_confirmed=self._state.final_summary_confirmed,
-                                                                   logger=self.logger)
 
-        if len(self._state.unexplored_types) == 0 and not self._state.final_summary_sent:
-            self._state.final_summary_sent = True
+            # The first conversation LLM call's stats are accumulated too — its output is
+            # replaced by the transition re-run below, but its tokens were spent.
+            first_pass_llm_stats = conversation_llm_output.llm_stats
+            conversation_llm_output = await conversation_llm.execute(
+                first_time_visit=self._state.first_time_visit,
+                context=context,
+                user_input=AgentInput(message=transition_message, is_artificial=True),
+                country_of_user=self._state.country_of_user,
+                collected_data=collected_data,
+                last_referenced_experience_index=last_referenced_experience_index,
+                exploring_type=next_exploring_type,
+                unexplored_types=self._state.unexplored_types,
+                explored_types=self._state.explored_types,
+                logger=self.logger)
 
-        conversation_llm_output.llm_stats = data_extraction_llm_stats + conversation_llm_output.llm_stats
+            conversation_llm_output.llm_stats = first_pass_llm_stats + conversation_llm_output.llm_stats
+
+        elif transition_decision == TransitionDecision.END_CONVERSATION:
+            conversation_llm_output.finished = True
+            self.logger.info(
+                "Transition decision: END_CONVERSATION"
+                "\n  - all work types explored: %s"
+                "\n  - discovered experiences: %s"
+                "\n  - reasoning: %s",
+                len(self._state.unexplored_types) == 0,
+                self._state.collected_data,
+                reasoning_text
+            )
+        elif transition_decision == TransitionDecision.CONTINUE:
+            self.logger.info(
+                "Transition decision: CONTINUE"
+                "\n  - exploring type: %s"
+                "\n  - unexplored types: %s"
+                "\n  - collected experiences: %d"
+                "\n  - reasoning: %s",
+                exploring_type.name if exploring_type else "None",
+                [wt.name for wt in self._state.unexplored_types],
+                len(collected_data),
+                reasoning_text
+            )
+
         return conversation_llm_output
 
     def get_experiences(self) -> list[ExperienceEntity]:

@@ -39,6 +39,32 @@ def _find_incomplete_experiences(collected_data: list[CollectedData]) -> list[tu
     return incomplete_experiences
 
 
+def fill_incomplete_fields_as_declined(
+    collected_data: list[CollectedData],
+    work_type: WorkType | None,
+) -> None:
+    """
+    Set None to "" for completeness fields (start_date, end_date, company)
+    on experiences of the given work type. Treats missing data as user declined to provide.
+    Mutates the experiences in place.
+    """
+    if work_type is None:
+        return
+    logger = logging.getLogger(__name__)
+    key = work_type.name
+    for exp in collected_data:
+        if exp.work_type and exp.work_type.strip() == key:
+            if exp.start_date is None:
+                logger.warning("Filling incomplete start_date as declined for %s experience: %s", key, exp.experience_title)
+                exp.start_date = ""
+            if exp.end_date is None:
+                logger.warning("Filling incomplete end_date as declined for %s experience: %s", key, exp.experience_title)
+                exp.end_date = ""
+            if exp.company is None:
+                logger.warning("Filling incomplete company as declined for %s experience: %s", key, exp.experience_title)
+                exp.company = ""
+
+
 def _get_incomplete_experiences_instructions(collected_data: list[CollectedData]) -> str:
     """
     Generate instructions for handling incomplete experiences.
@@ -107,8 +133,6 @@ class _ConversationLLM:
                       unexplored_types: list[WorkType],
                       explored_types: list[WorkType],
                       last_referenced_experience_index: int,
-                      final_summary_sent: bool,
-                      final_summary_confirmed: bool,
                       logger: logging.Logger) -> ConversationLLMAgentOutput:
         async def _callback(attempt: int, max_retries: int) -> tuple[ConversationLLMAgentOutput, float, BaseException | None]:
             # Call the LLM to get the next message for the user
@@ -131,8 +155,6 @@ class _ConversationLLM:
                 unexplored_types=unexplored_types,
                 explored_types=explored_types,
                 last_referenced_experience_index=last_referenced_experience_index,
-                final_summary_sent=final_summary_sent,
-                final_summary_confirmed=final_summary_confirmed,
                 logger=logger
             )
 
@@ -151,8 +173,6 @@ class _ConversationLLM:
                                 unexplored_types: list[WorkType],
                                 explored_types: list[WorkType],
                                 last_referenced_experience_index: int,
-                                final_summary_sent: bool,
-                                final_summary_confirmed: bool,
                                 logger: logging.Logger) -> tuple[ConversationLLMAgentOutput, float, BaseException | None]:
         """
         Converses with the user and asks probing questions to collect experiences.
@@ -178,8 +198,6 @@ class _ConversationLLM:
         msg = user_input.message.strip()  # Remove leading and trailing whitespaces
         llm_start_time = time.time()
 
-        exploring_type_finished = False
-        finished = False
         llm_response: LLMResponse
         llm_input: LLMInput | str
         system_instructions: list[str] | str | None = None
@@ -201,8 +219,6 @@ class _ConversationLLM:
                                                                             unexplored_types=unexplored_types,
                                                                             explored_types=explored_types,
                                                                             last_referenced_experience_index=last_referenced_experience_index,
-                                                                            final_summary_sent=final_summary_sent,
-                                                                            final_summary_confirmed=final_summary_confirmed,
                                                                             )
             llm = GeminiGenerativeLLM(
                 system_instructions=system_instructions,
@@ -224,7 +240,6 @@ class _ConversationLLM:
             llm_response = await llm.generate_content(llm_input=llm_input)
 
         llm_output_empty_penalty_level = 1
-        conversation_prematurely_ended_penalty_level = 0
 
         llm_end_time = time.time()
         llm_stats = LLMStats(prompt_token_count=llm_response.prompt_token_count,
@@ -249,37 +264,13 @@ class _ConversationLLM:
                 agent_response_time_in_sec=round(llm_end_time - llm_start_time, 2),
                 llm_stats=[llm_stats]), get_penalty(llm_output_empty_penalty_level), ValueError("Conversation LLM response is empty")
 
-        penalty: float = 0
-        error: BaseException | None = None
-
-        # Test if the response is the same as the previous two
-        if llm_response.text.find("END_OF_WORKTYPE") != -1:
-            # We finished a work type (and it is not the last one) we need to move to the next one
-            if llm_response.text != "END_OF_WORKTYPE":
-                logger.warning("The response contains 'END_OF_WORKTYPE' and additional text: %s", llm_response.text)
-            exploring_type_finished = True
-            finished = False
-            llm_response.text = t("messages", "collectExperiences.moveToOtherExperiences")
-
-        if llm_response.text.find("END_OF_CONVERSATION") != -1:
-            if llm_response.text != "END_OF_CONVERSATION":
-                logger.warning("The response contains 'END_OF_CONVERSATION' and additional text: %s", llm_response.text)
-            if len(unexplored_types) > 0:
-                penalty = get_penalty(conversation_prematurely_ended_penalty_level)
-                error = ValueError(f"LLM response contains 'END_OF_CONVERSATION' but there are unexplored types: {unexplored_types}")
-                logger.error(error)
-            
-            llm_response.text = t("messages", "collectExperiences.finalMessage")
-            exploring_type_finished = False
-            finished = True
-
         return ConversationLLMAgentOutput(
             message_for_user=llm_response.text,
-            exploring_type_finished=exploring_type_finished,
-            finished=finished,
+            exploring_type_finished=False,
+            finished=False,
             agent_type=AgentType.COLLECT_EXPERIENCES_AGENT,
             agent_response_time_in_sec=round(llm_end_time - llm_start_time, 2),
-            llm_stats=[llm_stats]), penalty, error
+            llm_stats=[llm_stats]), 0, None
 
     @staticmethod
     def _get_system_instructions(*,
@@ -289,8 +280,6 @@ class _ConversationLLM:
                                  unexplored_types: list[WorkType],
                                  explored_types: list[WorkType],
                                  last_referenced_experience_index: int,
-                                 final_summary_sent: bool,
-                                 final_summary_confirmed: bool,
                                  ) -> str:
         system_instructions_template = dedent("""\
         <system_instructions>
@@ -454,8 +443,6 @@ class _ConversationLLM:
                                                     collected_data=collected_data,
                                                     exploring_type=exploring_type,
                                                     unexplored_types=unexplored_types,
-                                                    final_summary_sent=final_summary_sent,
-                                                    final_summary_confirmed=final_summary_confirmed,
                                                 ),
                                                 last_referenced_experience=_get_last_referenced_experience(collected_data, last_referenced_experience_index),
                                                 example_summary=_get_example_summary(),
@@ -494,111 +481,53 @@ def _transition_instructions(*,
                              collected_data: list[CollectedData],
                              exploring_type: WorkType | None,
                              unexplored_types: list[WorkType],
-                             final_summary_sent: bool,
-                             final_summary_confirmed: bool,
                              ):
-    # Check if there are incomplete experiences that need to be completed first
-    incomplete_experiences = _find_incomplete_experiences(collected_data)
-    if incomplete_experiences:
-        return dedent("""\
-        IMPORTANT: You have incomplete experiences that need more information before moving to the next work type.
-        Ask questions to complete the missing information for these incomplete experiences.
-        Do not respond with END_OF_WORKTYPE until all incomplete experiences have been completed.
-        """)
-    
-    # if not all_fields_collected: # need to fill missing fields
-    #    return dedent("""\
-    #        To transition to the next phase you must ask questions to fill the missing fields for the experiences that I shared with you.
-    #        Inspect the '#Collected Experience Data' to see which fields are missing and continue asking questions
-    #        to fill the missing fields based on the '#Gather Details' instructions.
-    #        """)
-    # elif len(unexplored_types) > 0: # need to collect more experiences
     if len(unexplored_types) > 0:  # need to collect more experiences
         _instructions = dedent("""\
-        Review the <Conversation History> and <User's Last Input> to decide if we have discussed all the work experiences that include '{exploring_type}'.
-        
         {language_style}
 
-        Once we have explored all work experiences that include '{exploring_type}',
-        or if I have stated (e.g., "no", "none", "that's all") that I don't have any more work experiences that include '{exploring_type}',
-        you will respond immediately with a plain END_OF_WORKTYPE.
-        /// If I have stated that I don't have any more work experiences that include '{exploring_type}', you will respond with a plain END_OF_WORKTYPE.
-        Do not wait for further confirmation once I have clearly indicated there are no more experiences of this type.
-        
-        Do not add anything before or after the END_OF_WORKTYPE message and do not include any other text in that reply.
-        ///Review our conversation carefully and ignore any previous statements I may have made about not having more work experiences to share,
-        ///specifically those related with types:
-        ///    {excluding_experiences}
+        Keep gathering work experiences that include '{exploring_type}' and their details following the '#Gather Details' instructions.
+        The transition to the next phase is decided outside of this conversation:
+        do not announce or suggest transitions, do not end the conversation and do not output any special tokens or markers.
         """)
         return replace_placeholders_with_indent(_instructions,
                                                 language_style=get_language_style(),
-                                                exploring_type=_get_experience_type(exploring_type),
-                                                # excluding_experiences=_get_excluding_experiences(exploring_type)
-                                                )
-    else:  # Summarize and confirm the collected data
-        user_language = get_i18n_manager().get_locale().value
+                                                exploring_type=_get_experience_type(exploring_type))
 
-        # Step 3: User confirmed the summary - end the conversation
-        if final_summary_confirmed:
-            end_conversation = dedent("""
-                {language_style}
+    # All work types explored: present the recap once, then let me correct or confirm it.
+    user_language = get_i18n_manager().get_locale().value
+    duplicate_hint = ""
+    if len(collected_data) > 1:
+        duplicate_hint = "Also, with the above question inform me that if one of the work experiences seems to be duplicated, I can ask you to remove it.\n"
+    summarize_and_confirm = dedent("""
+        Review the <Conversation History> carefully.
 
-                Respond immediately with <END_OF_CONVERSATION>. Do not add any other text.
-            """)
-            return replace_placeholders_with_indent(end_conversation,
-                                                    language_style=get_language_style())
+        If you have NOT yet presented a recap of the collected work experiences, explicitly summarize all the work experiences
+        you collected and explicitly ask me if I would like to add or change anything in the information you collected
+        before moving forward to the next step.
 
-        # Step 2: Summary was sent, waiting for user confirmation
-        if final_summary_sent:
-            wait_for_confirmation = dedent("""
-                {language_style}
+        {language_style}
 
-                You already presented the recap. Do not repeat it.
-                If I clearly state that the information is correct or I have nothing else to add, respond immediately with <END_OF_CONVERSATION>.
-                If I provide new information, follow the #Gather Details instructions instead of ending the conversation.
-                
-                YOU MUST ALWAYS: All the responses must be in {user_language} language.
-            """)
-            return replace_placeholders_with_indent(wait_for_confirmation,
-                                                    language_style=get_language_style(),
-                                                    user_language=user_language)
+        Ask me in {user_language} language:
+            "Let's recap the information we have collected so far:
+            {summary_of_experiences}
+            Is there anything you would like to add or change?".
+        The summary is in plain text (no Markdown, JSON, or other formats).
+        {duplicate_hint}
+        If you have ALREADY presented the recap, do not repeat it:
+        - If I provide new or corrected information, follow the '#Gather Details' instructions.
+        - If I confirm that I have nothing to add or change, thank me briefly and tell me that we will move on to the next step.
 
-        # Step 1: Need to present the summary for the first time
-        duplicate_hint = ""
-        if len(collected_data) > 1:
-            duplicate_hint = "Also, with the above question inform me that if one of the work experiences seems to be duplicated, I can ask you to remove it.\n"
-        summarize_and_confirm = dedent("""
-            Explicitly summarize all the work experiences you collected and explicitly ask me if I would like to add or change anything in the information 
-            you collected before moving forward to the next step. 
-            
-            {language_style}
-                                                                  
-            Ask me in {user_language} language: 
-                "Let's recap the information we have collected so far: 
-                {summary_of_experiences}
-                Is there anything you would like to add or change?".
-            The summary is in plain text (no Markdown, JSON, or other formats).
-            {duplicate_hint}             
-            You must wait for me to respond to your question and explicitly confirm that I have nothing to add or change 
-            to the information presented in the summary. 
-            
-            if I have something to add or change, you will ask me to provide the missing information or correct the information
-            before evaluating if you can transition to the next step.
-            
-            You will not add anything before or after the END_OF_CONVERSATION message.   
-            
-            You will not ask any questions or make any suggestions regarding the next step. 
-            It is not your responsibility to conduct the next step.
-            
-            You must perform the summarization and confirmation step before ending the conversation.
-            
-            YOU MUST ALWAYS: All the responses must be in {user_language} language. 
-            """)
-        return replace_placeholders_with_indent(summarize_and_confirm,
-                                                language_style=get_language_style(),
-                                                user_language=user_language,
-                                                summary_of_experiences=_get_summary_of_experiences(collected_data),
-                                                duplicate_hint=duplicate_hint)
+        You will not ask any questions or make any suggestions regarding the next step.
+        It is not your responsibility to conduct the next step.
+
+        YOU MUST ALWAYS: All the responses must be in {user_language} language.
+        """)
+    return replace_placeholders_with_indent(summarize_and_confirm,
+                                            language_style=get_language_style(),
+                                            user_language=user_language,
+                                            summary_of_experiences=_get_summary_of_experiences(collected_data),
+                                            duplicate_hint=duplicate_hint)
 
 
 def _get_collected_experience_data(collected_data: list[CollectedData]) -> str:
