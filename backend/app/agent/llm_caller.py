@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 from app.agent.agent_types import LLMStats
 from common_libs.llm.generative_models import GeminiGenerativeLLM
-from common_libs.llm.models_utils import LLMInput
+from common_libs.llm.models_utils import LLMInput, FINISH_REASON_MAX_TOKENS
 from common_libs.text_formatters.extract_json import extract_json, ExtractJSONError
 
 # retries to call the LLM, if it fails to respond or with a valid JSON object.
@@ -19,6 +19,9 @@ _MAX_TEMPERATURE = 1.0
 
 # Increment step for adjusting generation parameters
 _PENALTY_INCREMENT = 0.1
+
+# top_p applied on retries that escaped the repetition trap (the repo-wide default).
+_RETRY_TOP_P = 0.95
 
 
 RESPONSE_T = TypeVar('RESPONSE_T', bound=BaseModel)
@@ -62,6 +65,7 @@ class LLMCaller(Generic[RESPONSE_T]):
         generation_config: GenerationConfig = llm._model._generation_config._raw_generation_config
         original_frequency_penalty = generation_config.frequency_penalty
         original_temperature = generation_config.temperature  # usually for json we use 0.0
+        original_top_p = generation_config.top_p
 
         while not success and attempt_count < _MAX_ATTEMPTS:
             attempt_count += 1
@@ -112,7 +116,8 @@ class LLMCaller(Generic[RESPONSE_T]):
                     # info, not warning: a failed attempt that still has retries left is
                     # degraded-but-recoverable; only the terminal failure above warrants noise.
                     logger.info(log_message)
-                    if llm_stats.response_token_count == generation_config.max_output_tokens:
+                    if llm_response.finish_reason == FINISH_REASON_MAX_TOKENS \
+                            or llm_stats.response_token_count == generation_config.max_output_tokens:
                         # Most-likely we run into a "repetition trap". This happens often with prompts that have Chain Of Thought reasoning tasks.
                         # We will increase the frequency_penalty and the temperature and return the model to avoid repetition.
                         # However, higher frequency_penalty might cause the model to penalize punctuation and JSON format characters,
@@ -128,6 +133,16 @@ class LLMCaller(Generic[RESPONSE_T]):
                         if generation_config.temperature > _MAX_TEMPERATURE:
                             generation_config.temperature = _MAX_TEMPERATURE
 
+                        # A higher temperature is a no-op under greedy decoding (top_p 0.0, as some
+                        # JSON prompts pin): with a single candidate token there is nothing for the
+                        # temperature to choose between, and the retry replays the same repetition
+                        # loop. Give the escalated temperature sampling room. The proto stores
+                        # float32, so compare with a tolerance: a config already at 0.95 reads back
+                        # as 0.9499999... and must not count as below the retry value.
+                        if generation_config.top_p < _RETRY_TOP_P - 1e-6:
+                            generation_config.top_p = _RETRY_TOP_P
+                            logger.info("To escape the repetition trap, we increased the top_p to %s", _RETRY_TOP_P)
+
                         logger.info("The model reached the maximum number of tokens %s.\n"
                                     "To escape the repetition trap, we increased the frequency_penalty to %s\n"
                                     "To escape the repetition trap, we increased the temperature to %s",
@@ -141,6 +156,8 @@ class LLMCaller(Generic[RESPONSE_T]):
         generation_config.frequency_penalty = original_frequency_penalty
         # Reset the temperature to the original value
         generation_config.temperature = original_temperature
+        # Reset the top_p to the original value
+        generation_config.top_p = original_top_p
 
         logger.debug("Model input: %s", llm_input)
         logger.debug("Model output: %s", model_response)

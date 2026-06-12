@@ -46,7 +46,8 @@ class GeminiGenerativeLLM(BasicLLM):
         return LLMResponse(
             text=response.text,
             prompt_token_count=response.usage_metadata.prompt_token_count,
-            response_token_count=response.usage_metadata.candidates_token_count
+            response_token_count=response.usage_metadata.candidates_token_count,
+            finish_reason=response.candidates[0].finish_reason.name if response.candidates else None
         )
 
 
@@ -82,6 +83,7 @@ class PalmTextGenerativeLLM(BasicLLM):
             prompt = self._system_instructions + "\n" + contents
 
         response = await self._model.predict_async(prompt=prompt, **self._params)
+        # The PaLM2 text API does not report a finish reason, so LLMResponse.finish_reason stays None.
         return LLMResponse(
             text=response.text,
             prompt_token_count=response.raw_prediction_response.metadata['tokenMetadata']['inputTokenCount']['totalTokens'],
