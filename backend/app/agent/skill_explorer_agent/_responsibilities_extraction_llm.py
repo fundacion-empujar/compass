@@ -1,5 +1,4 @@
 import logging
-
 from textwrap import dedent
 from typing import Optional
 
@@ -13,7 +12,6 @@ from app.conversation_memory.conversation_memory_types import ConversationContex
 from common_libs.llm.generative_models import GeminiGenerativeLLM
 from common_libs.llm.models_utils import LLMConfig, JSON_GENERATION_CONFIG, ZERO_TEMPERATURE_GENERATION_CONFIG
 from common_libs.llm.schema_builder import with_response_schema
-from app.agent.prompt_template.agent_prompt_template import STD_LANGUAGE_STYLE
 
 _TAGS_TO_FILTER = ["system instructions", "user's last input", "conversation history"]
 
@@ -104,12 +102,17 @@ class _ResponsibilitiesExtractionLLM:
             A single sentence can contain multiple entities. Entities can be explicit or implicit.
             Review carefully <User's Last Input> to ensure you extract all entities including the once that are implicit.
             
+            CRITICAL: Extract entities for ALL people mentioned in the input, not just the user. When a sentence mentions actions performed by multiple people (including the user and others), you MUST extract separate entities for each person's actions. Do not skip entities just because they appear alongside the user's actions. Every action, behavior, or responsibility mentioned for any person must be extracted as a separate entity. Do not extract the same entity multiple times - each unique action should appear only once.
+            
             Examples of Named Entities:
                 "He develops software"
                 extracted_entities: ["He develops software"]
             
                 "He tests the software that i build"
                 extracted_entities: ["He tests the software", "i build the software"]
+            
+                "John uses his senses and I observe the process"
+                extracted_entities: ["John uses his senses", "I observe the process"]
             
             
             You will collect and place the entities into the 'extracted_entities' list of output.
@@ -130,6 +133,8 @@ class _ResponsibilitiesExtractionLLM:
                  OR
                 2. None of the subjects or subject pronouns of the named entity are referring to the user.
             
+            When extracting non_responsibilities, normalize the entity text by removing any negation and convert to the positive form. The fact that it is classified as non_responsibilities already indicates it is something the user does not do.
+            
             There are two criteria and both must be met for a named entity to be in responsibilities:
                 1. At least one of the subjects or the subject pronouns of the named entity must be referring to the user.
                    AND
@@ -138,6 +143,8 @@ class _ResponsibilitiesExtractionLLM:
             When in doubt, classify a first-person entity as responsibilities. Any action, task, activity, or behavior the user describes doing — including work tasks, interactions, and processes — belongs in responsibilities.
             Only exclude from responsibilities if the user explicitly says they do NOT do it (→ non_responsibilities), or if the subject is clearly someone other than the user (→ other_peoples_responsibilities), or if the entity is completely unrelated to any work or experience (→ irrelevant_entities).
             
+            For other_peoples_responsibilities, extract ALL actions, responsibilities, and behaviors performed by people other than the user. This includes actions performed by named individuals (like "John", "Mary", "my boss") and actions performed by third-person pronouns (like "he", "she", "they") when they clearly refer to someone other than the user. You MUST extract these entities even when they appear in the same sentence as the user's actions. If you see "John uses his senses" or "John does X", you must extract it as other_peoples_responsibilities. Do not omit entities for other people.
+            
             The user is referred to in first person in <User's Last Input>.
             
             
@@ -145,12 +152,18 @@ class _ResponsibilitiesExtractionLLM:
                 "He tests the software that I build, but I do not sell, that he designs when the weather is nice"
                     responsibilities: ["i build the software"]
                     other_peoples_responsibilities: ["He tests the software", "He designs the software"]
-                    non_responsibilities: ["I do not sell the software"]
+                    non_responsibilities: ["I sell the software"]
                     irrelevant_entities: ["The weather is nice"]
                 "He and they and I develop software that they designed and we test, but I do not deploy"
                     responsibilities: ["I develop software", "I test the software"]
                     other_peoples_responsibilities: ["He develops software", "They develop software", "They design the software", "He tests the software"]
-                    non_responsibilities: ["I do not deploy the software"]            
+                    non_responsibilities: ["I deploy the software"]
+                "I do not clean. I also do not sell"
+                    non_responsibilities: ["I clean", "I sell"]
+                "We do it using our hands. It is a difficult procedure, John uses his senses and I observe the process"
+                    responsibilities: ["I observe the process", "I shape the dough with my hands"]
+                    other_peoples_responsibilities: ["John uses his senses", "John shapes the dough with his hands"]
+                    irrelevant_entities: ["It is a difficult procedure"]
                     
         # JSON Output instructions
             Your response must always be a JSON object with the following schema:

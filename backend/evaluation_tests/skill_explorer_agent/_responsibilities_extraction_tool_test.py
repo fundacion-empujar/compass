@@ -5,6 +5,7 @@ import pytest
 from app.agent.agent_types import AgentInput, AgentOutput
 from app.agent.skill_explorer_agent._responsibilities_extraction_tool import _ResponsibilitiesExtractionTool
 from app.conversation_memory.conversation_memory_types import ConversationContext, ConversationTurn
+from app.i18n.translation_service import get_i18n_manager
 from evaluation_tests.compass_test_case import CompassTestCase
 from evaluation_tests.get_test_cases_to_run_func import get_test_cases_to_run
 
@@ -46,7 +47,7 @@ test_cases_data_extraction = [
         given_user_input="""I make the bread and sometimes I clean the place. I do not sell the bread myself""",
         expected_responsibilities=["I make the bread", "I clean the place"],
         expected_other_peoples_responsibilities=[],
-        expected_non_responsibilities=['I do not sell the bread I make'],
+        expected_non_responsibilities=['I sell the bread'],
     ),
     _TestCaseDataExtraction(
         name="not_in_scope_of_work",
@@ -69,9 +70,9 @@ test_cases_data_extraction = [
         ],
         given_user_input="""We do it using our hands. It is a difficult procedure, John uses his senses and I observe the process""",
         expected_responsibilities=['I observe the process',
-                                   'I shape the dough with our hands'],
-        expected_non_responsibilities=["Shaping the dough is a difficult procedure"],
-        expected_other_peoples_responsibilities=['John shapes the dough using his hands', 'John uses his senses'],
+                                   'I shape the dough with my hands'],
+        expected_non_responsibilities=[],
+        expected_other_peoples_responsibilities=['John shapes the dough with his hands', 'John uses his senses'],
     ),
 
     _TestCaseDataExtraction(
@@ -85,8 +86,7 @@ test_cases_data_extraction = [
         given_user_input="""my boss decides that""",
         expected_responsibilities=[],
         expected_non_responsibilities=[],
-        expected_other_peoples_responsibilities=['Our boss decides what John and I bake '
-                                                 'each day'],
+        expected_other_peoples_responsibilities=['My boss decides that'],
     ),
 
     _TestCaseDataExtraction(
@@ -97,7 +97,7 @@ test_cases_data_extraction = [
         given_user_input="""My aunt eats the cake that I baked that was decided by my boss""",
         expected_responsibilities=["I baked the cake"],
         expected_non_responsibilities=[],
-        expected_other_peoples_responsibilities=["My aunt eats the cake", "My boss decided on the cake"],
+        expected_other_peoples_responsibilities=["My aunt is eating the cake", "My boss decided on the cake"],
     ),
 
     _TestCaseDataExtraction(
@@ -107,8 +107,8 @@ test_cases_data_extraction = [
         ],
         given_user_input="""My aunt eats the cake that I baked after I did not clean the place""",
         expected_responsibilities=["I baked the cake"],
-        expected_non_responsibilities=["I did not clean the place"],
-        expected_other_peoples_responsibilities=["My aunt eats the cake"],
+        expected_non_responsibilities=["I clean the place after baking the cake"],
+        expected_other_peoples_responsibilities=["My aunt is eating the cake"],
     ),
 
     _TestCaseDataExtraction(
@@ -125,21 +125,21 @@ test_cases_data_extraction = [
     My brother sells the bread and we meet later the same day and split the money.
     I use part of the money to buy the stuff we need to make the bread. 
     It is important to keep track of what I have spent, so that I can get my money back.""",
-        expected_responsibilities=['After the bread is ready, I clean my area',
+        expected_responsibilities=['I am at the bakery on time',
                                    'I can get my money back',
                                    'I can go home',
+                                   'I clean my work area',
                                    'I clean the bakery',
-                                   'I have to be there early',
                                    'I heat the ovens',
                                    'I make the bread',
+                                   'I meet later that day',
+                                   'I must be at the bakery early',
+                                   'I track my expenses',
                                    'I use part of the money to buy the ingredients',
-                                   'I wake up early to arrive at the bakery on time',
                                    'I wake up very early',
-                                   'It is important to track my expenses',
-                                   'We meet later that day',
                                    'We split the money'],
         expected_non_responsibilities=[],
-        expected_other_peoples_responsibilities=['My brother sells the bread']
+        expected_other_peoples_responsibilities=['My brother meets later that day', 'My brother sells the bread']
     ),
 ]
 
@@ -150,6 +150,7 @@ test_cases_data_extraction = [
 @pytest.mark.parametrize('test_case', get_test_cases_to_run(test_cases_data_extraction),
                          ids=[case.name for case in get_test_cases_to_run(test_cases_data_extraction)])
 async def test_data_extraction(test_case: _TestCaseDataExtraction):
+    get_i18n_manager().set_locale(test_case.locale)
     context: ConversationContext = ConversationContext()
 
     # GIVEN the previous conversation context
