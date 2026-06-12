@@ -84,7 +84,7 @@ def extract_json(text: str, model: Type[T]) -> T:
         try:
             data = try_json_repair(extracted_text)
             if data == {}:
-                logger.warning("Empty JSON object found, after trying to repair with fix_busted_json for text: %s", text)
+                logger.debug("Empty JSON object found, after trying to repair with fix_busted_json for text: %s", text)
         except InvalidJSON:
             raise InvalidJSON("Failed to repair JSON with both json_repair and fix_busted_json")
 
@@ -100,9 +100,11 @@ def try_json_repair(txt: str) -> Any:
         cleaned_json = json_repair.repair_json(txt, skip_json_loads=True)
         return json.loads(cleaned_json)
     except Exception as e:  # pylint: disable=broad-except
-        logger.warning("Failed to repair JSON with json_repair:"
-                       "\n  - error: %s"
-                       "\n  - text to repair: %s", e, txt)
+        # debug, not warning: this failure is intermediate — the caller has fallbacks,
+        # and a terminal extraction failure is logged at ERROR by the LLM caller.
+        logger.debug("Failed to repair JSON with json_repair:"
+                     "\n  - error: %s"
+                     "\n  - text to repair: %s", e, txt)
         raise InvalidJSON(f"Failed to clean JSON with json_repair: {e}") from e
 
 
@@ -112,9 +114,11 @@ def try_fix_busted_json(txt: str) -> Any:
         cleaned_json = fix_busted_json.repair_json(txt)
         return json.loads(cleaned_json)
     except Exception as e:  # pylint: disable=broad-except
-        logger.warning("Failed to repair JSON with fix_busted_json:"
-                       "\n  - error: %s"
-                       "\n  - text to repair: %s", e, txt)
+        # debug, not warning: this failure is intermediate — the caller falls back to
+        # json_repair, and a terminal extraction failure is logged at ERROR by the LLM caller.
+        logger.debug("Failed to repair JSON with fix_busted_json:"
+                     "\n  - error: %s"
+                     "\n  - text to repair: %s", e, txt)
         raise InvalidJSON(f"Failed to clean JSON with fix_busted_json: {e}") from e
 
 
