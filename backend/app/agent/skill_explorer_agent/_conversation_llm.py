@@ -18,7 +18,7 @@ from app.i18n.translation_service import t
 
 
 # centralize use for skill_explorer_agent and conversation_llm_test
-_FINAL_MESSAGE_KEY = "exploreExperiences.noMoreExperiences"
+_FINAL_MESSAGE_KEY = "exploreSkills.finalMessage"
 
 
 class _ConversationLLM:
