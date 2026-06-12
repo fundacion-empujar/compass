@@ -214,8 +214,7 @@ class BasicLLM(LLM):
         # as the init function may have been called in another module with different parameters
         self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.info("Initializing VertexAI client with location: %s", config.location)
-        location = None if config.location == "global" else config.location
-        vertexai.init(location=location)
+        vertexai.init(location=config.location)
         self._retry_config = config.retry_config
         self._model = None
         self._chat = None
