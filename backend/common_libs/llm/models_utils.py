@@ -179,6 +179,10 @@ class LLMInput(BaseModel):
     turns: list[LLMTurn]
 
 
+FINISH_REASON_MAX_TOKENS = "MAX_TOKENS"
+"""Finish reason reported when the response was truncated at max_output_tokens."""
+
+
 class LLMResponse(BaseModel):
     """
     Response from the LLM.
@@ -189,6 +193,8 @@ class LLMResponse(BaseModel):
     """The number of tokens in the prompt."""
     response_token_count: int
     """The number of tokens in the response."""
+    finish_reason: str | None = None
+    """Why the model stopped generating (e.g. "STOP", "MAX_TOKENS"), if the model reports it."""
 
 
 class LLM(ABC):
