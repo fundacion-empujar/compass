@@ -47,13 +47,29 @@ def extract_json(text: str, model: Type[T]) -> T:
     if not match:
         # If no complete JSON found, try to repair partial JSON (e.g., truncated responses)
         if text_with_json_start.startswith('{'):
+            # Try to repair the partial JSON. fix_busted_json cannot close truncated
+            # objects (it raises on them), so fall back to json_repair, which can.
+            data = None
             try:
-                # Try to repair the partial JSON
                 data = try_fix_busted_json(text_with_json_start)
-                if data:
-                    return model(**data)
             except InvalidJSON:
-                pass
+                try:
+                    data = try_json_repair(text_with_json_start)
+                except InvalidJSON:
+                    pass
+            # Only accept the salvage if it recovered at least one expected field:
+            # degenerate/garbage output would otherwise validate as an all-defaults
+            # instance (models with default fields) and short-circuit the caller's
+            # retry escalation.
+            if isinstance(data, dict) and any(key in model.model_fields for key in data):
+                try:
+                    return model(**data)
+                except Exception as e:  # pylint: disable=broad-except
+                    # Keep failures inside the ExtractJSONError hierarchy: a raw pydantic
+                    # ValidationError would escape the caller's retry loop and crash the
+                    # agent turn.
+                    raise ExtractedDataValidationError(f"Failed to construct model: {model.__name__}"
+                                                       f"\n  - with salvaged data: {data}") from e
         raise NoJSONFound(f"No JSON object found in the text: {text}")
 
     # This will not `IndexError` if no match, as we check for it above.
