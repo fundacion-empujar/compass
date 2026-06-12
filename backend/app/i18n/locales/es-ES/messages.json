@@ -29,7 +29,7 @@
   },
   "exploreExperiences": {
     "noMoreExperiences": "Parece que no hay más experiencias para conversar.",
-    "skippedExperienceMissingDetails": "He omitido tu experiencia \"{experience_title}\" porque no compartiste suficientes detalles",
+    "skippedExperienceMissingDetails": "No he podido identificar habilidades para tu experiencia \"{experience_title}\", así que paso a la siguiente",
     "finishedAll": "He terminado de explorar todas tus experiencias.",
     "noSkillsIdentified": "No se identificaron habilidades",
     "linkAndRank": {
