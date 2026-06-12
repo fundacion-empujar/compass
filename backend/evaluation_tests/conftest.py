@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from datetime import datetime, timezone
 
 from app.vector_search.vector_search_dependencies import SearchServices
@@ -21,6 +22,23 @@ def pytest_generate_tests(metafunc):
     max_iterations_value = metafunc.config.option.max_iterations
     if 'max_iterations' in metafunc.fixturenames and max_iterations_value is not None:
         metafunc.parametrize("max_iterations", [int(max_iterations_value)])
+
+
+class _AiplatformAsyncRestFallbackFilter(logging.Filter):
+    """Drops the benign per-call fallback warning aiplatform >=1.115 emits on the ROOT logger
+    (google/cloud/aiplatform/initializer.py), which would trip assert_log_error_warnings in
+    every eval regardless of agent behavior."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        return "REST async clients requires async credentials" not in record.getMessage()
+
+
+@pytest.fixture(autouse=True, scope="session")
+def _silence_aiplatform_async_rest_fallback_warning():
+    _filter = _AiplatformAsyncRestFallbackFilter()
+    logging.getLogger().addFilter(_filter)
+    yield
+    logging.getLogger().removeFilter(_filter)
 
 
 @pytest.fixture(scope="session")
