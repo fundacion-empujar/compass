@@ -101,15 +101,17 @@ class LLMCaller(Generic[RESPONSE_T]):
             except ExtractJSONError as e:
                 log_message = f"Attempt {attempt_count} failed to extract JSON caused by: {e}"
                 llm_stats.error = log_message
-                logger.warning("Raw LLM response text (first 500 chars): %s", response_text[:500] if response_text else "None")
-                logger.warning("Raw LLM response text length: %d characters", len(response_text) if response_text else 0)
-                logger.warning("Response token count: %d, Max output tokens: %d", llm_stats.response_token_count, generation_config.max_output_tokens)
                 if attempt_count == _MAX_ATTEMPTS:
                     # The agent failed to respond with a JSON object after the last attempt,
                     logger.error(log_message)
+                    logger.warning("Raw LLM response text (first 500 chars): %s", response_text[:500] if response_text else "None")
+                    logger.warning("Raw LLM response text length: %d characters", len(response_text) if response_text else 0)
+                    logger.warning("Response token count: %d, Max output tokens: %d", llm_stats.response_token_count, generation_config.max_output_tokens)
                     # And set the response to the model output and hope that the caller can handle it
                 else:
-                    logger.warning(log_message)
+                    # info, not warning: a failed attempt that still has retries left is
+                    # degraded-but-recoverable; only the terminal failure above warrants noise.
+                    logger.info(log_message)
                     if llm_stats.response_token_count == generation_config.max_output_tokens:
                         # Most-likely we run into a "repetition trap". This happens often with prompts that have Chain Of Thought reasoning tasks.
                         # We will increase the frequency_penalty and the temperature and return the model to avoid repetition.
@@ -126,12 +128,12 @@ class LLMCaller(Generic[RESPONSE_T]):
                         if generation_config.temperature > _MAX_TEMPERATURE:
                             generation_config.temperature = _MAX_TEMPERATURE
 
-                        logger.warning("The model reached the maximum number of tokens %s.\n"
-                                       "To escape the repetition trap, we increased the frequency_penalty to %s\n"
-                                       "To escape the repetition trap, we increased the temperature to %s",
-                                       generation_config.max_output_tokens,
-                                       generation_config.frequency_penalty,
-                                       generation_config.temperature)
+                        logger.info("The model reached the maximum number of tokens %s.\n"
+                                    "To escape the repetition trap, we increased the frequency_penalty to %s\n"
+                                    "To escape the repetition trap, we increased the temperature to %s",
+                                    generation_config.max_output_tokens,
+                                    generation_config.frequency_penalty,
+                                    generation_config.temperature)
             finally:
                 llm_stats_list.append(llm_stats)
 
