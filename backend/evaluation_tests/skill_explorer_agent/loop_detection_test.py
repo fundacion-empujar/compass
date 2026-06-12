@@ -222,6 +222,12 @@ _engagement_prompt_es = dedent("""
     puedas sobre tu experiencia laboral, tus habilidades y tus preferencias.
     Respondé siempre en español.
 """)
+_disengagement_prompt_es_curt = dedent("""
+    Sos un usuario que ya no querés seguir y respondés de forma muy cortante.
+    Respondé a cada mensaje del agente con una sola señal de desinterés, rotando entre
+    "dale", "saltear", "siguiente" y un único emoji (por ejemplo 👍). No aportes
+    información nueva ni des ningún detalle. Respondé siempre en español.
+""")
 
 test_cases: list[LoopDetectionTestCase] = [
     LoopDetectionTestCase(
@@ -350,6 +356,28 @@ test_cases: list[LoopDetectionTestCase] = [
         looping_message=_LOOPING_QUESTION_ES,
         n_repeats=3,
         assert_finished=False,
+        seed_opening_question=_OPENING_QUESTION_ES,
+        seed_first_answer=_FIRST_ANSWER_ES,
+        seed_challenges_question=_CHALLENGES_QUESTION_ES,
+        seed_second_answer=_SECOND_ANSWER_ES,
+        seed_loop_filler=_LOOP_FILLER_ES,
+        given_experience=ExperienceEntity(
+            experience_title="Vendedora en un local de ropa",
+            company="Local de ropa",
+            timeline=Timeline(start="2021", end="2023"),
+            work_type=WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT,
+        ),
+    ),
+    # Curt es-AR disengagement ("dale" / "saltear" / "siguiente" / emoji): the agent must end
+    # promptly instead of re-asking. Exercises the new disengagement-exit prompt rule.
+    LoopDetectionTestCase(
+        name="argentina_curt_disengage_skip",
+        locale=Locale.ES_AR,
+        country_of_user=Country.ARGENTINA,
+        simulated_user_prompt=_disengagement_prompt_es_curt,
+        evaluations=[],
+        looping_message=_LOOPING_QUESTION_ES,
+        n_repeats=3,
         seed_opening_question=_OPENING_QUESTION_ES,
         seed_first_answer=_FIRST_ANSWER_ES,
         seed_challenges_question=_CHALLENGES_QUESTION_ES,
