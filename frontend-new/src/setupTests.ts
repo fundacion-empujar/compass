@@ -15,6 +15,35 @@ Object.assign(global, { TextDecoder, TextEncoder });
 // mock firebase for tests
 jest.mock("firebase/compat/app", () => require("src/_test_utilities/firebaseMock"));
 
+// Mock react-markdown (pure ESM) and its remark plugins globally so the jest/CRA toolchain never has to
+// resolve/transform the deep ESM dependency tree (unified/micromark/unist/...). Real markdown rendering is
+// verified in Storybook, not jest. The lightweight renderer mirrors inline bold/italic/code so that
+// component tests can assert on the produced elements; plain strings pass through unchanged.
+jest.mock("react-markdown", () => {
+  const React = require("react");
+  return {
+    __esModule: true,
+    default: ({ children }: { children: string }) => {
+      const parts = String(children).split(/(\*\*[^*]+\*\*|`[^`]+`|\*[^*]+\*)/g);
+      return React.createElement(
+        "div",
+        null,
+        parts.map((part: string, i: number) => {
+          const bold = part.match(/^\*\*([^*]+)\*\*$/);
+          const code = part.match(/^`([^`]+)`$/);
+          const em = part.match(/^\*([^*]+)\*$/);
+          if (bold) return React.createElement("strong", { key: i }, bold[1]);
+          if (code) return React.createElement("code", { key: i }, code[1]);
+          if (em) return React.createElement("em", { key: i }, em[1]);
+          return part;
+        })
+      );
+    },
+  };
+});
+jest.mock("remark-gfm", () => ({ __esModule: true, default: () => {} }));
+jest.mock("remark-breaks", () => ({ __esModule: true, default: () => {} }));
+
 /**
  * Load English translations and create a stable translation function.
  *
