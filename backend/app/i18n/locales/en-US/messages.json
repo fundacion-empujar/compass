@@ -29,7 +29,7 @@
   },
   "exploreExperiences": {
     "noMoreExperiences": "It looks like, there are no experiences to discuss further.",
-    "skippedExperienceMissingDetails": "I have skipped your experience \"{experience_title}\" because you did not share enough details",
+    "skippedExperienceMissingDetails": "I couldn't identify skills for your experience \"{experience_title}\", so I'm moving on to the next one",
     "finishedAll": "I have finished exploring all your experiences.",
     "noSkillsIdentified": "No skills identified",
     "linkAndRank": {
