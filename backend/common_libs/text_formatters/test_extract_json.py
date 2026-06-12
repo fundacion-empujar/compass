@@ -162,5 +162,46 @@ class TestExtractJson(unittest.TestCase):
         self.assertEqual(result.evaluation["skill-a"].score, 1)
 
 
+    def test_truncated_json_salvaged(self):
+        """Should salvage a truncated JSON object (no closing brace) when the required fields are intact"""
+        # GIVEN a model class GivenExampleModel
+        # AND a string with a JSON object truncated mid-output (no closing brace anywhere),
+        #     e.g. a response cut off at max_output_tokens, whose required fields are complete
+        given_truncated_json = 'Here is the result: {"text": "Hello, world!", "boolean": true, "numeral": 123, "extra": ["a", "b'
+
+        # WHEN extracting the JSON
+        result: GivenExampleModel = extract_json(given_truncated_json, GivenExampleModel)
+
+        # THEN the salvaged result should be an instance of the model with the intact fields
+        self.assertIsInstance(result, GivenExampleModel)
+        self.assertEqual(result.text, "Hello, world!")
+        self.assertTrue(result.boolean)
+        self.assertEqual(result.numeral, 123)
+
+    def test_truncated_garbage_not_salvaged(self):
+        """Should raise NoJSONFound for truncated degenerate output that contains no model fields"""
+        # GIVEN a model class GivenExampleModel
+        # AND a truncated degenerate repetition payload (as produced by a model stuck in a
+        #     repetition loop) that contains none of the model's fields
+        given_truncated_garbage = '{"...": ["s {"..., "s {"..., "s {"...'
+
+        # THEN a NoJSONFound exception should be raised, so the caller's retry loop still runs
+        with self.assertRaises(NoJSONFound):
+            # WHEN extracting the JSON
+            extract_json(given_truncated_garbage, GivenExampleModel)
+
+    def test_truncated_json_salvage_does_not_conform(self):
+        """Should raise ExtractedDataValidationError (not a raw ValidationError) when the salvage misses required fields"""
+        # GIVEN a model class GivenExampleModel
+        # AND a truncated JSON object that has one of the model's fields but is missing required ones
+        given_truncated_incomplete_json = '{"text": "hello", "wrong": ["a", "b'
+
+        # THEN an ExtractedDataValidationError should be raised (a raw pydantic ValidationError
+        #      would escape the caller's ExtractJSONError handling and crash the agent turn)
+        with self.assertRaises(ExtractedDataValidationError):
+            # WHEN extracting the JSON
+            extract_json(given_truncated_incomplete_json, GivenExampleModel)
+
+
 if __name__ == '__main__':
     unittest.main()
