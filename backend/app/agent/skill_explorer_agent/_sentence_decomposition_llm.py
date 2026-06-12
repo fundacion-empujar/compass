@@ -121,8 +121,10 @@ class _SentenceDecompositionLLM:
             return _SentenceDecompositionResponse(decomposed_and_dereferenced=llm_first_pass_output.resolved_pronouns), llm_first_pass_stats + llm_second_pass_stats
 
         if len(llm_first_pass_output.resolved_pronouns) != len(llm_second_pass_output.decomposed_and_dereferenced):
-            self.logger.warning("The number of sentences in the first pass (%d) does not match the number of sentences in the second pass (%d)",
-                                len(llm_first_pass_output.resolved_pronouns), len(llm_second_pass_output.decomposed_and_dereferenced))
+            # info, not warning: the second pass may legitimately merge or split sentences and its
+            # output is used as-is — informational divergence, not a failure.
+            self.logger.info("The number of sentences in the first pass (%d) does not match the number of sentences in the second pass (%d)",
+                             len(llm_first_pass_output.resolved_pronouns), len(llm_second_pass_output.decomposed_and_dereferenced))
 
         # Log the difference between the first and second pass possibly with different length
         self.logger.debug("LLM first pass output: %s Second pass output: %s", llm_first_pass_output.resolved_pronouns,
