@@ -66,6 +66,32 @@ class PromptGenerator:
                 2. Check if the conversation was in the same language throughout (eg: English, Spanish, French, Swahili, etc)..
                 3. Assign a score of 100 if the conversation was in the same language throughout, or 0 otherwise.
                 """)
+
+            case EvaluationType.RECAP_CONSISTENCY:
+                return textwrap.dedent("""
+                Evaluation Criteria:
+
+                Recap Consistency - When the EVALUATED_AGENT presents its final recap of the collected work
+                experiences, does it restate ONLY the stored fields for each experience: the job title, the
+                work type label (e.g. 'Trabajo asalariado', 'Emprendimiento', 'Trabajo no pago'), the
+                company/receiver of the work, and the dates (timeline)? The work type label is a stored field,
+                NOT an embellishment. A consistent recap invents nothing. It IS penalized if it adds duties,
+                responsibilities, tasks, skills, or achievements, or any specific detail beyond those stored
+                fields, EVEN IF the user mentioned that detail earlier in the conversation.
+                Only judge the final recap of all experiences (the message where the agent summarizes
+                everything collected and asks the user to confirm or change it), not the per-question replies.
+
+                Evaluation Steps:
+                1. Find the EVALUATED_AGENT's final recap of all collected work experiences.
+                2. For each experience in the recap, check whether it states anything beyond the job title,
+                   the work type label, the company/receiver, and the dates.
+                3. Penalize every invented or embellished detail (duties, responsibilities, tasks, skills,
+                   achievements) that is not one of those stored fields.
+                4. Assign a score from 0 to 100, where 100 is a recap that contains only the stored fields
+                   and 0 is a recap full of duties/skills beyond those stored fields (even ones the user
+                   mentioned earlier in the conversation).
+                """)
+
             case _:
                 raise NotImplementedError()
 
@@ -95,6 +121,12 @@ class PromptGenerator:
             case EvaluationType.SINGLE_LANGUAGE:
                 return textwrap.dedent("""
                 The language used in the conversation is somewhat consistent and it is 'Spanish' mixed with 'English'
+                """)
+
+            case EvaluationType.RECAP_CONSISTENCY:
+                return textwrap.dedent("""
+                The recap is mostly faithful, but the EVALUATED_AGENT added duties the user mentioned in
+                passing that are not part of the stored title, company or dates.
                 """)
             case _:
                 raise NotImplementedError()
