@@ -8,10 +8,12 @@ from app.agent.agent import Agent
 from app.agent.agent_types import AgentInput, AgentOutput
 from app.agent.agent_types import AgentType
 from app.agent.collect_experiences_agent import CollectExperiencesAgent
+from app.agent.experience._display_title_localizer import localize_display_title
 from app.agent.experience._experience_summarizer import ExperienceSummarizer
 from app.agent.experience.experience_entity import ExperienceEntity
 from app.agent.experience.upgrade_experience import get_editable_experience
 from app.agent.linking_and_ranking_pipeline import ExperiencePipeline, ExperiencePipelineConfig
+from app.agent.linking_and_ranking_pipeline.experience_pipeline import ClusterPipelineResult
 from app.agent.skill_explorer_agent import SkillsExplorerAgent, SkillsExplorerAgentState
 from app.conversation_memory.conversation_memory_manager import ConversationMemoryManager, IConversationMemoryManager
 from app.server_config import REPETITION_SHORT_CIRCUIT_THRESHOLD
@@ -381,7 +383,10 @@ class ExploreExperiencesAgentDirector(Agent):
         self._search_services = search_services
         self._conversation_manager = conversation_manager
         self._state: ExploreExperiencesAgentDirectorState | None = None
-        self._collect_experiences_agent = CollectExperiencesAgent()
+        self._collect_experiences_agent = CollectExperiencesAgent(
+            search_services=search_services,
+            experience_pipeline_config=experience_pipeline_config
+        )
         self._exploring_skills_agent = SkillsExplorerAgent()
         self._experience_pipeline_config = experience_pipeline_config
 
@@ -413,6 +418,20 @@ class ExploreExperiencesAgentDirector(Agent):
         current_experience.top_skills = pipline_result.top_skills
         current_experience.remaining_skills = pipline_result.remaining_skills
 
+        # derive a professionalized display title from the pipeline's cluster results (reuses
+        # already-computed candidates), then localize it to the UI language (no-op for English).
+        normalized_title = _select_normalized_title(
+            original_title=current_experience.experience_title,
+            cluster_results=pipline_result.cluster_results
+        )
+        if normalized_title:
+            current_experience.normalized_experience_title = await localize_display_title(
+                raw_title=current_experience.experience_title,
+                candidate_title=normalized_title,
+                logger=self.logger
+            )
+        display_title = current_experience.normalized_experience_title or current_experience.experience_title
+
         # construct a summary of the skills using mapped parent labels and removing duplicates
         mapped_labels = _map_and_dedup_skill_labels(current_experience.top_skills)
         skills_summary = "\n"
@@ -425,7 +444,7 @@ class ExploreExperiencesAgentDirector(Agent):
         # construct a summary of the experience
         current_experience.summary = await ExperienceSummarizer().execute(
             country_of_user=country_of_user,
-            experience_title=current_experience.experience_title,
+            experience_title=display_title,
             company=current_experience.company,
             work_type=current_experience.work_type,
             responsibilities=current_experience.responsibilities.responsibilities,
@@ -437,7 +456,7 @@ class ExploreExperiencesAgentDirector(Agent):
             message_for_user=t(
                 "messages",
                 "exploreExperiences.linkAndRank.summaryMessage",
-                experience_title=current_experience.experience_title,
+                experience_title=display_title,
                 summary=current_experience.summary,
                 top_count=len(mapped_labels),
                 skills_summary=skills_summary,
@@ -448,6 +467,37 @@ class ExploreExperiencesAgentDirector(Agent):
             llm_stats=pipline_result.llm_stats
         )
         return agent_output
+
+
+def _select_normalized_title(*,
+                             original_title: str,
+                             cluster_results: list[ClusterPipelineResult]) -> str | None:
+    """Pick a professionalized display title from the pipeline cluster results.
+
+    Prefers a candidate that differs from the user's raw title (contextual titles
+    first, then ESCO preferred labels); returns None when there are no candidates.
+    """
+    cleaned_original = (original_title or "").strip().lower()
+    candidates: list[str] = []
+
+    for cluster_result in cluster_results:
+        for title in cluster_result.contextual_titles:
+            cleaned = title.strip()
+            if cleaned:
+                candidates.append(cleaned)
+        for occupation_skill in cluster_result.esco_occupations:
+            label = occupation_skill.occupation.preferredLabel.strip()
+            if label:
+                candidates.append(label)
+
+    if not candidates:
+        return None
+
+    for candidate in candidates:
+        if candidate.lower() != cleaned_original:
+            return candidate
+
+    return candidates[0]
 
 
 async def _flush_if_repeating(

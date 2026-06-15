@@ -77,7 +77,7 @@ def _get_incomplete_experiences_instructions(collected_data: list[CollectedData]
     incomplete_experiences_list = []
     for i, (index, experience, missing_fields) in enumerate(incomplete_experiences, 1):
         missing_fields_str = ", ".join(missing_fields)
-        incomplete_experiences_list.append(f"{i}. Experience #{index + 1}: \"{experience.experience_title}\" - Missing: {missing_fields_str}")
+        incomplete_experiences_list.append(f"{i}. Experience #{index + 1}: \"{experience.normalized_experience_title or experience.experience_title}\" - Missing: {missing_fields_str}")
     
     incomplete_experiences_text = "\n".join(incomplete_experiences_list)
     
@@ -534,7 +534,9 @@ def _get_collected_experience_data(collected_data: list[CollectedData]) -> str:
     if len(collected_data) == 0:
         return _no_experience_collected_text()
 
-    all_experiences = ",".join([_data.model_dump_json() for _data in collected_data])
+    # normalized_experience_title is a display-only field; keep it out of the extraction LLM's
+    # context so it is not mistaken for a fillable/updatable field.
+    all_experiences = ",".join([_data.model_dump_json(exclude={"normalized_experience_title"}) for _data in collected_data])
 
     return dedent(f"""[{all_experiences}]
     The values null, "" can be interpreted as follows:
@@ -743,6 +745,7 @@ def _get_summary_of_experiences(collected_data: list[CollectedData]) -> str:
     for experience in collected_data:
         summary += "• " + ExperienceEntity.get_structured_summary(
             experience_title=experience.experience_title or "",
+            normalized_experience_title=experience.normalized_experience_title,
             #location=experience.location,
             work_type=experience.work_type,
             start_date=experience.start_date,

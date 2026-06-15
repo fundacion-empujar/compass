@@ -400,6 +400,64 @@ class TestExperienceDataProcessor:
         assert experience.end_date == "2022"  # Unchanged
         assert experience.paid_work is True  # Unchanged
 
+    def test_update_changing_title_resets_normalized_title(self, processor, mock_logger):
+        """Changing the title via UPDATE should clear normalized_experience_title so it re-derives."""
+        # GIVEN an existing experience that already has a normalized title
+        existing = _create_collected_data(index=0, experience_title="Baker", company="Bread Co.")
+        existing.normalized_experience_title = "Pastry maker"
+        given_collected_data = [existing]
+
+        # AND an UPDATE that changes the title
+        given_experiences_data = [
+            create_experience_data(data_operation="UPDATE", index=0, experience_title="Cake decorator")
+        ]
+
+        # WHEN processing the update
+        _, actual_collected_data = processor.process(given_experiences_data, given_collected_data, 2)
+
+        # THEN the title is updated AND the normalized title is reset to None
+        assert actual_collected_data[0].experience_title == "Cake decorator"
+        assert actual_collected_data[0].normalized_experience_title is None
+
+    def test_update_without_title_change_keeps_normalized_title(self, processor, mock_logger):
+        """An UPDATE that does not change the title should preserve normalized_experience_title."""
+        # GIVEN an existing experience with a normalized title
+        existing = _create_collected_data(index=0, experience_title="Baker", company="Bread Co.")
+        existing.normalized_experience_title = "Pastry maker"
+        given_collected_data = [existing]
+
+        # AND an UPDATE that changes only the company (title repeated unchanged)
+        given_experiences_data = [
+            create_experience_data(data_operation="UPDATE", index=0, experience_title="Baker", company="New Bakery")
+        ]
+
+        # WHEN processing the update
+        _, actual_collected_data = processor.process(given_experiences_data, given_collected_data, 2)
+
+        # THEN the normalized title is preserved
+        assert actual_collected_data[0].company == "New Bakery"
+        assert actual_collected_data[0].normalized_experience_title == "Pastry maker"
+
+    def test_merge_add_changing_title_resets_normalized_title(self, processor, mock_logger):
+        """An ADD that merges into an existing experience and changes its title clears the normalized title."""
+        # GIVEN an existing experience (with a normalized title) that an ADD will merge into
+        existing = _create_collected_data(index=0, experience_title="Baker", company="Bread Co.")
+        existing.normalized_experience_title = "Pastry maker"
+        given_collected_data = [existing]
+
+        # AND an ADD with the same work_type but a case-changed title (matches for merge, yet differs)
+        given_experiences_data = [
+            create_experience_data(data_operation="ADD", index=0, experience_title="baker", company="New Bakery")
+        ]
+
+        # WHEN processing the operations
+        _, actual_collected_data = processor.process(given_experiences_data, given_collected_data, 2)
+
+        # THEN it merged into one record AND the normalized title was reset
+        assert len(actual_collected_data) == 1
+        assert actual_collected_data[0].experience_title == "baker"
+        assert actual_collected_data[0].normalized_experience_title is None
+
     def test_update_invalid_index(self, processor, mock_logger):
         """Should handle update with invalid index gracefully."""
         # GIVEN existing collected data with one experience
