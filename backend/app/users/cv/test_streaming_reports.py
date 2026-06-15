@@ -43,6 +43,7 @@ def mock_experience_entity():
     mock_entity = MagicMock(spec=ExperienceEntity)
     mock_entity.uuid = "exp-123"
     mock_entity.experience_title = "Software Developer"
+    mock_entity.normalized_experience_title = None
     mock_entity.company = "Tech Company"
     mock_entity.timeline = None
     mock_entity.work_type = None
