@@ -13,7 +13,7 @@ from app.agent.experience import WorkType
 
 def _create_collected_data(
         index: int,
-        experience_title: str,
+        experience_title: Optional[str],
         company: Optional[str] = None,
         
         start_date: Optional[str] = None,
@@ -188,6 +188,120 @@ class TestExperienceDataProcessor:
         # AND should log both additions
         mock_logger.info.assert_any_call("Adding new experience with index: %s", 1)
         mock_logger.info.assert_any_call("Adding new experience with index: %s", 2)
+
+    def test_add_two_experiences_with_similar_titles_are_not_merged(self, processor, mock_logger):
+        """Should NOT merge two distinct experiences that merely share a title substring."""
+        # GIVEN empty collected data
+        given_collected_data = []
+
+        # AND two ADD operations with similar (but distinct) titles
+        given_experiences_data = [
+            create_experience_data(
+                data_operation="ADD",
+                index=0,
+                experience_title="Retail Sales Assistant",
+                company="Shoprite",
+                start_date="2020",
+                end_date="2022",
+                paid_work=True,
+                work_type=WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT.name
+            ),
+            create_experience_data(
+                data_operation="ADD",
+                index=1,
+                experience_title="Retail Sales Assistant and School Admin",
+                company="Springfield Primary School",
+                paid_work=True,
+                work_type=WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT.name
+            )
+        ]
+
+        # AND current turn index
+        given_current_turn_index = 2
+
+        # WHEN processing the experience operations
+        actual_last_processed_index, actual_collected_data = processor.process(
+            given_experiences_data, given_collected_data, given_current_turn_index
+        )
+
+        # THEN both experiences are kept as separate entries (not merged)
+        assert len(actual_collected_data) == 2
+        assert actual_collected_data[0].experience_title == "Retail Sales Assistant"
+        assert actual_collected_data[0].company == "Shoprite"
+        assert actual_collected_data[1].experience_title == "Retail Sales Assistant and School Admin"
+        assert actual_collected_data[1].company == "Springfield Primary School"
+
+    def test_add_duplicate_experience_is_merged(self, processor, mock_logger):
+        """Should merge an ADD that exactly matches an existing experience's title and work type."""
+        # GIVEN an existing experience
+        given_collected_data = [
+            _create_collected_data(
+                index=0,
+                experience_title="Retail Sales Assistant",
+                company=None,
+                work_type=WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT.name
+            )
+        ]
+
+        # AND a new ADD with the exact same title/work type (re-mention of the same job)
+        given_experiences_data = [
+            create_experience_data(
+                data_operation="ADD",
+                index=1,
+                experience_title="Retail Sales Assistant",
+                company="Shoprite",
+                start_date="2020",
+                end_date="2022",
+                work_type=WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT.name
+            )
+        ]
+
+        # AND current turn index
+        given_current_turn_index = 3
+
+        # WHEN processing the experience operations
+        actual_last_processed_index, actual_collected_data = processor.process(
+            given_experiences_data, given_collected_data, given_current_turn_index
+        )
+
+        # THEN the experiences are merged (not duplicated)
+        assert len(actual_collected_data) == 1
+        assert actual_collected_data[0].experience_title == "Retail Sales Assistant"
+        assert actual_collected_data[0].company == "Shoprite"
+        assert actual_collected_data[0].start_date == "2020"
+
+    def test_add_same_title_different_work_type_are_not_merged(self, processor, mock_logger):
+        """Two ADDs sharing a title but with DIFFERENT work types must not be merged."""
+        # GIVEN empty collected data
+        given_collected_data = []
+
+        # AND two ADDs with the same title but different work types
+        given_experiences_data = [
+            create_experience_data(
+                data_operation="ADD",
+                index=0,
+                experience_title="Asistente",
+                company="Coto",
+                work_type=WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT.name
+            ),
+            create_experience_data(
+                data_operation="ADD",
+                index=1,
+                experience_title="Asistente",
+                company="Hospital",
+                work_type=WorkType.UNSEEN_UNPAID.name
+            )
+        ]
+
+        # WHEN processing the operations
+        actual_last_processed_index, actual_collected_data = processor.process(
+            given_experiences_data, given_collected_data, 2
+        )
+
+        # THEN both are kept (different work types => not duplicates)
+        assert len(actual_collected_data) == 2
+        assert {e.work_type for e in actual_collected_data} == {
+            WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT.name, WorkType.UNSEEN_UNPAID.name}
 
     # UPDATE operation tests
     def test_update_existing_experience(self, processor, mock_logger):
@@ -630,6 +744,171 @@ class TestExperienceDataProcessor:
         # AND should log the empty experience removal
         mock_logger.warning.assert_any_call("Updated experience became empty and will be removed: %s",
                                             mock_logger.warning.call_args[0][1])
+
+    def test_update_with_contradicting_work_type_is_rerouted_to_add(self, processor, mock_logger):
+        """Should re-route a contradicting UPDATE to a new ADD instead of overwriting an unrelated record."""
+        # GIVEN an already-stored waged supermarket experience
+        given_collected_data = [
+            _create_collected_data(
+                index=0,
+                experience_title="Repositor en supermercado",
+                company="Coto",
+                start_date="2021",
+                end_date="2023",
+                paid_work=True,
+                work_type=WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT.name
+            )
+        ]
+
+        # AND an UPDATE that points at index 0 but describes a DIFFERENT, unpaid-care
+        # experience (the documented mis-merge: the LLM picked a valid-but-wrong index)
+        given_experiences_data = [
+            create_experience_data(
+                data_operation="UPDATE",
+                index=0,
+                experience_title="Cuidando a mi abuela",
+                work_type=WorkType.UNSEEN_UNPAID.name
+            )
+        ]
+
+        # AND current turn index
+        given_current_turn_index = 5
+
+        # WHEN processing the experience operations
+        actual_last_processed_index, actual_collected_data = processor.process(
+            given_experiences_data, given_collected_data, given_current_turn_index
+        )
+
+        # THEN the original supermarket record is preserved untouched
+        assert len(actual_collected_data) == 2
+        supermarket = actual_collected_data[0]
+        assert supermarket.index == 0
+        assert supermarket.experience_title == "Repositor en supermercado"
+        assert supermarket.work_type == WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT.name
+        assert supermarket.start_date == "2021"
+        assert supermarket.end_date == "2023"
+        assert supermarket.paid_work is True
+
+        # AND the unpaid-care experience is stored as its own new record
+        care = actual_collected_data[1]
+        assert care.experience_title == "Cuidando a mi abuela"
+        assert care.work_type == WorkType.UNSEEN_UNPAID.name
+
+        # AND no UPDATE was applied (the op was re-routed to an ADD)
+        assert actual_last_processed_index == -1
+
+    def test_update_fills_skeletal_record_with_different_work_type_proceeds(self, processor, mock_logger):
+        """Should let an UPDATE fill a title-less skeleton record even with a different work type."""
+        # GIVEN a skeletal record (no title yet, only a start date) tentatively classified as unpaid
+        given_collected_data = [
+            _create_collected_data(
+                index=0,
+                experience_title=None,
+                start_date="2021",
+                work_type=WorkType.UNSEEN_UNPAID.name
+            )
+        ]
+
+        # AND an UPDATE that fills in the title with a different work type
+        given_experiences_data = [
+            create_experience_data(
+                data_operation="UPDATE",
+                index=0,
+                experience_title="Repositor en supermercado",
+                work_type=WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT.name
+            )
+        ]
+
+        # WHEN processing the operations
+        actual_last_processed_index, actual_collected_data = processor.process(
+            given_experiences_data, given_collected_data, 2
+        )
+
+        # THEN the update was applied in place (not re-routed)
+        assert len(actual_collected_data) == 1
+        assert actual_last_processed_index == 0
+        assert actual_collected_data[0].experience_title == "Repositor en supermercado"
+        assert actual_collected_data[0].work_type == WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT.name
+
+    def test_update_same_work_type_title_change_is_not_rerouted(self, processor, mock_logger):
+        """Should allow a title refinement within the same work type (guard does not fire)."""
+        # GIVEN a stored waged experience
+        given_collected_data = [
+            _create_collected_data(
+                index=0,
+                experience_title="Vendedor",
+                start_date="2021",
+                end_date="2023",
+                work_type=WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT.name
+            )
+        ]
+
+        # AND an UPDATE that refines the title, keeping the SAME work type
+        given_experiences_data = [
+            create_experience_data(
+                data_operation="UPDATE",
+                index=0,
+                experience_title="Repositor en Coto",
+                work_type=WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT.name
+            )
+        ]
+
+        # WHEN processing the operations
+        actual_last_processed_index, actual_collected_data = processor.process(
+            given_experiences_data, given_collected_data, 2
+        )
+
+        # THEN the title is refined in place (guard did not fire)
+        assert len(actual_collected_data) == 1
+        assert actual_last_processed_index == 0
+        assert actual_collected_data[0].experience_title == "Repositor en Coto"
+        assert actual_collected_data[0].work_type == WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT.name
+
+    def test_rerouted_update_merges_into_correct_existing_record(self, processor, mock_logger):
+        """Should merge a re-routed UPDATE into the correct existing record, not duplicate or corrupt it."""
+        # GIVEN a waged job and an unpaid-care experience already stored
+        given_collected_data = [
+            _create_collected_data(
+                index=0,
+                experience_title="Repositor en supermercado",
+                start_date="2021",
+                end_date="2023",
+                paid_work=True,
+                work_type=WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT.name
+            ),
+            _create_collected_data(
+                index=1,
+                experience_title="Cuidando a mi abuela",
+                work_type=WorkType.UNSEEN_UNPAID.name
+            )
+        ]
+
+        # AND an UPDATE mis-targeted at the waged record (index 0) but describing the unpaid-care one
+        given_experiences_data = [
+            create_experience_data(
+                data_operation="UPDATE",
+                index=0,
+                experience_title="Cuidando a mi abuela",
+                start_date="2020",
+                work_type=WorkType.UNSEEN_UNPAID.name
+            )
+        ]
+
+        # WHEN processing the operations
+        actual_last_processed_index, actual_collected_data = processor.process(
+            given_experiences_data, given_collected_data, 4
+        )
+
+        # THEN no third record is created: the re-routed ADD merged into the correct unpaid-care
+        # record, and the waged record is left untouched
+        assert len(actual_collected_data) == 2
+        assert actual_collected_data[0].experience_title == "Repositor en supermercado"
+        assert actual_collected_data[0].work_type == WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT.name
+        assert actual_collected_data[0].start_date == "2021"
+        care = actual_collected_data[1]
+        assert care.experience_title == "Cuidando a mi abuela"
+        assert care.work_type == WorkType.UNSEEN_UNPAID.name
+        assert care.start_date == "2020"  # merged in from the re-routed ADD
 
 
 class TestDataOperation:

@@ -67,7 +67,8 @@ class OperationsProcessor:
 
             if data_operation == DataOperation.UPDATE:
                 last_processed_index = self._process_update_operation(
-                    _data, collected_experience_data_so_far, index_mapping, pending_delete_original_indexes)
+                    _data, collected_experience_data_so_far, index_mapping,
+                    pending_delete_original_indexes, pending_add_payloads)
 
             elif data_operation == DataOperation.DELETE:
                 pending_delete_original_indexes.append(_data.index)
@@ -87,11 +88,22 @@ class OperationsProcessor:
         return last_processed_index, collected_experience_data_so_far
 
     def _process_update_operation(self, _data, collected_experience_data_so_far: list[CollectedData],
-                                  index_mapping: dict, pending_delete_original_indexes: list[int]) -> int:
+                                  index_mapping: dict, pending_delete_original_indexes: list[int],
+                                  pending_add_payloads: list) -> int:
         """Process an UPDATE operation."""
         current_index = index_mapping.get(_data.index, -1)
         if 0 <= current_index < len(collected_experience_data_so_far):
             to_update = collected_experience_data_so_far[current_index]
+
+            # Re-route a mis-indexed UPDATE to a new ADD instead of overwriting an unrelated record.
+            if self._is_mistargeted_update(_data, to_update):
+                self.logger.warning(
+                    "UPDATE index:%s contradicts target work type (op=%s, target=%s); "
+                    "re-routing as ADD to avoid overwriting an unrelated experience",
+                    _data.index, _data.work_type, to_update.work_type)
+                pending_add_payloads.append(_data)
+                return -1
+
             before_update = to_update.model_dump()
             self.logger.info("Updating experience with index: %s", _data.index)
 
@@ -134,6 +146,19 @@ class OperationsProcessor:
             self.logger.warn("Invalid index:%s for updating experience", _data.index)
             return -1
 
+    @staticmethod
+    def _is_mistargeted_update(_data: CollectedData, to_update: CollectedData) -> bool:
+        """True when an UPDATE looks mis-indexed (different title over a non-empty one, with a work type contradicting the target's)."""
+        existing_title = (to_update.experience_title or "").strip()
+        new_title = (_data.experience_title or "").strip()
+        if not existing_title or not new_title or new_title.lower() == existing_title.lower():
+            return False
+        incoming_work_type = WorkType.from_string_key(_data.work_type)
+        target_work_type = WorkType.from_string_key(to_update.work_type)
+        return (incoming_work_type is not None
+                and target_work_type is not None
+                and incoming_work_type != target_work_type)
+
     def _apply_pending_deletes(self, pending_delete_original_indexes: list[int],
                                collected_experience_data_so_far: list[CollectedData],
                                index_mapping: dict):
@@ -150,7 +175,8 @@ class OperationsProcessor:
     def _apply_pending_adds(self, pending_add_payloads: list,
                             collected_experience_data_so_far: list[CollectedData],
                             current_turn_index: int):
-        """Apply all pending add operations."""
+        """Apply all pending add operations, merging into an existing experience when it has
+        the same work type and the exact same title instead of creating a duplicate."""
         next_available_index = (
                 max([existing_item.index for existing_item in collected_experience_data_so_far]) + 1
         ) if collected_experience_data_so_far else 0
@@ -162,25 +188,72 @@ class OperationsProcessor:
                 self.logger.warning("Skipping empty experience from being added: %s", add_payload)
                 continue
 
+            work_type = WorkType.from_string_key(add_payload.work_type)
+            work_type_str = work_type.name if work_type is not None else None
+
+            # Merge into an existing same-(work type + exact title) experience instead of duplicating.
+            existing_index = self._find_same_experience_for_add(
+                add_payload, work_type_str, collected_experience_data_so_far)
+            if existing_index >= 0:
+                self._merge_add_into_existing(
+                    add_payload, work_type_str, collected_experience_data_so_far[existing_index])
+                self.logger.info("ADD matched existing experience at index:%s; merged instead of adding",
+                                 collected_experience_data_so_far[existing_index].index)
+                continue
+
             new_index = next_available_index + appended_add_count
             appended_add_count += 1
             self.logger.info("Adding new experience with index: %s", new_index)
-
-            work_type = WorkType.from_string_key(add_payload.work_type)
-            work_type = work_type.name if work_type is not None else None
 
             new_item = CollectedData(
                 index=new_index,
                 defined_at_turn_number=current_turn_index,
                 experience_title=add_payload.experience_title,
                 paid_work=add_payload.paid_work,
-                work_type=work_type,
+                work_type=work_type_str,
                 start_date=add_payload.start_date,
                 end_date=add_payload.end_date,
                 company=add_payload.company,
                 # location=add_payload.location
             )
             collected_experience_data_so_far.append(new_item)
+
+    @staticmethod
+    def _find_same_experience_for_add(add_payload: CollectedData, work_type_str: str | None,
+                                      collected: list[CollectedData]) -> int:
+        """Index of an existing experience with the same work_type and exact (case-insensitive) title, else -1.
+
+        Exact (not substring) match avoids merging distinct experiences that share a title prefix.
+        """
+        new_title = (add_payload.experience_title or "").strip().lower()
+        if not new_title:
+            return -1
+        for i, existing in enumerate(collected):
+            if (existing.work_type or "").strip() != (work_type_str or "").strip():
+                continue
+            existing_title = (existing.experience_title or "").strip().lower()
+            if not existing_title:
+                continue
+            if new_title == existing_title:
+                return i
+        return -1
+
+    @staticmethod
+    def _merge_add_into_existing(add_payload: CollectedData, work_type_str: str | None, existing: CollectedData):
+        """Overwrite an existing experience's fields with the non-None values from the ADD payload."""
+        if add_payload.experience_title is not None:
+            existing.experience_title = add_payload.experience_title
+        if add_payload.paid_work is not None:
+            existing.paid_work = add_payload.paid_work
+        if work_type_str is not None:
+            existing.work_type = work_type_str
+        if add_payload.start_date is not None:
+            existing.start_date = add_payload.start_date
+        if add_payload.end_date is not None:
+            existing.end_date = add_payload.end_date
+        if add_payload.company is not None:
+            existing.company = add_payload.company
+        # location intentionally omitted — our fork dropped the location field
 
     @staticmethod
     def _is_experience_empty(experience: CollectedData) -> bool:
