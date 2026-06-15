@@ -136,6 +136,105 @@ test_cases = [
             "timeline": DictContaining({"start": ContainsString("2020")}),
         }]
     ),
+    # Regression case (es-AR) for the UPDATE/correction flow: the user mis-states a single
+    # experience and then corrects it — first the dates, then the work type (says it was
+    # volunteering, later corrects to a paid job with a contract). The agent must UPDATE the
+    # SAME experience, not ADD a second one, ending with exactly 1 waged experience. Guards the
+    # mis-merge fix + op-selection nudge against breaking legitimate same-experience edits.
+    # es-AR localization of `single_experience_mistake_e2e`.
+    CollectExperiencesAgentTestCase(
+        name='argentina_single_experience_mistake_es',
+        locale=Locale.ES_AR,
+        country_of_user=Country.ARGENTINA,
+        simulated_user_prompt=dedent("""
+            Actuá como una persona joven de Argentina. Estás chateando con un bot para armar tu CV.
+            Usá jerga argentina (laburo, guita, dale, buenísimo). Sé conciso/a. No inventes información.
+
+            Tu única experiencia es:
+            - Profesor/a de danza en la academia Estudio Movimiento, con contrato y sueldo, hasta hoy.
+
+            Reglas importantes:
+            - La primera vez que digas desde cuándo trabajás ahí, equivocate y decí que empezaste en 2010.
+              Solo cuando te pregunten más detalles, corregí: en realidad empezaste en 2018 y seguís hasta hoy.
+            - La primera vez que lo menciones, decí que era un laburo voluntario, sin sueldo.
+              Cuando te den la oportunidad de aclarar, corregí: en realidad era un laburo pago, con contrato.
+            - Es una sola experiencia: no son dos laburos distintos, es el mismo, lo estás corrigiendo.
+            - No tenés otras experiencias: nunca hiciste una pasantía, ni otro laburo, ni un emprendimiento propio.
+            - Si te preguntan de nuevo algo que ya respondiste, repetí brevemente la misma respuesta.
+            Respondé "sí" o "no" cuando corresponda. Decí "así está bien" si te piden confirmar.
+            """),
+        evaluations=[Evaluation(type=EvaluationType.SINGLE_LANGUAGE, expected=100)],
+        expected_experiences_count_min=1,
+        expected_experiences_count_max=1,
+        expected_work_types={WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT: (1, 1),
+                             WorkType.SELF_EMPLOYMENT: (0, 0),
+                             WorkType.FORMAL_SECTOR_UNPAID_TRAINEE_WORK: (0, 0),
+                             WorkType.UNSEEN_UNPAID: (0, 0)},
+        matchers=["matcher"],
+        expected_experience_data=[{
+            "experience_title": AnyOf(ContainsString("danza"), ContainsString("baile"),
+                                      ContainsString("profesor"), ContainsString("instructor")),
+            "company": AnyOf(ContainsString("movimiento"), ContainsString("academia"),
+                             ContainsString("estudio")),
+            "timeline": DictContaining({"start": ContainsString("2018")}),
+        }]
+    ),
+    # Regression case (es-AR) for progressive disclosure: three experiences revealed over several
+    # turns, with details filled in afterwards. Exercises the UPDATE/refinement path (filling
+    # skeletal records) and the ADD-dedup (re-mentioned experiences must not duplicate).
+    # es-AR localization of `progressive_experience_disclosure_e2e`.
+    CollectExperiencesAgentTestCase(
+        name='argentina_progressive_experience_disclosure_es',
+        locale=Locale.ES_AR,
+        country_of_user=Country.ARGENTINA,
+        simulated_user_prompt=dedent("""
+            Actuá como una persona joven de Argentina con varias experiencias. Estás chateando con un bot
+            para armar tu CV. Usá jerga argentina (laburo, guita, dale). Sé conciso/a. No inventes información.
+            Vas a contar la información de a poco, solo cuando el bot te la pida.
+
+            #Primera respuesta (cuando te pregunten por tus experiencias):
+            "Tengo 3 experiencias principales:
+            1. Desarrollador/a de software (2020-2022) - laburo pago en relación de dependencia
+            2. Diseñador/a web freelance (2023-actualidad) - por mi cuenta
+            3. Voluntario/a en un refugio de animales (2019-2021) - sin sueldo"
+
+            #Segunda respuesta (cuando te pidan más detalles del laburo de software):
+            "Trabajé como desarrollador/a de software en la empresa TechAr, en Buenos Aires, de 2020 a 2022.
+            Era un puesto full time, pago, en relación de dependencia, haciendo aplicaciones web y móviles."
+
+            #Tercera respuesta (cuando te pidan más detalles del laburo de diseño web freelance):
+            "Hago diseño web freelance desde casa, en Córdoba, desde 2023. Trabajo con varios clientes,
+            armo sitios de e-commerce y branding. Soy independiente, facturo como monotributista."
+
+            #Cuarta respuesta (cuando te pregunten si tenés otras experiencias):
+            "También fui voluntario/a en un refugio de animales los fines de semana, de 2019 a 2021.
+            Era sin sueldo, ayudaba con el cuidado de los animales y eventos de adopción."
+
+            Da la información de a poco, a medida que el bot te la pida. No agregues información de más.
+            No tenés más experiencias que esas tres.
+            """),
+        evaluations=[Evaluation(type=EvaluationType.SINGLE_LANGUAGE, expected=100)],
+        expected_experiences_count_min=3,
+        expected_experiences_count_max=3,
+        expected_work_types={WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT: (1, 1),
+                             WorkType.SELF_EMPLOYMENT: (1, 1),
+                             WorkType.FORMAL_SECTOR_UNPAID_TRAINEE_WORK: (0, 0),
+                             WorkType.UNSEEN_UNPAID: (1, 1)},
+        matchers=["matcher"],
+        expected_experience_data=[{
+            "experience_title": AnyOf(ContainsString("software"), ContainsString("desarrollador"),
+                                      ContainsString("programador")),
+            "company": ContainsString("tech"),
+            "timeline": {"start": ContainsString("2020"), "end": ContainsString("2022")},
+        }, {
+            "experience_title": AnyOf(ContainsString("web"), ContainsString("diseñ")),
+            "timeline": DictContaining({"start": ContainsString("2023")}),
+        }, {
+            "experience_title": AnyOf(ContainsString("voluntari"), ContainsString("refugio"),
+                                      ContainsString("animal")),
+            "timeline": DictContaining({"start": ContainsString("2019")}),
+        }]
+    ),
     CollectExperiencesAgentTestCase(
         name='monther_of_two_e2e',
         simulated_user_prompt=dedent("""

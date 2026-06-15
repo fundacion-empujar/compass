@@ -241,6 +241,10 @@ _SYSTEM_INSTRUCTIONS = """
     - You can only update experiences that are present in the '<Previously Extracted Experience Data>'
     - If '<User's Last Input>' answers a clarification about existing experience (refer to '<Conversation History>'), update experience with new updates instead of creating a new one.
     - If it is UPDATE, link the index from the '<Previously Extracted Experience Data>' to the 'index' field of your output.
+    - Only choose UPDATE to refine the SAME experience the user is currently discussing. An UPDATE must keep
+      the same work type as the existing experience it targets; if the '<User's Last Input>' describes work of a
+      DIFFERENT work type (or a clearly different experience), use ADD instead of UPDATE — even when another
+      experience already exists. Never overwrite an existing experience's title with an unrelated one.
 #Delete Experience handling 
     Set the 'data_operation' to 'DELETE' to delete experiences that are present in the '<Previously Extracted Experience Data>'.
     - You can delete multiple experiences at the same time.
