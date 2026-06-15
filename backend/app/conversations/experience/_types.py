@@ -92,6 +92,12 @@ class ExperienceResponse(BaseModel):
     Title of the experience as the user refers to it (e.g. "Crew Member")
     """
 
+    normalized_experience_title: Optional[str] = None
+    """
+    Professionalized / taxonomy-aligned title for display only. The frontend falls back to
+    experience_title when this is absent; the raw experience_title is never overwritten.
+    """
+
     company: Optional[str] = None
     """
     Company name (e.g. "at McDonald's")
@@ -160,6 +166,7 @@ class ExperienceResponse(BaseModel):
         return ExperienceResponse(
             UUID=experience_entity.uuid,
             experience_title=experience_entity.experience_title,
+            normalized_experience_title=experience_entity.normalized_experience_title,
             company=experience_entity.company,
             # location=experience_entity.location,
             timeline=experience_entity.timeline,

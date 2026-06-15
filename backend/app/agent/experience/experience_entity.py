@@ -66,6 +66,12 @@ class ExperienceEntity(BaseModel, Generic[SkillEntityT]):
     Title of the experience as the user refers to it (e.g. "Crew Member")
     """
 
+    normalized_experience_title: Optional[str] = None
+    """
+    Professionalized / taxonomy-aligned title for display only (e.g. "Vendedora de repostería").
+    Falls back to experience_title when absent; the raw experience_title is never overwritten.
+    """
+
     company: Optional[str] = None
     """
     Company name (e.g. "at McDonald's")
@@ -144,6 +150,7 @@ class ExperienceEntity(BaseModel, Generic[SkillEntityT]):
 
     def __init__(self, *,
                  experience_title: str,
+                 normalized_experience_title: Optional[str] = None,
                  company: Optional[str] = None,
                  timeline: Optional[Timeline] = None,
                  work_type: Optional[WorkType] = None,
@@ -158,6 +165,7 @@ class ExperienceEntity(BaseModel, Generic[SkillEntityT]):
         super().__init__(
             uuid=uuid if uuid is not None else str(uuid4()),  # Generate a unique UUID for each instance
             experience_title=experience_title,
+            normalized_experience_title=normalized_experience_title,
             company=company,
             timeline=timeline,
             work_type=work_type,
@@ -185,6 +193,7 @@ class ExperienceEntity(BaseModel, Generic[SkillEntityT]):
 
     @staticmethod
     def get_structured_summary(*, experience_title: str,
+                               normalized_experience_title: Optional[str] = None,
                                work_type: Optional[str] = None,
                                start_date: Optional[str] = None,
                                end_date: Optional[str] = None,
@@ -203,7 +212,7 @@ class ExperienceEntity(BaseModel, Generic[SkillEntityT]):
         _work_type = WorkType.from_string_key(work_type)
         work_type_part = f" ({ExperienceEntity._tr_work_type_short(_work_type)})" if _work_type is not None else ""
         if experience_title is not None:
-            experience_title_part = experience_title
+            experience_title_part = normalized_experience_title or experience_title
         else:
             experience_title_part = t("messages", "experience.noTitleProvidedYet")
         return experience_title_part + work_type_part + date_part + company_part + "\n"
