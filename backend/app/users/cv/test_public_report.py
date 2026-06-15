@@ -34,6 +34,7 @@ async def test_get_public_report_success(app):
     mock_entity = MagicMock(spec=ExperienceEntity)
     mock_entity.uuid = "exp-1"
     mock_entity.experience_title = "Developer"
+    mock_entity.normalized_experience_title = None
     mock_entity.company = "Tech Corp"
     mock_entity.timeline = None
     mock_entity.work_type = None
