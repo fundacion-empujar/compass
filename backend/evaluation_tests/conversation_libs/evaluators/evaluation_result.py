@@ -39,6 +39,7 @@ class EvaluationType(Enum):
     SUMMARY_CONSISTENCY = "Summary Consistency"
     SUMMARY_RELEVANCE = "Summary Relevance"
     SINGLE_LANGUAGE = "Single Language"
+    RECAP_CONSISTENCY = "Recap Consistency"
 
 
 class EvaluationResult(BaseModel):

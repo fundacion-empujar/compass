@@ -235,6 +235,52 @@ test_cases = [
             "timeline": DictContaining({"start": ContainsString("2019")}),
         }]
     ),
+    # Recap-fidelity regression guard: the user volunteers duties/skills for each experience (NOT stored
+    # fields); a faithful recap lists only stored fields (title, work type, company, dates) per experience
+    # and never interpolates duties across them. Two distinct work types cover the multi-experience path.
+    CollectExperiencesAgentTestCase(
+        name='argentina_recap_no_embellish_es',
+        locale=Locale.ES_AR,
+        country_of_user=Country.ARGENTINA,
+        simulated_user_prompt=dedent("""
+            Actuá como una persona joven de Argentina. Estás chateando con un bot para armar tu CV.
+            Usá jerga argentina (laburo, guita, dale, buenísimo). Sé conciso/a. No inventes información.
+
+            Tus experiencias son exactamente estas dos:
+            - Cajero/a en el supermercado Carrefour, desde marzo de 2019 hasta junio de 2022.
+            - Cuidado de tu abuela, desde 2020 hasta hoy (sigue en curso, es tu familia, no hay empresa).
+
+            Importante — sé MUY charlatán/charlatana sobre lo que hacías: desde el principio, sin que te lo
+            pregunten, contá con detalle TODAS las tareas y habilidades de CADA experiencia, y si el bot dice
+            que esas tareas las verán más adelante, igual ya las mencionaste y volvé a nombrarlas si surge:
+            - En el Carrefour: atendías la caja registradora, reponías las góndolas, ayudabas a los clientes
+              a encontrar productos, resolvías reclamos y quejas, y entrenabas a los cajeros nuevos.
+            - Con tu abuela: le cocinabas, la bañabas, le dabas los remedios y la llevabas al médico.
+
+            Reglas:
+            - Cuando menciones el supermercado, decí que eras cajero/a en el Carrefour.
+            - Para tu abuela: no hay empresa ni organización, es tu familia.
+            - No tenés ninguna otra experiencia: nunca hiciste una pasantía, ni un emprendimiento propio,
+              ni otro laburo, ni otro voluntariado.
+            Respondé "sí" o "no" cuando corresponda. Decí "así está bien, nada más" si te piden confirmar el resumen.
+            """),
+        evaluations=[Evaluation(type=EvaluationType.SINGLE_LANGUAGE, expected=100),
+                     Evaluation(type=EvaluationType.RECAP_CONSISTENCY, expected=80)],
+        expected_experiences_count_min=2,
+        expected_experiences_count_max=2,
+        expected_work_types={WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT: (1, 1),
+                             WorkType.SELF_EMPLOYMENT: (0, 0),
+                             WorkType.FORMAL_SECTOR_UNPAID_TRAINEE_WORK: (0, 0),
+                             WorkType.UNSEEN_UNPAID: (1, 1)},
+        matchers=["matcher"],
+        expected_experience_data=[{
+            # Title + company only: guards recap fidelity, not date extraction (covered by other es-AR cases).
+            "experience_title": AnyOf(ContainsString("cajer"), ContainsString("caja")),
+            "company": AnyOf(ContainsString("carrefour"), ContainsString("super")),
+        }, {
+            "experience_title": AnyOf(ContainsString("abuela"), ContainsString("cuidado")),
+        }]
+    ),
     CollectExperiencesAgentTestCase(
         name='monther_of_two_e2e',
         simulated_user_prompt=dedent("""
