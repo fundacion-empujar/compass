@@ -34,7 +34,7 @@ async def test_get_public_report_success(app):
     mock_entity = MagicMock(spec=ExperienceEntity)
     mock_entity.uuid = "exp-1"
     mock_entity.experience_title = "Developer"
-    mock_entity.normalized_experience_title = None
+    mock_entity.normalized_experience_title = "Software Developer"
     mock_entity.company = "Tech Corp"
     mock_entity.timeline = None
     mock_entity.work_type = None
@@ -58,7 +58,9 @@ async def test_get_public_report_success(app):
     data = response.json()
     assert data["user_id"] == "user-1"
     assert len(data["experiences"]) == 1
+    # raw title is preserved AND the normalized title is carried through to the response
     assert data["experiences"][0]["experience_title"] == "Developer"
+    assert data["experiences"][0]["normalized_experience_title"] == "Software Developer"
 
 @pytest.mark.asyncio
 async def test_get_public_report_not_found(app):
