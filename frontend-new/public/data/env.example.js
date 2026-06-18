@@ -72,4 +72,11 @@ window.tabiyaConfig = {
   // #       Optional Features settings
   // ################################################################
   FRONTEND_FEATURES: btoa("{}"),
+
+  // ################################################################
+  // #       Analytics / Google Tag Manager
+  // ################################################################
+  // Disabled by default locally; set per-environment via Secret Manager (see iac/cfgs).
+  FRONTEND_GTM_ENABLED: btoa("false"),
+  FRONTEND_GTM_CONTAINER_ID: btoa("GTM-XXXXXXX"),
 };

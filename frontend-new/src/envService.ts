@@ -24,6 +24,8 @@ export enum EnvVariables {
   FRONTEND_DEFAULT_LOCALE = "FRONTEND_DEFAULT_LOCALE",
   FRONTEND_DATE_PATTERN = "FRONTEND_DATE_PATTERN",
   FRONTEND_DATE_SPLITTER = "FRONTEND_DATE_SPLITTER",
+  FRONTEND_GTM_CONTAINER_ID = "FRONTEND_GTM_CONTAINER_ID",
+  FRONTEND_GTM_ENABLED = "FRONTEND_GTM_ENABLED",
 }
 
 export const requiredEnvVariables = [
@@ -195,6 +197,14 @@ export const getDatePattern = () => {
 
 export const getDateSplitter = () => {
   return getEnv(EnvVariables.FRONTEND_DATE_SPLITTER);
+};
+
+export const getGtmContainerId = () => {
+  return getEnv(EnvVariables.FRONTEND_GTM_CONTAINER_ID);
+};
+
+export const getGtmEnabled = () => {
+  return getEnv(EnvVariables.FRONTEND_GTM_ENABLED);
 };
 
 export const ensureRequiredEnvVars = () => {

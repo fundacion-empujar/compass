@@ -13,4 +13,6 @@ jest.mock("src/envService", () => ({
   getSupportedLocales: jest.fn(() => JSON.stringify([])),
   getDefaultLocale: jest.fn(() => "en-US"),
   getTargetEnvironmentName: jest.fn(() => "local"),
+  getGtmContainerId: jest.fn(() => ""),
+  getGtmEnabled: jest.fn(() => "false"),
 }));

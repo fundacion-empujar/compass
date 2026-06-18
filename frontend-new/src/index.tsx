@@ -12,12 +12,16 @@ import * as Sentry from "@sentry/react";
 import { AppErrorFallback } from "src/error/errorPage/AppErrorFallback";
 
 import { initSentry } from "./sentryInit";
+import { initGTM } from "src/services/analytics/gtmInit";
 import { ensureRequiredEnvVars } from "./envService";
 
 import "./i18n/i18n";
 
 // initialize react sentry for log aggregation
 initSentry();
+
+// initialize Google Tag Manager for analytics (per-environment, see gtmInit)
+initGTM();
 
 // Ensure all required environment variables are set
 ensureRequiredEnvVars();
