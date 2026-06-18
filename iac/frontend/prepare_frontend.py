@@ -130,6 +130,10 @@ def _construct_env_js_content(*, artifacts_dir: str, stack_name: str):
     supported_languages: str = getenv("FRONTEND_SUPPORTED_LANGUAGES", False, False)
     default_language: str = getenv("FRONTEND_DEFAULT_LOCALE", False, False)
 
+    # Google Tag Manager / analytics (optional, per-environment)
+    gtm_enabled: Optional[str] = getenv("FRONTEND_GTM_ENABLED", False, False)
+    gtm_container_id: Optional[str] = getenv("FRONTEND_GTM_CONTAINER_ID", False, False)
+
     # validations, apart from the keys are required, some values also need to be validated
     # the sensitive encryption key should be a valid RSA public key.
     _validate_rsa_public_key(sensitive_personal_data_rsa_encryption_key.encode("utf-8"))
@@ -160,6 +164,8 @@ def _construct_env_js_content(*, artifacts_dir: str, stack_name: str):
         "FRONTEND_FEATURES": base64_encode(features),
         "FRONTEND_SUPPORTED_LOCALES": base64_encode(supported_locales),
         "FRONTEND_DEFAULT_LOCALE": base64_encode(default_locale),
+        "FRONTEND_GTM_ENABLED": base64_encode(gtm_enabled or ""),
+        "FRONTEND_GTM_CONTAINER_ID": base64_encode(gtm_container_id or ""),
     }
 
     env_json_content = f"""window.tabiyaConfig = {json.dumps(frontend_env_json, indent=4)};"""
