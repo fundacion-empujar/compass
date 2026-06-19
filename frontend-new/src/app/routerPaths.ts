@@ -10,4 +10,5 @@ export const routerPaths = {
   SENSITIVE_DATA: "/sensitive-data",
   REPORT: "/report/:id",
   BULK_DOWNLOAD_REPORTS: "/bulk-download-reports",
+  ADMIN_PANEL: "/admin-panel",
 };

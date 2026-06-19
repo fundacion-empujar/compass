@@ -506,22 +506,25 @@ def add_public_report_routes(app: FastAPI):
             experience_service: IExperienceService = Depends(get_experience_service),
     ) -> PublicReportResponse:
         try:
-            # 0. Validate Security Token if configured
+            # 0. Validate the admin token (fail-closed). Reports moved off SEC_TOKEN to ADMIN_TOKEN so a
+            #    leaked student registration link (which carries SEC_TOKEN) can no longer read reports.
             normalized_token = normalize_security_token(token)
-            normalized_sec_token = normalize_security_token(os.getenv("SEC_TOKEN"))
-            if normalized_sec_token:
-                if not normalized_token:
-                    log_non_pii_warning(
-                        "Security token required but not provided for public CV report",
-                        {"identifier_present": bool(identifier)},
-                    )
-                    raise HTTPException(status_code=HTTPStatus.UNAUTHORIZED, detail="Security token required")
-                if normalized_sec_token != normalized_token:
-                    log_non_pii_warning(
-                        "Invalid security token provided for public CV report",
-                        {"identifier_present": bool(identifier)},
-                    )
-                    raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="Invalid security token")
+            normalized_admin_token = normalize_security_token(os.getenv("ADMIN_TOKEN"))
+            if not normalized_admin_token:
+                logger.error("ADMIN_TOKEN environment variable not configured")
+                raise HTTPException(status_code=HTTPStatus.SERVICE_UNAVAILABLE, detail="Report access not configured")
+            if not normalized_token:
+                log_non_pii_warning(
+                    "Admin token required but not provided for public CV report",
+                    {"identifier_present": bool(identifier)},
+                )
+                raise HTTPException(status_code=HTTPStatus.UNAUTHORIZED, detail="Admin token required")
+            if normalized_admin_token != normalized_token:
+                log_non_pii_warning(
+                    "Invalid admin token provided for public CV report",
+                    {"identifier_present": bool(identifier)},
+                )
+                raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="Invalid admin token")
 
             # 1. Resolve identifier to user preferences (prefer registration_code)
             preferences = await user_preferences_repository.get_user_preference_by_registration_code(identifier)
@@ -610,10 +613,10 @@ def add_public_report_routes(app: FastAPI):
         - conversation_conducted_at: When the conversation was conducted (if available)
         """
         try:
-            # Validate Security Token - REQUIRED
-            normalized_sec_token = normalize_security_token(os.getenv("SEC_TOKEN"))
-            if not normalized_sec_token:
-                logger.error("SEC_TOKEN environment variable not configured")
+            # Validate the admin token - REQUIRED (reports moved off SEC_TOKEN to ADMIN_TOKEN)
+            normalized_admin_token = normalize_security_token(os.getenv("ADMIN_TOKEN"))
+            if not normalized_admin_token:
+                logger.error("ADMIN_TOKEN environment variable not configured")
                 raise HTTPException(
                     status_code=HTTPStatus.SERVICE_UNAVAILABLE,
                     detail="Bulk download service not configured"
@@ -623,17 +626,17 @@ def add_public_report_routes(app: FastAPI):
 
             if not normalized_token:
                 log_non_pii_warning(
-                    "Security token required but not provided for streaming reports",
+                    "Admin token required but not provided for streaming reports",
                     {"has_date_filter": bool(started_before or started_after)},
                 )
-                raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="Security token required")
+                raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="Admin token required")
 
-            if normalized_sec_token != normalized_token:
+            if normalized_admin_token != normalized_token:
                 log_non_pii_warning(
-                    "Invalid security token provided for streaming reports",
+                    "Invalid admin token provided for streaming reports",
                     {"has_date_filter": bool(started_before or started_after)},
                 )
-                raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="Invalid security token")
+                raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="Invalid admin token")
 
             # Validate date range
             if started_before and started_after and started_after >= started_before:

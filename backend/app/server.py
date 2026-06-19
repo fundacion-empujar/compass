@@ -38,6 +38,7 @@ from app.users.cv.constants import (
     DEFAULT_RATE_LIMIT_PER_MINUTE,
 )
 from app.users.cv.routes import add_public_report_routes
+from app.admin import add_admin_routes
 
 
 def setup_logging():
@@ -386,6 +387,11 @@ add_metrics_routes(app)
 # Add public report routes
 ############################################
 add_public_report_routes(app)
+
+############################################
+# Add admin routes (ADMIN_TOKEN-gated staff panel)
+############################################
+add_admin_routes(app)
 
 ############################################
 # Add POC chat routes

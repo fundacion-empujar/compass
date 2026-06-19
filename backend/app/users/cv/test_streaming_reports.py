@@ -29,12 +29,12 @@ def app():  # pylint: disable=missing-function-docstring
 @pytest.fixture(autouse=True)
 def setup_environment():
     """Set up environment variables for testing."""
-    # Set SEC_TOKEN for all tests
-    os.environ["SEC_TOKEN"] = "valid-token"
+    # Set ADMIN_TOKEN for all tests
+    os.environ["ADMIN_TOKEN"] = "valid-token"
     yield
     # Clean up
-    if "SEC_TOKEN" in os.environ:
-        del os.environ["SEC_TOKEN"]
+    if "ADMIN_TOKEN" in os.environ:
+        del os.environ["ADMIN_TOKEN"]
 
 
 @pytest.fixture
@@ -113,27 +113,27 @@ async def test_stream_reports_success(app, mock_experience_entity):  # pylint: d
 
 @pytest.mark.asyncio
 async def test_stream_reports_with_token_validation(app):  # pylint: disable=redefined-outer-name
-    """Test that the endpoint requires a valid token when SEC_TOKEN is set."""
+    """Test that the endpoint requires a valid token when ADMIN_TOKEN is set."""
     mock_pref_repo = MagicMock(spec=IUserPreferenceRepository)
     mock_exp_service = MagicMock(spec=IExperienceService)
 
     app.dependency_overrides[get_user_preferences_repository] = lambda: mock_pref_repo
     app.dependency_overrides[get_experience_service] = lambda: mock_exp_service
 
-    with patch.dict(os.environ, {"SEC_TOKEN": "valid-token"}):
+    with patch.dict(os.environ, {"ADMIN_TOKEN": "valid-token"}):
         # Test without token
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
             response = await ac.get("/reports?page_size=10")
 
         assert response.status_code == HTTPStatus.FORBIDDEN
-        assert response.json()["detail"] == "Security token required"
+        assert response.json()["detail"] == "Admin token required"
 
         # Test with invalid token
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
             response = await ac.get("/reports?page_size=10&token=invalid-token")
 
         assert response.status_code == HTTPStatus.FORBIDDEN
-        assert response.json()["detail"] == "Invalid security token"
+        assert response.json()["detail"] == "Invalid admin token"
 
 
 @pytest.mark.asyncio
@@ -152,7 +152,7 @@ async def test_stream_reports_with_valid_token(app):  # pylint: disable=redefine
     app.dependency_overrides[get_user_preferences_repository] = lambda: mock_pref_repo
     app.dependency_overrides[get_experience_service] = lambda: mock_exp_service
 
-    with patch.dict(os.environ, {"SEC_TOKEN": "valid-token"}):
+    with patch.dict(os.environ, {"ADMIN_TOKEN": "valid-token"}):
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
             response = await ac.get("/reports?page_size=10&token=valid-token")
 
@@ -323,7 +323,7 @@ async def test_stream_reports_case_insensitive_token(app):  # pylint: disable=re
     app.dependency_overrides[get_user_preferences_repository] = lambda: mock_pref_repo
     app.dependency_overrides[get_experience_service] = lambda: mock_exp_service
 
-    with patch.dict(os.environ, {"SEC_TOKEN": "ValidToken"}):
+    with patch.dict(os.environ, {"ADMIN_TOKEN": "ValidToken"}):
         # Test with lowercase token
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
             response = await ac.get("/reports?page_size=10&token=validtoken")

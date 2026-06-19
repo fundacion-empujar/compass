@@ -462,8 +462,8 @@ class TestGetUploadedCVs:
 class TestPublicReportRoutes:
     @pytest.mark.asyncio
     async def test_get_public_report_with_valid_token(self, monkeypatch):
-        # GIVEN SEC_TOKEN is configured
-        monkeypatch.setenv("SEC_TOKEN", "secret-token-123")
+        # GIVEN ADMIN_TOKEN is configured
+        monkeypatch.setenv("ADMIN_TOKEN", "secret-token-123")
         
         # AND mocked dependencies
         from app.users.cv.routes import add_public_report_routes
@@ -503,8 +503,8 @@ class TestPublicReportRoutes:
 
     @pytest.mark.asyncio
     async def test_get_public_report_without_token_when_required(self, monkeypatch):
-        # GIVEN SEC_TOKEN is configured
-        monkeypatch.setenv("SEC_TOKEN", "secret-token-123")
+        # GIVEN ADMIN_TOKEN is configured
+        monkeypatch.setenv("ADMIN_TOKEN", "secret-token-123")
         
         # AND mocked dependencies (though they won't be called)
         from app.users.cv.routes import add_public_report_routes
@@ -526,4 +526,4 @@ class TestPublicReportRoutes:
         
         # THEN 401 Unauthorized
         assert resp.status_code == HTTPStatus.UNAUTHORIZED
-        assert "Security token required" in resp.json()["detail"]
+        assert "Admin token required" in resp.json()["detail"]

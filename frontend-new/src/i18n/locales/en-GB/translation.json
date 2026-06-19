@@ -1,4 +1,135 @@
 {
+  "admin": {
+    "panel": {
+      "title": "Admin panel",
+      "subtitle": "Choose what you want to do",
+      "unauthorized": "Unauthorized access to the admin panel",
+      "back": "Back",
+      "cards": {
+        "generateLink": {
+          "title": "Create an individual tracking link",
+          "description": "Generate a personal link for one student and track whether they signed up"
+        },
+        "sharedCode": {
+          "title": "Open access for a group",
+          "description": "Create a code that many people can use"
+        },
+        "export": {
+          "title": "See who signed up",
+          "description": "Download a spreadsheet with the codes and who used them"
+        },
+        "reports": {
+          "title": "Download reports",
+          "description": "Download users' skills reports"
+        },
+        "reportLookup": {
+          "title": "Find a student's report",
+          "description": "Search and open a student's report by their code"
+        },
+        "generalFaq": {
+          "title": "Frequently asked questions",
+          "description": "Understand how this all works and what each part is for"
+        }
+      },
+      "generateLink": {
+        "heading": "Create an individual tracking link",
+        "help": "Enter the student's code (their Salesforce ID). We'll give you a personal link for that student: when they register with it, we know it was that specific student.",
+        "codeLabel": "Student code",
+        "codePlaceholder": "For example: 0035cEXAMPLE000001",
+        "submit": "Generate link",
+        "linkReadyTitle": "Your link is ready!",
+        "linkReadyBody": "Tap “Copy link” and send it to the student (via WhatsApp, email, etc.). When they use it to register, you'll be able to see that this person signed up.",
+        "copy": "Copy link",
+        "copied": "Link copied!",
+        "copyFailedHint": "We couldn't copy it automatically. Copy the link from here by hand.",
+        "resultLabel": "Link to share",
+        "alreadyUsedTitle": "This code has already been used",
+        "alreadyUsedBody": "Someone is already registered with this code. Use a different code for a new student.",
+        "error": "We couldn't generate the link. Please try again.",
+        "faq": {
+          "question": "What does this section do?",
+          "answer": "It creates a unique link for one specific student, based on their code (their Salesforce ID). You share that link, and when the person registers with it, we record that it was that student. Use it to track who you invited and who actually signed up."
+        },
+        "usageFaq": {
+          "question": "How many times can this link be used?",
+          "answer": "Just once. Each link is for a single student: when that person registers, the code is used up and can't be used again. If you try to generate a link with a code that's already been used, we warn you with “This code has already been used.” The link doesn't expire by date, but it's tied to that one person."
+        }
+      },
+      "sharedCode": {
+        "heading": "Open access for a group",
+        "help": "Create a code that many people can use to get in. Use it to open access to many people at once — for example, a demo or presentation for a large group.",
+        "codeLabel": "Code name",
+        "codePlaceholder": "For example: group-2026",
+        "typeLabel": "What is the code for?",
+        "typeRegister": "Create an account",
+        "typeLogin": "Enter without an account",
+        "submit": "Create code",
+        "successTitle": "Code created!",
+        "successBody": "The code “{{code}}” is ready to use.",
+        "error": "We couldn't create the code. Please try again.",
+        "faq": {
+          "question": "What does this section do?",
+          "answer": "It creates a shared code that many people can use to register. Unlike the individual link, this does NOT let you track one specific student: it's for opening the door to many people at once. For example, when you're running a demo or a presentation for a large group and you don't care about tracking who used it individually."
+        },
+        "validityFaq": {
+          "question": "How long does the code last?",
+          "answer": "The code is valid for 1 year from the day you create it, and it can be used many, many times (practically unlimited). After that year it stops working and you'll need to create a new one."
+        }
+      },
+      "export": {
+        "heading": "See who signed up",
+        "help": "Download a spreadsheet (CSV) with all the registrations and the codes they used.",
+        "submit": "Download spreadsheet",
+        "success": "Done. The spreadsheet was downloaded.",
+        "error": "We couldn't download the spreadsheet. Please try again.",
+        "faq": {
+          "question": "What does this section do? What columns does it have?",
+          "answer": "It downloads a spreadsheet (CSV) with everyone who signed up. Each row has: the user ID, the code they used, the Type (Individual = registered with a single-student tracking link; Group = used a shared code), and the date they signed up. It opens in Excel or Google Sheets."
+        }
+      },
+      "reportLookup": {
+        "heading": "Find a student's report",
+        "help": "Enter the student's code (or their user ID) to open their report.",
+        "codeLabel": "Student code",
+        "codePlaceholder": "For example: 0035cEXAMPLE000001",
+        "submit": "Open report",
+        "faq": {
+          "question": "What does this section do?",
+          "answer": "It opens one specific student's report (CV) from their code or user ID, without having to download all the reports. It's the same thing you see in “Download reports,” but for a single person."
+        }
+      },
+      "generalFaq": {
+        "heading": "Frequently asked questions",
+        "intro": "A short guide to understand how the codes and reports work.",
+        "why": {
+          "question": "Why do we use individual codes and links?",
+          "answer": "Empujar needs to know whether each specific student actually signed up. Email isn't reliable: people often register with a different email than the one we have, which makes them hard to follow up on. So we give each student their own code (their Salesforce ID). Because that code belongs to a single person, when someone registers with it we know exactly who it was — no matter which email they used — and we can later match them to Salesforce to follow up."
+        },
+        "difference": {
+          "question": "What's the difference between an individual link and a group code?",
+          "answer": "The individual tracking link is for ONE person: it lets you know whether that specific student signed up. The group code is for MANY people at once: it opens access for lots of people at once, but it doesn't tell you who each one is. Use the individual link when you want to track someone in particular; use the group code when you just want to open the door for a lot of people."
+        },
+        "sections": {
+          "question": "What is each section of the panel for?",
+          "answer": "• Create an individual tracking link: generates a personal link for one student.\n• Open access for a group: creates a code many people can use.\n• See who signed up: downloads a spreadsheet with all the registrations.\n• Download reports: downloads users' reports (CVs).\n• Find a student's report: opens one person's report."
+        },
+        "report": {
+          "question": "What is the “report,” the “informe,” or the “CV”?",
+          "answer": "They're three names for the same thing: the document Brújula builds with the student's experiences and skills. Whenever you see “report,” “informe,” or “CV,” we always mean this document. Here's what it looks like:",
+          "thumbnailAlt": "Example of a Brújula report (CV)",
+          "thumbnailCaption": "Example of a skills report (CV)"
+        },
+        "individualUsage": {
+          "question": "How many times can an individual tracking link be used?",
+          "answer": "Just once. Each individual link is for a single student: as soon as that person registers with their code, the code is used up and can't be reused for anyone else. That's how you can be sure each code maps to exactly one person. (To add another student, generate a new link with their own code.)"
+        },
+        "validity": {
+          "question": "How long do group codes last?",
+          "answer": "Each group code is valid for 1 year from the day it's created and can be used many, many times (practically unlimited). Once the year is up, it stops working and a new one has to be created."
+        }
+      }
+    }
+  },
   "testEnvironmentBanner": {
     "message": "You're using the test version of Brújula. The chatbot only replies in English here. For the Spanish version, visit",
     "linkLabel": "Brújula",
