@@ -1,0 +1,2458 @@
+{
+  "builtInVariable": [
+    "clickClasses",
+    "clickElement",
+    "clickId",
+    "clickTarget",
+    "clickText",
+    "clickUrl",
+    "event",
+    "formId",
+    "formTarget",
+    "pageHostname",
+    "pagePath",
+    "pageUrl",
+    "referrer"
+  ],
+  "variable": [
+    {
+      "name": "URL_fragment",
+      "type": "u",
+      "parameter": [
+        {
+          "type": "template",
+          "key": "component",
+          "value": "FRAGMENT"
+        }
+      ],
+      "formatValue": {}
+    },
+    {
+      "name": "data_layer_form_destination",
+      "type": "v",
+      "parameter": [
+        {
+          "type": "integer",
+          "key": "dataLayerVersion",
+          "value": "2"
+        },
+        {
+          "type": "boolean",
+          "key": "setDefaultValue",
+          "value": "false"
+        },
+        {
+          "type": "template",
+          "key": "name",
+          "value": "eventModel.form_destination"
+        }
+      ],
+      "formatValue": {}
+    },
+    {
+      "name": "data_layer_message_count",
+      "type": "v",
+      "parameter": [
+        {
+          "type": "integer",
+          "key": "dataLayerVersion",
+          "value": "2"
+        },
+        {
+          "type": "boolean",
+          "key": "setDefaultValue",
+          "value": "false"
+        },
+        {
+          "type": "template",
+          "key": "name",
+          "value": "message_count"
+        }
+      ],
+      "formatValue": {}
+    },
+    {
+      "name": "data_layer_conversation_phase",
+      "type": "v",
+      "parameter": [
+        {
+          "type": "integer",
+          "key": "dataLayerVersion",
+          "value": "2"
+        },
+        {
+          "type": "boolean",
+          "key": "setDefaultValue",
+          "value": "false"
+        },
+        {
+          "type": "template",
+          "key": "name",
+          "value": "conversation_phase"
+        }
+      ],
+      "formatValue": {}
+    },
+    {
+      "name": "data_layer_experiences_explored",
+      "type": "v",
+      "parameter": [
+        {
+          "type": "integer",
+          "key": "dataLayerVersion",
+          "value": "2"
+        },
+        {
+          "type": "boolean",
+          "key": "setDefaultValue",
+          "value": "false"
+        },
+        {
+          "type": "template",
+          "key": "name",
+          "value": "experiences_explored"
+        }
+      ],
+      "formatValue": {}
+    },
+    {
+      "name": "data_layer_user_id",
+      "type": "v",
+      "parameter": [
+        {
+          "type": "integer",
+          "key": "dataLayerVersion",
+          "value": "2"
+        },
+        {
+          "type": "boolean",
+          "key": "setDefaultValue",
+          "value": "false"
+        },
+        {
+          "type": "template",
+          "key": "name",
+          "value": "user_id"
+        }
+      ],
+      "formatValue": {}
+    },
+    {
+      "name": "data_layer_pending_registration_code",
+      "type": "jsm",
+      "parameter": [
+        {
+          "type": "template",
+          "key": "javascript",
+          "value": "function() {\n  try {\n    var data = sessionStorage.getItem('analytics_pending_registration_code');\n    if (data) {\n      var parsed = JSON.parse(data);\n      return parsed && parsed.registration_code ? parsed.registration_code : null;\n    }\n  } catch (e) {\n    console.log(e);\n  }\n  return null;\n}\n"
+        }
+      ],
+      "formatValue": {}
+    },
+    {
+      "name": "registration_code",
+      "type": "v",
+      "parameter": [
+        {
+          "type": "integer",
+          "key": "dataLayerVersion",
+          "value": "2"
+        },
+        {
+          "type": "boolean",
+          "key": "setDefaultValue",
+          "value": "false"
+        },
+        {
+          "type": "template",
+          "key": "name",
+          "value": "registration_code"
+        }
+      ]
+    },
+    {
+      "name": "auth_method",
+      "type": "v",
+      "parameter": [
+        {
+          "type": "integer",
+          "key": "dataLayerVersion",
+          "value": "2"
+        },
+        {
+          "type": "boolean",
+          "key": "setDefaultValue",
+          "value": "false"
+        },
+        {
+          "type": "template",
+          "key": "name",
+          "value": "auth_method"
+        }
+      ]
+    },
+    {
+      "name": "source",
+      "type": "v",
+      "parameter": [
+        {
+          "type": "integer",
+          "key": "dataLayerVersion",
+          "value": "2"
+        },
+        {
+          "type": "boolean",
+          "key": "setDefaultValue",
+          "value": "false"
+        },
+        {
+          "type": "template",
+          "key": "name",
+          "value": "source"
+        }
+      ]
+    },
+    {
+      "name": "message_count",
+      "type": "v",
+      "parameter": [
+        {
+          "type": "integer",
+          "key": "dataLayerVersion",
+          "value": "2"
+        },
+        {
+          "type": "boolean",
+          "key": "setDefaultValue",
+          "value": "false"
+        },
+        {
+          "type": "template",
+          "key": "name",
+          "value": "message_count"
+        }
+      ]
+    },
+    {
+      "name": "conversation_phase",
+      "type": "v",
+      "parameter": [
+        {
+          "type": "integer",
+          "key": "dataLayerVersion",
+          "value": "2"
+        },
+        {
+          "type": "boolean",
+          "key": "setDefaultValue",
+          "value": "false"
+        },
+        {
+          "type": "template",
+          "key": "name",
+          "value": "conversation_phase"
+        }
+      ]
+    },
+    {
+      "name": "experiences_explored",
+      "type": "v",
+      "parameter": [
+        {
+          "type": "integer",
+          "key": "dataLayerVersion",
+          "value": "2"
+        },
+        {
+          "type": "boolean",
+          "key": "setDefaultValue",
+          "value": "false"
+        },
+        {
+          "type": "template",
+          "key": "name",
+          "value": "experiences_explored"
+        }
+      ]
+    },
+    {
+      "name": "session_id",
+      "type": "v",
+      "parameter": [
+        {
+          "type": "integer",
+          "key": "dataLayerVersion",
+          "value": "2"
+        },
+        {
+          "type": "boolean",
+          "key": "setDefaultValue",
+          "value": "false"
+        },
+        {
+          "type": "template",
+          "key": "name",
+          "value": "session_id"
+        }
+      ]
+    },
+    {
+      "name": "user_id",
+      "type": "v",
+      "parameter": [
+        {
+          "type": "integer",
+          "key": "dataLayerVersion",
+          "value": "2"
+        },
+        {
+          "type": "boolean",
+          "key": "setDefaultValue",
+          "value": "false"
+        },
+        {
+          "type": "template",
+          "key": "name",
+          "value": "user_id"
+        }
+      ]
+    },
+    {
+      "name": "identifier_type",
+      "type": "v",
+      "parameter": [
+        {
+          "type": "integer",
+          "key": "dataLayerVersion",
+          "value": "2"
+        },
+        {
+          "type": "boolean",
+          "key": "setDefaultValue",
+          "value": "false"
+        },
+        {
+          "type": "template",
+          "key": "name",
+          "value": "identifier_type"
+        }
+      ]
+    },
+    {
+      "name": "auth_state",
+      "type": "v",
+      "parameter": [
+        {
+          "type": "integer",
+          "key": "dataLayerVersion",
+          "value": "2"
+        },
+        {
+          "type": "boolean",
+          "key": "setDefaultValue",
+          "value": "false"
+        },
+        {
+          "type": "template",
+          "key": "name",
+          "value": "auth_state"
+        }
+      ]
+    },
+    {
+      "name": "Virtual Page URL",
+      "type": "jsm",
+      "parameter": [
+        {
+          "type": "template",
+          "key": "javascript",
+          "value": "function() { var hash = window.location.hash; if (hash && hash.length > 1) { return window.location.origin + hash.substring(1); } return window.location.href; }"
+        }
+      ]
+    }
+  ],
+  "trigger": [
+    {
+      "name": "click_register",
+      "type": "click",
+      "filter": [
+        {
+          "type": "cssSelector",
+          "parameter": [
+            {
+              "type": "template",
+              "key": "arg0",
+              "value": "{{Click Element}}"
+            },
+            {
+              "type": "template",
+              "key": "arg1",
+              "value": "button[data-testid^=\"landing-signup-button\"]"
+            }
+          ]
+        },
+        {
+          "type": "contains",
+          "parameter": [
+            {
+              "type": "template",
+              "key": "arg0",
+              "value": "{{URL_fragment}}"
+            },
+            {
+              "type": "template",
+              "key": "arg1",
+              "value": "/landing"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "registration_form_submit_email_custom",
+      "type": "customEvent",
+      "customEventFilter": [
+        {
+          "type": "equals",
+          "parameter": [
+            {
+              "type": "template",
+              "key": "arg0",
+              "value": "{{_event}}"
+            },
+            {
+              "type": "template",
+              "key": "arg1",
+              "value": "form_submit"
+            }
+          ]
+        }
+      ],
+      "filter": [
+        {
+          "type": "contains",
+          "parameter": [
+            {
+              "type": "template",
+              "key": "arg0",
+              "value": "{{data_layer_form_destination}}"
+            },
+            {
+              "type": "template",
+              "key": "arg1",
+              "value": "#/register"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "first_visit_custom_event",
+      "type": "customEvent",
+      "customEventFilter": [
+        {
+          "type": "equals",
+          "parameter": [
+            {
+              "type": "template",
+              "key": "arg0",
+              "value": "{{_event}}"
+            },
+            {
+              "type": "template",
+              "key": "arg1",
+              "value": "first_visit_custom"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "click_registration_with_google",
+      "type": "click",
+      "filter": [
+        {
+          "type": "contains",
+          "parameter": [
+            {
+              "type": "template",
+              "key": "arg0",
+              "value": "{{URL_fragment}}"
+            },
+            {
+              "type": "template",
+              "key": "arg1",
+              "value": "/register"
+            }
+          ]
+        },
+        {
+          "type": "cssSelector",
+          "parameter": [
+            {
+              "type": "template",
+              "key": "arg0",
+              "value": "{{Click Element}}"
+            },
+            {
+              "type": "template",
+              "key": "arg1",
+              "value": "#firebaseui-auth-container p.MuiTypography-body2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "view_consent_page",
+      "type": "pageview",
+      "filter": [
+        {
+          "type": "contains",
+          "parameter": [
+            {
+              "type": "template",
+              "key": "arg0",
+              "value": "{{URL_fragment}}"
+            },
+            {
+              "type": "template",
+              "key": "arg1",
+              "value": "/consent"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "click_consent_accept",
+      "type": "click",
+      "filter": [
+        {
+          "type": "cssSelector",
+          "parameter": [
+            {
+              "type": "template",
+              "key": "arg0",
+              "value": "{{Click Element}}"
+            },
+            {
+              "type": "template",
+              "key": "arg1",
+              "value": "button[data-testid^=\"consent-accept-button\"]"
+            }
+          ]
+        },
+        {
+          "type": "contains",
+          "parameter": [
+            {
+              "type": "template",
+              "key": "arg0",
+              "value": "{{URL_fragment}}"
+            },
+            {
+              "type": "template",
+              "key": "arg1",
+              "value": "/consent"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "click_login_button",
+      "type": "click",
+      "filter": [
+        {
+          "type": "cssSelector",
+          "parameter": [
+            {
+              "type": "template",
+              "key": "arg0",
+              "value": "{{Click Element}}"
+            },
+            {
+              "type": "template",
+              "key": "arg1",
+              "value": "button[data-testid^=\"landing-login-button\"]"
+            }
+          ]
+        },
+        {
+          "type": "contains",
+          "parameter": [
+            {
+              "type": "template",
+              "key": "arg0",
+              "value": "{{URL_fragment}}"
+            },
+            {
+              "type": "template",
+              "key": "arg1",
+              "value": "/landing"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "login_form_submit_email_custom",
+      "type": "customEvent",
+      "customEventFilter": [
+        {
+          "type": "equals",
+          "parameter": [
+            {
+              "type": "template",
+              "key": "arg0",
+              "value": "{{_event}}"
+            },
+            {
+              "type": "template",
+              "key": "arg1",
+              "value": "form_submit"
+            }
+          ]
+        }
+      ],
+      "filter": [
+        {
+          "type": "contains",
+          "parameter": [
+            {
+              "type": "template",
+              "key": "arg0",
+              "value": "{{data_layer_form_destination}}"
+            },
+            {
+              "type": "template",
+              "key": "arg1",
+              "value": "#/login"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "click_login_with_google",
+      "type": "click",
+      "filter": [
+        {
+          "type": "cssSelector",
+          "parameter": [
+            {
+              "type": "template",
+              "key": "arg0",
+              "value": "{{Click Element}}"
+            },
+            {
+              "type": "template",
+              "key": "arg1",
+              "value": "#firebaseui-auth-container p.MuiTypography-body2"
+            }
+          ]
+        },
+        {
+          "type": "contains",
+          "parameter": [
+            {
+              "type": "template",
+              "key": "arg0",
+              "value": "{{URL_fragment}}"
+            },
+            {
+              "type": "template",
+              "key": "arg1",
+              "value": "/login"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "chat_message_sent",
+      "type": "customEvent",
+      "customEventFilter": [
+        {
+          "type": "equals",
+          "parameter": [
+            {
+              "type": "template",
+              "key": "arg0",
+              "value": "{{_event}}"
+            },
+            {
+              "type": "template",
+              "key": "arg1",
+              "value": "chat_message_sent"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "click_download_report_pdf",
+      "type": "click",
+      "filter": [
+        {
+          "type": "cssSelector",
+          "parameter": [
+            {
+              "type": "template",
+              "key": "arg0",
+              "value": "{{Click Element}}"
+            },
+            {
+              "type": "template",
+              "key": "arg1",
+              "value": "span.MuiTypography-root.MuiTypography-caption.css-757dsf-MuiTypography-root"
+            }
+          ]
+        },
+        {
+          "type": "contains",
+          "parameter": [
+            {
+              "type": "template",
+              "key": "arg0",
+              "value": "{{Click Text}}"
+            },
+            {
+              "type": "template",
+              "key": "arg1",
+              "value": "PDF"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "click_download_report_docx",
+      "type": "click",
+      "filter": [
+        {
+          "type": "cssSelector",
+          "parameter": [
+            {
+              "type": "template",
+              "key": "arg0",
+              "value": "{{Click Element}}"
+            },
+            {
+              "type": "template",
+              "key": "arg1",
+              "value": "span.MuiTypography-root.MuiTypography-caption.css-757dsf-MuiTypography-root"
+            }
+          ]
+        },
+        {
+          "type": "contains",
+          "parameter": [
+            {
+              "type": "template",
+              "key": "arg0",
+              "value": "{{Click Text}}"
+            },
+            {
+              "type": "template",
+              "key": "arg1",
+              "value": "DOCX"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "user_identity_set",
+      "type": "customEvent",
+      "customEventFilter": [
+        {
+          "type": "equals",
+          "parameter": [
+            {
+              "type": "template",
+              "key": "arg0",
+              "value": "{{_event}}"
+            },
+            {
+              "type": "template",
+              "key": "arg1",
+              "value": "user_identity_set"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CE - registration_complete",
+      "type": "customEvent",
+      "customEventFilter": [
+        {
+          "type": "equals",
+          "parameter": [
+            {
+              "type": "template",
+              "key": "arg0",
+              "value": "{{_event}}"
+            },
+            {
+              "type": "template",
+              "key": "arg1",
+              "value": "registration_complete"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CE - conversation_completed",
+      "type": "customEvent",
+      "customEventFilter": [
+        {
+          "type": "equals",
+          "parameter": [
+            {
+              "type": "template",
+              "key": "arg0",
+              "value": "{{_event}}"
+            },
+            {
+              "type": "template",
+              "key": "arg1",
+              "value": "conversation_completed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CE - user_identity_cleared",
+      "type": "customEvent",
+      "customEventFilter": [
+        {
+          "type": "equals",
+          "parameter": [
+            {
+              "type": "template",
+              "key": "arg0",
+              "value": "{{_event}}"
+            },
+            {
+              "type": "template",
+              "key": "arg1",
+              "value": "user_identity_cleared"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "History Change - SPA Navigation",
+      "type": "historyChange"
+    }
+  ],
+  "tag": [
+    {
+      "name": "GA4-Reg-click-registration-button",
+      "type": "gaawe",
+      "parameter": [
+        {
+          "type": "boolean",
+          "key": "sendEcommerceData",
+          "value": "false"
+        },
+        {
+          "type": "list",
+          "key": "eventSettingsTable",
+          "list": [
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "user_id"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_user_id}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "pending_registration_code"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_pending_registration_code}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "legacy_userId_or_registration_code"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_user_id}}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "template",
+          "key": "eventName",
+          "value": "click_registration_buttton"
+        },
+        {
+          "type": "template",
+          "key": "measurementIdOverride",
+          "value": "{{GA4 Measurement ID}}"
+        }
+      ],
+      "firingTriggerId": [
+        "click_register"
+      ],
+      "tagFiringOption": "oncePerEvent",
+      "consentSettings": {
+        "consentStatus": "notSet"
+      }
+    },
+    {
+      "name": "GA4-Reg-registration-form-email-submit",
+      "type": "gaawe",
+      "parameter": [
+        {
+          "type": "boolean",
+          "key": "sendEcommerceData",
+          "value": "false"
+        },
+        {
+          "type": "list",
+          "key": "eventSettingsTable",
+          "list": [
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "step"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "3"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "user_id"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_user_id}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "pending_registration_code"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_pending_registration_code}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "legacy_userId_or_registration_code"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_user_id}}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "template",
+          "key": "eventName",
+          "value": "registration-form-submission"
+        },
+        {
+          "type": "template",
+          "key": "measurementIdOverride",
+          "value": "{{GA4 Measurement ID}}"
+        }
+      ],
+      "firingTriggerId": [
+        "registration_form_submit_email_custom"
+      ],
+      "tagFiringOption": "oncePerEvent",
+      "consentSettings": {
+        "consentStatus": "notSet"
+      }
+    },
+    {
+      "name": "HTML-first_visit_helper",
+      "type": "html",
+      "parameter": [
+        {
+          "type": "template",
+          "key": "html",
+          "value": "<script>\ntry {\n  if (window.localStorage) {\n    if (!localStorage.getItem('hasVisited')) {\n      localStorage.setItem('hasVisited', 'true');\n\n      var pendingRegCode = null;\n      try {\n        var data = sessionStorage.getItem('analytics_pending_registration_code');\n        if (data) {\n          var parsed = JSON.parse(data);\n          pendingRegCode = parsed && parsed.registration_code ? parsed.registration_code : null;\n        }\n      } catch (e2) {\n        // optional: console.log(e2);\n      }\n\n      window.dataLayer = window.dataLayer || [];\n      window.dataLayer.push({\n        event: 'first_visit_custom',\n        pending_registration_code: pendingRegCode\n      });\n    }\n  }\n} catch (e) {}\n</script>\n"
+        },
+        {
+          "type": "boolean",
+          "key": "supportDocumentWrite",
+          "value": "false"
+        }
+      ],
+      "firingTriggerId": [
+        "2147479553"
+      ],
+      "tagFiringOption": "oncePerEvent",
+      "consentSettings": {
+        "consentStatus": "notSet"
+      }
+    },
+    {
+      "name": "GA4-first-visit",
+      "type": "gaawe",
+      "parameter": [
+        {
+          "type": "boolean",
+          "key": "sendEcommerceData",
+          "value": "false"
+        },
+        {
+          "type": "list",
+          "key": "eventSettingsTable",
+          "list": [
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "step"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "0"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "url"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{Page URL}} + {{URL_fragment}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "user_id"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_user_id}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "pending_registration_code"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_pending_registration_code}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "legacy_userId_or_registration_code"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_user_id}}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "template",
+          "key": "eventName",
+          "value": "first_visit_custom"
+        },
+        {
+          "type": "template",
+          "key": "measurementIdOverride",
+          "value": "{{GA4 Measurement ID}}"
+        }
+      ],
+      "firingTriggerId": [
+        "first_visit_custom_event"
+      ],
+      "tagFiringOption": "oncePerEvent",
+      "consentSettings": {
+        "consentStatus": "notSet"
+      }
+    },
+    {
+      "name": "GA4-Reg-click-google-registration-button",
+      "type": "gaawe",
+      "parameter": [
+        {
+          "type": "boolean",
+          "key": "sendEcommerceData",
+          "value": "false"
+        },
+        {
+          "type": "list",
+          "key": "eventSettingsTable",
+          "list": [
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "step"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "3"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "user_id"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_user_id}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "pending_registration_code"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_pending_registration_code}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "legacy_userId_or_registration_code"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_user_id}}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "template",
+          "key": "eventName",
+          "value": "click-google-registration-button"
+        },
+        {
+          "type": "template",
+          "key": "measurementIdOverride",
+          "value": "{{GA4 Measurement ID}}"
+        }
+      ],
+      "firingTriggerId": [
+        "click_registration_with_google"
+      ],
+      "tagFiringOption": "oncePerEvent",
+      "consentSettings": {
+        "consentStatus": "notSet"
+      }
+    },
+    {
+      "name": "GA4-Reg-view-consent-page",
+      "type": "gaawe",
+      "parameter": [
+        {
+          "type": "boolean",
+          "key": "sendEcommerceData",
+          "value": "false"
+        },
+        {
+          "type": "list",
+          "key": "eventSettingsTable",
+          "list": [
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "step"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "4"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "user_id"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_user_id}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "pending_registration_code"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_pending_registration_code}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "legacy_userId_or_registration_code"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_user_id}}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "template",
+          "key": "eventName",
+          "value": "view-consent-page"
+        },
+        {
+          "type": "template",
+          "key": "measurementIdOverride",
+          "value": "{{GA4 Measurement ID}}"
+        }
+      ],
+      "firingTriggerId": [
+        "view_consent_page"
+      ],
+      "tagFiringOption": "oncePerEvent",
+      "consentSettings": {
+        "consentStatus": "notSet"
+      }
+    },
+    {
+      "name": "GA4-Reg-click-consent-accept",
+      "type": "gaawe",
+      "parameter": [
+        {
+          "type": "boolean",
+          "key": "sendEcommerceData",
+          "value": "false"
+        },
+        {
+          "type": "list",
+          "key": "eventSettingsTable",
+          "list": [
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "step"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "5"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "user_id"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_user_id}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "pending_registration_code"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_pending_registration_code}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "legacy_userId_or_registration_code"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_user_id}}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "template",
+          "key": "eventName",
+          "value": "click-consent-accept"
+        },
+        {
+          "type": "template",
+          "key": "measurementIdOverride",
+          "value": "{{GA4 Measurement ID}}"
+        }
+      ],
+      "firingTriggerId": [
+        "click_consent_accept"
+      ],
+      "tagFiringOption": "oncePerEvent",
+      "consentSettings": {
+        "consentStatus": "notSet"
+      }
+    },
+    {
+      "name": "GA4-click-login-button",
+      "type": "gaawe",
+      "parameter": [
+        {
+          "type": "boolean",
+          "key": "sendEcommerceData",
+          "value": "false"
+        },
+        {
+          "type": "list",
+          "key": "eventSettingsTable",
+          "list": [
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "step"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "6"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "user_id"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_user_id}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "pending_registration_code"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_pending_registration_code}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "legacy_userId_or_registration_code"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_user_id}}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "template",
+          "key": "eventName",
+          "value": "click-login-button"
+        },
+        {
+          "type": "template",
+          "key": "measurementIdOverride",
+          "value": "{{GA4 Measurement ID}}"
+        }
+      ],
+      "firingTriggerId": [
+        "click_login_button"
+      ],
+      "tagFiringOption": "oncePerEvent",
+      "consentSettings": {
+        "consentStatus": "notSet"
+      }
+    },
+    {
+      "name": "GA4-login-form-email-submit",
+      "type": "gaawe",
+      "parameter": [
+        {
+          "type": "boolean",
+          "key": "sendEcommerceData",
+          "value": "false"
+        },
+        {
+          "type": "list",
+          "key": "eventSettingsTable",
+          "list": [
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "step"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "8"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "user_id"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_user_id}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "pending_registration_code"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_pending_registration_code}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "legacy_userId_or_registration_code"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_user_id}}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "template",
+          "key": "eventName",
+          "value": "login-form-submission"
+        },
+        {
+          "type": "template",
+          "key": "measurementIdOverride",
+          "value": "{{GA4 Measurement ID}}"
+        }
+      ],
+      "firingTriggerId": [
+        "login_form_submit_email_custom"
+      ],
+      "tagFiringOption": "oncePerEvent",
+      "consentSettings": {
+        "consentStatus": "notSet"
+      }
+    },
+    {
+      "name": "GA4-click-google-login-button",
+      "type": "gaawe",
+      "parameter": [
+        {
+          "type": "boolean",
+          "key": "sendEcommerceData",
+          "value": "false"
+        },
+        {
+          "type": "list",
+          "key": "eventSettingsTable",
+          "list": [
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "step"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "8"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "user_id"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_user_id}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "pending_registration_code"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_pending_registration_code}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "legacy_userId_or_registration_code"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_user_id}}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "template",
+          "key": "eventName",
+          "value": "click-google-login-button"
+        },
+        {
+          "type": "template",
+          "key": "measurementIdOverride",
+          "value": "{{GA4 Measurement ID}}"
+        }
+      ],
+      "firingTriggerId": [
+        "click_login_with_google"
+      ],
+      "tagFiringOption": "oncePerEvent",
+      "consentSettings": {
+        "consentStatus": "notSet"
+      }
+    },
+    {
+      "name": "Google Tag",
+      "type": "googtag",
+      "parameter": [
+        {
+          "type": "template",
+          "key": "tagId",
+          "value": "{{GA4 Measurement ID}}"
+        },
+        {
+          "type": "list",
+          "key": "configSettingsTable",
+          "list": [
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "send_page_view"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "false"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "user_id"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_user_id}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "pending_registration_code"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_pending_registration_code}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "legacy_userId_or_registration_code"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_user_id}}"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "firingTriggerId": [
+        "2147479573",
+        "user_identity_set"
+      ],
+      "consentSettings": {
+        "consentStatus": "notSet"
+      }
+    },
+    {
+      "name": "GA4-chat-message-sent",
+      "type": "gaawe",
+      "parameter": [
+        {
+          "type": "boolean",
+          "key": "sendEcommerceData",
+          "value": "false"
+        },
+        {
+          "type": "list",
+          "key": "eventSettingsTable",
+          "list": [
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "step"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "9"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "message_count"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_message_count}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "experiences_explored"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_experiences_explored}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "conversation_phase"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_conversation_phase}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "user_id"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_user_id}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "pending_registration_code"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_pending_registration_code}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "legacy_userId_or_registration_code"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_user_id}}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "template",
+          "key": "eventName",
+          "value": "chat-message-sent"
+        },
+        {
+          "type": "template",
+          "key": "measurementIdOverride",
+          "value": "{{GA4 Measurement ID}}"
+        }
+      ],
+      "firingTriggerId": [
+        "chat_message_sent"
+      ],
+      "tagFiringOption": "oncePerEvent",
+      "consentSettings": {
+        "consentStatus": "notSet"
+      }
+    },
+    {
+      "name": "GA4-click-click-download-report-pdf",
+      "type": "gaawe",
+      "parameter": [
+        {
+          "type": "boolean",
+          "key": "sendEcommerceData",
+          "value": "false"
+        },
+        {
+          "type": "list",
+          "key": "eventSettingsTable",
+          "list": [
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "step"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "10"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "user_id"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_user_id}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "pending_registration_code"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_pending_registration_code}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "legacy_userId_or_registration_code"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_user_id}}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "template",
+          "key": "eventName",
+          "value": "click_download_report_pdf"
+        },
+        {
+          "type": "template",
+          "key": "measurementIdOverride",
+          "value": "{{GA4 Measurement ID}}"
+        }
+      ],
+      "firingTriggerId": [
+        "click_download_report_pdf"
+      ],
+      "tagFiringOption": "oncePerEvent",
+      "consentSettings": {
+        "consentStatus": "notSet"
+      }
+    },
+    {
+      "name": "GA4-click-click-download-report-docx",
+      "type": "gaawe",
+      "parameter": [
+        {
+          "type": "boolean",
+          "key": "sendEcommerceData",
+          "value": "false"
+        },
+        {
+          "type": "list",
+          "key": "eventSettingsTable",
+          "list": [
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "step"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "10"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "user_id"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_user_id}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "pending_registration_code"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_pending_registration_code}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "legacy_userId_or_registration_code"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{data_layer_user_id}}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "template",
+          "key": "eventName",
+          "value": "click_download_report_docx"
+        },
+        {
+          "type": "template",
+          "key": "measurementIdOverride",
+          "value": "{{GA4 Measurement ID}}"
+        }
+      ],
+      "firingTriggerId": [
+        "click_download_report_docx"
+      ],
+      "tagFiringOption": "oncePerEvent",
+      "consentSettings": {
+        "consentStatus": "notSet"
+      }
+    },
+    {
+      "name": "GA4 Event - registration_complete",
+      "type": "gaawe",
+      "parameter": [
+        {
+          "type": "list",
+          "key": "eventSettingsTable",
+          "list": [
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "registration_code"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{registration_code}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "auth_method"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{auth_method}}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "template",
+          "key": "eventName",
+          "value": "registration_complete"
+        },
+        {
+          "type": "template",
+          "key": "measurementIdOverride",
+          "value": "{{GA4 Measurement ID}}"
+        }
+      ],
+      "firingTriggerId": [
+        "CE - registration_complete"
+      ],
+      "consentSettings": {
+        "consentStatus": "notSet"
+      }
+    },
+    {
+      "name": "GA4 Event - conversation_completed",
+      "type": "gaawe",
+      "parameter": [
+        {
+          "type": "list",
+          "key": "eventSettingsTable",
+          "list": [
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "message_count"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{message_count}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "experiences_explored"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{experiences_explored}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "session_id"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{session_id}}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "template",
+          "key": "eventName",
+          "value": "conversation_completed"
+        },
+        {
+          "type": "template",
+          "key": "measurementIdOverride",
+          "value": "{{GA4 Measurement ID}}"
+        }
+      ],
+      "firingTriggerId": [
+        "CE - conversation_completed"
+      ],
+      "consentSettings": {
+        "consentStatus": "notSet"
+      }
+    },
+    {
+      "name": "GA4 Event - user_identity_set",
+      "type": "gaawe",
+      "parameter": [
+        {
+          "type": "list",
+          "key": "eventSettingsTable",
+          "list": [
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "user_id"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{user_id}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "identifier_type"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{identifier_type}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "registration_code"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{registration_code}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "auth_state"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{auth_state}}"
+                }
+              ]
+            },
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "source"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{source}}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "template",
+          "key": "eventName",
+          "value": "user_identity_set"
+        },
+        {
+          "type": "template",
+          "key": "measurementIdOverride",
+          "value": "{{GA4 Measurement ID}}"
+        }
+      ],
+      "firingTriggerId": [
+        "user_identity_set"
+      ],
+      "consentSettings": {
+        "consentStatus": "notSet"
+      }
+    },
+    {
+      "name": "GA4 Event - user_identity_cleared",
+      "type": "gaawe",
+      "parameter": [
+        {
+          "type": "list",
+          "key": "eventSettingsTable",
+          "list": [
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "auth_state"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{auth_state}}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "template",
+          "key": "eventName",
+          "value": "user_identity_cleared"
+        },
+        {
+          "type": "template",
+          "key": "measurementIdOverride",
+          "value": "{{GA4 Measurement ID}}"
+        }
+      ],
+      "firingTriggerId": [
+        "CE - user_identity_cleared"
+      ],
+      "consentSettings": {
+        "consentStatus": "notSet"
+      }
+    },
+    {
+      "name": "GA4 Page View - SPA",
+      "type": "gaawe",
+      "parameter": [
+        {
+          "type": "list",
+          "key": "eventSettingsTable",
+          "list": [
+            {
+              "type": "map",
+              "map": [
+                {
+                  "type": "template",
+                  "key": "parameter",
+                  "value": "page_location"
+                },
+                {
+                  "type": "template",
+                  "key": "parameterValue",
+                  "value": "{{Virtual Page URL}}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "template",
+          "key": "eventName",
+          "value": "page_view"
+        },
+        {
+          "type": "template",
+          "key": "measurementIdOverride",
+          "value": "{{GA4 Measurement ID}}"
+        }
+      ],
+      "firingTriggerId": [
+        "2147479553",
+        "History Change - SPA Navigation"
+      ],
+      "consentSettings": {
+        "consentStatus": "notSet"
+      }
+    }
+  ]
+}

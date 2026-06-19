@@ -1,14 +1,21 @@
 """GA4 Admin API operations for creating properties and data streams."""
 
 
-def create_ga4_property(analytics_admin, account_id: str, property_name: str) -> dict:
-    """Create a GA4 property."""
-    print(f"\nCreating GA4 property '{property_name}'...")
+def create_ga4_property(
+    analytics_admin, account_id: str, property_name: str,
+    time_zone: str = "America/Argentina/Buenos_Aires", currency_code: str = "USD",
+) -> dict:
+    """Create a GA4 property.
+
+    time_zone buckets reporting days in local time (Brújula's audience is Argentina).
+    currency_code is cosmetic here — the tracked taxonomy has no revenue events.
+    """
+    print(f"\nCreating GA4 property '{property_name}' (timezone: {time_zone}, currency: {currency_code})...")
     body = {
         "parent": f"accounts/{account_id}",
         "displayName": property_name,
-        "timeZone": "UTC",
-        "currencyCode": "USD",
+        "timeZone": time_zone,
+        "currencyCode": currency_code,
     }
     prop = analytics_admin.properties().create(
         body=body,

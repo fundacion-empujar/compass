@@ -2,6 +2,8 @@
 
 import time
 
+from googleapiclient.errors import HttpError
+
 # GTM API has a rate limit of 0.25 QPS (1 request per 4 seconds)
 GTM_API_DELAY_SECONDS = 4
 
@@ -150,15 +152,18 @@ def create_gtm_ga4_config_tag(tagmanager, workspace_path: str, measurement_id_va
             {"type": "template", "key": "measurementId", "value": f"{{{{{measurement_id_var}}}}}"},
             {"type": "boolean", "key": "sendPageView", "value": "false"},
             # Map GA4 User-ID to the user_id dataLayer variable (set by user_identity_set).
+            # The config tag's settings table is `configSettingsTable` with parameter/parameterValue
+            # columns — verified against the live dev container (GTM-W6CRXXRD), which sets user_id
+            # the same way. (An earlier fieldsToSet/fieldName encoding was rejected with HTTP 400.)
             {
                 "type": "list",
-                "key": "fieldsToSet",
+                "key": "configSettingsTable",
                 "list": [
                     {
                         "type": "map",
                         "map": [
-                            {"type": "template", "key": "fieldName", "value": "user_id"},
-                            {"type": "template", "key": "value", "value": "{{user_id}}"},
+                            {"type": "template", "key": "parameter", "value": "user_id"},
+                            {"type": "template", "key": "parameterValue", "value": "{{user_id}}"},
                         ],
                     },
                 ],
@@ -353,3 +358,106 @@ def publish_gtm_version(tagmanager, workspace_path: str) -> dict:
 
     print(f"  Published version {version_id}")
     return version
+
+
+# ---------------------------------------------------------------------------
+# Spec-driven build (mirror an entire container from tracking_spec.json)
+# ---------------------------------------------------------------------------
+# A built-in GTM trigger (e.g. All Pages = 2147479553) — referenced by numeric id, not by name.
+_BUILTIN_TRIGGER_MIN = 2000000000
+
+
+def _is_builtin_trigger(trigger_id) -> bool:
+    return str(trigger_id).isdigit() and int(trigger_id) >= _BUILTIN_TRIGGER_MIN
+
+
+def enable_builtin_variables(tagmanager, workspace_path: str, types: list) -> None:
+    """Enable GTM built-in variables (Click Element, Form ID, ...) used by click/form triggers."""
+    if not types:
+        return
+    time.sleep(GTM_API_DELAY_SECONDS)
+    print(f"  Enabling {len(types)} built-in variables...")
+    # Already-enabled types return 409; enable one-by-one so a partial set still succeeds.
+    for t in types:
+        try:
+            tagmanager.accounts().containers().workspaces().built_in_variables().create(
+                parent=workspace_path, type=t,
+            ).execute()
+            time.sleep(GTM_API_DELAY_SECONDS)
+        except HttpError as e:
+            if e.resp.status != 409:  # 409 = already enabled
+                raise
+
+
+def _create_variable_from_spec(tagmanager, workspace_path: str, var: dict) -> dict:
+    time.sleep(GTM_API_DELAY_SECONDS)
+    print(f"  Variable: {var['name']}")
+    body = {k: var[k] for k in ("name", "type", "parameter", "formatValue") if k in var}
+    return tagmanager.accounts().containers().workspaces().variables().create(
+        parent=workspace_path, body=body,
+    ).execute()
+
+
+def _create_trigger_from_spec(tagmanager, workspace_path: str, trig: dict) -> dict:
+    time.sleep(GTM_API_DELAY_SECONDS)
+    print(f"  Trigger: {trig['name']} ({trig['type']})")
+    body = {k: trig[k] for k in ("name", "type", "customEventFilter", "filter", "autoEventFilter") if k in trig}
+    return tagmanager.accounts().containers().workspaces().triggers().create(
+        parent=workspace_path, body=body,
+    ).execute()
+
+
+def _create_tag_from_spec(tagmanager, workspace_path: str, tag: dict, name_to_trigger_id: dict) -> dict:
+    time.sleep(GTM_API_DELAY_SECONDS)
+    print(f"  Tag: {tag['name']} ({tag['type']})")
+    firing = [t if _is_builtin_trigger(t) else name_to_trigger_id[t] for t in tag.get("firingTriggerId", [])]
+    body = {k: tag[k] for k in ("name", "type", "parameter", "tagFiringOption", "consentSettings") if k in tag}
+    body["firingTriggerId"] = firing
+    return tagmanager.accounts().containers().workspaces().tags().create(
+        parent=workspace_path, body=body,
+    ).execute()
+
+
+def build_container_from_spec(tagmanager, workspace_path: str, spec: dict, measurement_id: str) -> None:
+    """Build a full container (built-in vars + variables + triggers + tags) from a tracking_spec.json.
+
+    Tags reference triggers by NAME (resolved to the freshly created ids here) and the GA4 measurement
+    id via the `{{GA4 Measurement ID}}` constant variable, so the same spec reproduces on any env.
+    """
+    enable_builtin_variables(tagmanager, workspace_path, spec.get("builtInVariable", []))
+
+    print("\n  Creating variables...")
+    create_gtm_variable(tagmanager, workspace_path, "GA4 Measurement ID", measurement_id)
+    for var in spec.get("variable", []):
+        _create_variable_from_spec(tagmanager, workspace_path, var)
+
+    print("\n  Creating triggers...")
+    name_to_trigger_id = {}
+    for trig in spec.get("trigger", []):
+        created = _create_trigger_from_spec(tagmanager, workspace_path, trig)
+        name_to_trigger_id[trig["name"]] = created["triggerId"]
+
+    print("\n  Creating tags...")
+    for tag in spec.get("tag", []):
+        _create_tag_from_spec(tagmanager, workspace_path, tag, name_to_trigger_id)
+
+
+def clear_container(tagmanager, workspace_path: str) -> dict:
+    """Delete every tag, trigger and user-defined variable in the workspace (tags first).
+
+    Returns the counts removed. Built-in variables are left enabled (re-enabling is idempotent).
+    """
+    ws = tagmanager.accounts().containers().workspaces()
+    counts = {"tag": 0, "trigger": 0, "variable": 0}
+    for kind, lister, key in (
+        ("tag", ws.tags, "tag"),
+        ("trigger", ws.triggers, "trigger"),
+        ("variable", ws.variables, "variable"),
+    ):
+        items = lister().list(parent=workspace_path).execute().get(key, [])
+        for item in items:
+            time.sleep(GTM_API_DELAY_SECONDS)
+            lister().delete(path=item["path"]).execute()
+            counts[kind] += 1
+        print(f"  Removed {counts[kind]} {kind}(s)")
+    return counts
