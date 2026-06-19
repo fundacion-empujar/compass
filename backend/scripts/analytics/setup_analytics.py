@@ -75,6 +75,8 @@ from gtm import (
     create_gtm_ga4_event_tag,
     create_gtm_data_layer_variables,
     publish_gtm_version,
+    build_container_from_spec,
+    clear_container,
 )
 
 SCOPES = [
@@ -168,6 +170,14 @@ Prerequisites:
     )
     parser.add_argument("--credentials", required=True, help="Path to service account JSON key file")
     parser.add_argument("--property-name", default=None, help=f"GA4 property name (defaults to '{DEFAULT_PROPERTY_NAME}')")
+    parser.add_argument(
+        "--timezone", default="America/Argentina/Buenos_Aires",
+        help="GA4 property reporting timezone (IANA name; default: America/Argentina/Buenos_Aires)",
+    )
+    parser.add_argument(
+        "--currency", default="USD",
+        help="GA4 property reporting currency (cosmetic — no revenue events tracked; default: USD)",
+    )
     parser.add_argument("--dry-run", action="store_true", help="Validate inputs without creating resources")
     parser.add_argument(
         "--step", default=None,
@@ -185,6 +195,13 @@ Prerequisites:
     parser.add_argument("--ga4-measurement-id", default=None, help="Existing GA4 measurement ID (for --step resume)")
     parser.add_argument("--gtm-container-id", default=None, help="Existing GTM container public ID, e.g. GTM-XXXXXXX (for --step resume)")
     parser.add_argument("--gtm-container-path", default=None, help="Existing GTM container path, e.g. accounts/123/containers/456 (for --step resume)")
+    # Rebuild mode: clear an existing container and rebuild it from a tracking spec (mirrors dev).
+    default_spec = str(Path(__file__).parent / "tracking_spec.json")
+    parser.add_argument(
+        "--rebuild", action="store_true",
+        help="Clear the target container and rebuild it from --spec (idempotent; mirrors dev's tracking)",
+    )
+    parser.add_argument("--spec", default=default_spec, help="Path to tracking_spec.json (for --rebuild)")
 
     return parser.parse_args()
 
@@ -211,13 +228,16 @@ def resolve_ids(args, checkpoint: dict) -> dict:
     }
 
 
-def step_ga4(analytics_admin, account_id: str, property_name: str, url: str) -> tuple:
+def step_ga4(
+    analytics_admin, account_id: str, property_name: str, url: str,
+    time_zone: str, currency_code: str,
+) -> tuple:
     """Run GA4 setup: create property + data stream. Returns (property_id, measurement_id)."""
     print("\n" + "=" * 60)
     print("STEP: GA4 — Create property and data stream")
     print("=" * 60)
 
-    ga4_property = create_ga4_property(analytics_admin, account_id, property_name)
+    ga4_property = create_ga4_property(analytics_admin, account_id, property_name, time_zone, currency_code)
     property_resource_name = ga4_property["name"]
     property_id = property_resource_name.split("/")[-1]
 
@@ -322,6 +342,55 @@ def step_publish(tagmanager, container_path: str) -> None:
     print("\n  [OK] GTM container published")
 
 
+def resolve_container_path(tagmanager, account_id: str, container_public_id: str) -> str:
+    """Look up a container's resource path from its public id (e.g. GTM-XXXXXXX)."""
+    if not container_public_id:
+        print("Error: --rebuild needs --gtm-container-id (e.g. GTM-XXXXXXX) or --gtm-container-path.")
+        sys.exit(1)
+    containers = tagmanager.accounts().containers().list(
+        parent=f"accounts/{account_id}",
+    ).execute().get("container", [])
+    for container in containers:
+        if container.get("publicId") == container_public_id:
+            return container["path"]
+    print(f"Error: container {container_public_id} not found in account {account_id}.")
+    sys.exit(1)
+
+
+def step_rebuild(tagmanager, container_path: str, spec: dict, measurement_id: str, dry_run: bool) -> None:
+    """Clear the target container and rebuild it from the tracking spec (mirrors dev's tracking)."""
+    print("\n" + "=" * 60)
+    print("STEP: REBUILD — clear container and rebuild from spec")
+    print("=" * 60)
+
+    workspace = get_default_workspace(tagmanager, container_path)
+    workspace_path = workspace["path"]
+    ws = tagmanager.accounts().containers().workspaces()
+    cur_tags = ws.tags().list(parent=workspace_path).execute().get("tag", [])
+    cur_trigs = ws.triggers().list(parent=workspace_path).execute().get("trigger", [])
+    cur_vars = ws.variables().list(parent=workspace_path).execute().get("variable", [])
+
+    print(f"\n  Container:    {container_path}")
+    print(f"  Measurement:  {measurement_id}")
+    print(f"  Currently:    {len(cur_tags)} tags, {len(cur_trigs)} triggers, {len(cur_vars)} variables")
+    print(f"  Spec:         {len(spec['tag'])} tags, {len(spec['trigger'])} triggers, "
+          f"{len(spec['variable']) + 1} variables, {len(spec.get('builtInVariable', []))} built-in variables")
+
+    if dry_run:
+        print("\n[DRY RUN] Would clear the above, then create these tags:")
+        for tag in spec["tag"]:
+            event_name = next((p["value"] for p in tag["parameter"] if p.get("key") == "eventName"), tag["type"])
+            print(f"    - {tag['name']}  ->  {event_name}")
+        print("\n[DRY RUN] Nothing was changed.")
+        return
+
+    print("\n  Clearing existing container contents...")
+    clear_container(tagmanager, workspace_path)
+    build_container_from_spec(tagmanager, workspace_path, spec, measurement_id)
+    publish_gtm_version(tagmanager, workspace_path)
+    print("\n  [OK] Container rebuilt and published")
+
+
 def main():
     """Run the GA4 + GTM setup (all steps, or a single --step) and print the env values to wire in."""
     args = parse_args()
@@ -331,6 +400,26 @@ def main():
     if checkpoint_path.exists():
         checkpoint = json.loads(checkpoint_path.read_text(encoding="utf-8"))
 
+    # --- Rebuild mode (clear + rebuild a container from the tracking spec) ---
+    if args.rebuild:
+        creds = authenticate(args.credentials)
+        tagmanager = build("tagmanager", "v2", credentials=creds)
+        container_path = args.gtm_container_path or resolve_container_path(
+            tagmanager, args.gtm_account_id, args.gtm_container_id,
+        )
+        measurement_id = args.ga4_measurement_id or resolve_ids(args, checkpoint)["ga4_measurement_id"]
+        if not measurement_id:
+            print("Error: --rebuild needs a measurement id (--ga4-measurement-id or a saved checkpoint).")
+            sys.exit(1)
+        spec = json.loads(Path(args.spec).read_text(encoding="utf-8"))
+        try:
+            step_rebuild(tagmanager, container_path, spec, measurement_id, args.dry_run)
+        except HttpError as e:
+            print(f"\n[ERROR] API Error: {e}")
+            print(f"Details: {e.content.decode()}")
+            sys.exit(1)
+        return
+
     property_name = args.property_name or DEFAULT_PROPERTY_NAME
     step = args.step
 
@@ -338,12 +427,14 @@ def main():
     print(f"  GA4 Account:  {args.ga4_account_id}")
     print(f"  GTM Account:  {args.gtm_account_id}")
     print(f"  URL:          {args.url}")
+    print(f"  Timezone:     {args.timezone}")
+    print(f"  Currency:     {args.currency}")
     print(f"  Checkpoint:   {checkpoint_path}")
     print(f"  Step:         {step or 'all'}")
 
     if args.dry_run:
         print("\n[DRY RUN] Would create:")
-        print(f"  - GA4 property '{property_name}' with web data stream for {args.url}")
+        print(f"  - GA4 property '{property_name}' ({args.timezone}, {args.currency}) with web data stream for {args.url}")
         print(f"  - GTM container '{property_name}' with:")
         for event in CUSTOM_EVENTS:
             params = ", ".join(p["key"] for p in event["parameters"])
@@ -375,6 +466,7 @@ def main():
             analytics_admin = build("analyticsadmin", "v1beta", credentials=creds)
             property_id, measurement_id = step_ga4(
                 analytics_admin, args.ga4_account_id, property_name, args.url,
+                args.timezone, args.currency,
             )
             # Save checkpoint immediately
             save_checkpoint(checkpoint_path, {

@@ -19,6 +19,7 @@ from setup_analytics import (  # noqa: E402  (import after importorskip is inten
     step_publish,
 )
 from gtm import CUSTOM_EVENTS, create_gtm_ga4_config_tag  # noqa: E402
+from ga4 import create_ga4_property  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
@@ -115,12 +116,40 @@ class TestGa4ConfigTag:
 
         # THEN expect the tag body to set the user_id field from {{user_id}}
         actual_body = given_tagmanager.accounts().containers().workspaces().tags().create.call_args[1]["body"]
-        fields_to_set = next(p for p in actual_body["parameter"] if p["key"] == "fieldsToSet")
-        field_maps = [
+        config_settings = next(p for p in actual_body["parameter"] if p["key"] == "configSettingsTable")
+        rows = [
             {entry["key"]: entry["value"] for entry in item["map"]}
-            for item in fields_to_set["list"]
+            for item in config_settings["list"]
         ]
-        assert {"fieldName": "user_id", "value": "{{user_id}}"} in field_maps
+        assert {"parameter": "user_id", "parameterValue": "{{user_id}}"} in rows
+
+
+class TestCreateGa4Property:
+    """The GA4 property must be created with the requested reporting timezone/currency."""
+
+    def test_uses_passed_timezone_and_currency(self):
+        # GIVEN a mock analytics admin client
+        given_admin = MagicMock()
+
+        # WHEN a property is created with an explicit timezone + currency
+        create_ga4_property(given_admin, "111", "Brújula (prod)", "America/Argentina/Buenos_Aires", "USD")
+
+        # THEN expect the property body to carry them through to the API
+        actual_body = given_admin.properties().create.call_args[1]["body"]
+        assert actual_body["timeZone"] == "America/Argentina/Buenos_Aires"
+        assert actual_body["currencyCode"] == "USD"
+        assert actual_body["displayName"] == "Brújula (prod)"
+
+    def test_defaults_to_buenos_aires(self):
+        # GIVEN a mock analytics admin client
+        given_admin = MagicMock()
+
+        # WHEN a property is created without specifying a timezone
+        create_ga4_property(given_admin, "111", "Brújula")
+
+        # THEN expect the Argentina default (the fork's audience)
+        actual_body = given_admin.properties().create.call_args[1]["body"]
+        assert actual_body["timeZone"] == "America/Argentina/Buenos_Aires"
 
 
 def _make_mock_tagmanager(existing_variables=None, trigger_id="99"):
