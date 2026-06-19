@@ -20,7 +20,7 @@ def app():
 @pytest.fixture(autouse=True)
 def _admin_token_env():
     # Reports are gated by ADMIN_TOKEN (fail-closed); configure it for these business-logic tests.
-    os.environ["ADMIN_TOKEN"] = "test-admin-token"
+    os.environ["ADMIN_TOKEN"] = "test-admin-token"  # nosec B105 - test fixture value
     yield
     os.environ.pop("ADMIN_TOKEN", None)
 
