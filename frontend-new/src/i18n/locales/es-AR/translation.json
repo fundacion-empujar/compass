@@ -1,4 +1,135 @@
 {
+  "admin": {
+    "panel": {
+      "title": "Panel de administración",
+      "subtitle": "Elegí qué querés hacer",
+      "unauthorized": "Acceso no autorizado al panel de administración",
+      "back": "Volver",
+      "cards": {
+        "generateLink": {
+          "title": "Crear enlace de seguimiento individual",
+          "description": "Generá un enlace propio para un estudiante y seguí si se registró"
+        },
+        "sharedCode": {
+          "title": "Abrir el acceso a un grupo",
+          "description": "Creá un código que pueden usar muchas personas"
+        },
+        "export": {
+          "title": "Ver quién se registró",
+          "description": "Descargá una planilla con los códigos y quién los usó"
+        },
+        "reports": {
+          "title": "Descargar informes",
+          "description": "Descargá los informes de habilidades de los usuarios"
+        },
+        "reportLookup": {
+          "title": "Buscar el informe de un estudiante",
+          "description": "Buscá y abrí el informe de un estudiante por su código"
+        },
+        "generalFaq": {
+          "title": "Preguntas frecuentes",
+          "description": "Entendé cómo funciona todo esto y para qué sirve cada parte"
+        }
+      },
+      "generateLink": {
+        "heading": "Crear enlace de seguimiento individual",
+        "help": "Escribí el código del estudiante (su ID de Salesforce). Te damos un enlace propio para esa persona: cuando se registra con él, sabemos que fue ese estudiante puntual.",
+        "codeLabel": "Código del estudiante",
+        "codePlaceholder": "Por ejemplo: 0035cEXAMPLE000001",
+        "submit": "Generar enlace",
+        "linkReadyTitle": "¡El enlace está listo!",
+        "linkReadyBody": "Tocá «Copiar enlace» y enviáselo al estudiante (por WhatsApp, mail, etc.). Cuando lo use para registrarse, vas a poder ver que esa persona se registró.",
+        "copy": "Copiar enlace",
+        "copied": "¡Enlace copiado!",
+        "copyFailedHint": "No pudimos copiarlo solo. Copiá el enlace de acá a mano.",
+        "resultLabel": "Enlace para compartir",
+        "alreadyUsedTitle": "Este código ya se usó",
+        "alreadyUsedBody": "Ya hay alguien registrado con este código. Usá otro código para un estudiante nuevo.",
+        "error": "No pudimos generar el enlace. Probá de nuevo.",
+        "faq": {
+          "question": "¿Qué hace esta sección?",
+          "answer": "Crea un enlace único para un estudiante en particular, a partir de su código (su ID de Salesforce). Le compartís ese enlace y, cuando la persona se registra con él, queda registrado que fue ese estudiante. Sirve para seguir a quién invitaste y quién realmente entró."
+        },
+        "usageFaq": {
+          "question": "¿Cuántas veces se puede usar este enlace?",
+          "answer": "Una sola vez. Cada enlace es para un único estudiante: cuando esa persona se registra, el código queda usado y no se puede volver a usar. Si intentás generar un enlace con un código ya usado, te avisamos con «Este código ya se usó». El enlace no vence por fecha, pero queda atado a esa persona."
+        }
+      },
+      "sharedCode": {
+        "heading": "Abrir el acceso a un grupo",
+        "help": "Creá un código que muchas personas pueden usar para entrar. Sirve para abrir el acceso a muchas personas a la vez, por ejemplo en una demo o presentación para un grupo grande.",
+        "codeLabel": "Nombre del código",
+        "codePlaceholder": "Por ejemplo: grupo-2026",
+        "typeLabel": "¿Para qué es el código?",
+        "typeRegister": "Crear una cuenta",
+        "typeLogin": "Entrar sin cuenta",
+        "submit": "Crear código",
+        "successTitle": "¡Código creado!",
+        "successBody": "El código «{{code}}» ya está listo para usarse.",
+        "error": "No pudimos crear el código. Probá de nuevo.",
+        "faq": {
+          "question": "¿Qué hace esta sección?",
+          "answer": "Crea un código compartido que muchas personas pueden usar para registrarse. A diferencia del enlace individual, este NO sirve para seguir a un estudiante puntual: es para abrirle la puerta a muchas personas a la vez. Por ejemplo, cuando hacés una demo o una presentación para un grupo grande y no te importa seguir individualmente quién lo usó."
+        },
+        "validityFaq": {
+          "question": "¿Por cuánto tiempo sirve el código?",
+          "answer": "El código vale por 1 año desde el día que lo creás y lo pueden usar muchísimas veces (prácticamente sin límite). Pasado ese año deja de funcionar y tenés que crear uno nuevo."
+        }
+      },
+      "export": {
+        "heading": "Ver quién se registró",
+        "help": "Descargá una planilla (CSV) con todos los registros y los códigos que usaron.",
+        "submit": "Descargar planilla",
+        "success": "Listo. Se descargó la planilla.",
+        "error": "No pudimos descargar la planilla. Probá de nuevo.",
+        "faq": {
+          "question": "¿Qué hace esta sección? ¿Qué columnas trae?",
+          "answer": "Descarga una planilla (CSV) con todas las personas que se registraron. Cada fila trae: el ID de usuario, el código que usó, el Tipo (Individual = se registró con un enlace de seguimiento de un estudiante puntual; Grupo = usó un código compartido) y la fecha en que se registró. Se abre con Excel o Google Sheets."
+        }
+      },
+      "reportLookup": {
+        "heading": "Buscar el informe de un estudiante",
+        "help": "Escribí el código del estudiante (o su ID de usuario) para abrir su informe.",
+        "codeLabel": "Código del estudiante",
+        "codePlaceholder": "Por ejemplo: 0035cEXAMPLE000001",
+        "submit": "Abrir informe",
+        "faq": {
+          "question": "¿Qué hace esta sección?",
+          "answer": "Abre el informe (CV) de un estudiante puntual a partir de su código o ID de usuario, sin tener que descargar todos los informes. Es lo mismo que ves en «Descargar informes», pero para una sola persona."
+        }
+      },
+      "generalFaq": {
+        "heading": "Preguntas frecuentes",
+        "intro": "Una guía corta para entender cómo funciona el sistema de códigos e informes.",
+        "why": {
+          "question": "¿Por qué usamos códigos y enlaces individuales?",
+          "answer": "Empujar necesita saber si cada estudiante puntual llegó a registrarse. El mail no es confiable: muchas veces la persona se registra con un mail distinto al que tenemos, y así es difícil seguirle el rastro. Por eso le damos a cada estudiante su propio código (su ID de Salesforce). Como ese código es de una sola persona, cuando alguien se registra con él sabemos exactamente quién fue, sin importar qué mail usó, y después lo podemos vincular con Salesforce para hacer el seguimiento."
+        },
+        "difference": {
+          "question": "¿Qué diferencia hay entre un enlace individual y un código de grupo?",
+          "answer": "El enlace de seguimiento individual es para UNA sola persona: te deja saber si ese estudiante puntual se registró. El código de grupo es para MUCHAS personas a la vez: abre el acceso a mucha gente de una vez, pero no te dice quién es cada uno. Usá el enlace individual cuando quieras seguir a alguien en particular; usá el código de grupo cuando solo quieras abrirle la puerta a un montón de gente."
+        },
+        "sections": {
+          "question": "¿Para qué sirve cada sección del panel?",
+          "answer": "• Crear enlace de seguimiento individual: genera un enlace propio para un estudiante.\n• Abrir el acceso a un grupo: crea un código que pueden usar muchas personas.\n• Ver quién se registró: descarga una planilla con todos los registros.\n• Descargar informes: descarga los informes (CV) de los usuarios.\n• Buscar el informe de un estudiante: abre el informe de una sola persona."
+        },
+        "report": {
+          "question": "¿Qué es el «informe», el «reporte» o el «CV»?",
+          "answer": "Son tres formas de nombrar lo mismo: el documento que arma Brújula con las experiencias y habilidades del estudiante. Cuando veas «informe», «reporte» o «CV», hablamos siempre de este documento. Así se ve:",
+          "thumbnailAlt": "Ejemplo de un informe (CV) de Brújula",
+          "thumbnailCaption": "Ejemplo de un informe de habilidades (CV)"
+        },
+        "individualUsage": {
+          "question": "¿Cuántas veces se puede usar un enlace de seguimiento individual?",
+          "answer": "Una sola vez. Cada enlace individual es para un único estudiante: en cuanto esa persona se registra con su código, el código queda usado y no se puede reutilizar para otra. Así te asegurás de que cada código corresponde a una sola persona. (Si querés sumar a otro estudiante, generá un enlace nuevo con su propio código.)"
+        },
+        "validity": {
+          "question": "¿Por cuánto tiempo sirven los códigos de grupo?",
+          "answer": "Cada código de grupo vale por 1 año desde el día que se crea y se puede usar muchísimas veces (prácticamente sin límite). Cuando pasa el año, deja de funcionar y hay que crear uno nuevo."
+        }
+      }
+    }
+  },
   "testEnvironmentBanner": {
     "message": "Estás usando la versión de prueba de Brújula. Acá el chatbot solo responde en inglés. Para la versión en español, andá a",
     "linkLabel": "Brújula",

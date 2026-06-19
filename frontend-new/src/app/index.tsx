@@ -32,6 +32,7 @@ const LazyLoadedSensitiveDataForm = lazyWithPreload(
 const LazyLoadedChat = lazyWithPreload(() => import("src/chat/Chat"));
 const LazyLoadedPublicReport = lazyWithPreload(() => import("src/experiences/report/PublicReportPage"));
 const LazyLoadedBulkDownloadReports = lazyWithPreload(() => import("src/experiences/report/BulkDownloadReportPage"));
+const LazyLoadedAdminPanel = lazyWithPreload(() => import("src/admin/pages/AdminPanel/AdminPanel"));
 
 // Wrap the createHashRouter function with Sentry to capture errors that occur during router initialization
 const sentryCreateBrowserRouter = Sentry.wrapCreateBrowserRouterV6(createHashRouter);
@@ -330,6 +331,10 @@ const App = () => {
         {
           path: routerPaths.BULK_DOWNLOAD_REPORTS,
           element: <LazyLoadedBulkDownloadReports />,
+        },
+        {
+          path: routerPaths.ADMIN_PANEL,
+          element: <LazyLoadedAdminPanel />,
         },
         {
           path: "*",

@@ -1,3 +1,4 @@
+import os
 import pytest
 from http import HTTPStatus
 from unittest.mock import AsyncMock, MagicMock
@@ -15,6 +16,13 @@ def app():
     app = FastAPI()
     add_public_report_routes(app)
     return app
+
+@pytest.fixture(autouse=True)
+def _admin_token_env():
+    # Reports are gated by ADMIN_TOKEN (fail-closed); configure it for these business-logic tests.
+    os.environ["ADMIN_TOKEN"] = "test-admin-token"
+    yield
+    os.environ.pop("ADMIN_TOKEN", None)
 
 @pytest.mark.asyncio
 async def test_get_public_report_success(app):
@@ -52,7 +60,7 @@ async def test_get_public_report_success(app):
     app.dependency_overrides[get_experience_service] = lambda: mock_exp_service
     
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        response = await ac.get("/reports/user-1")
+        response = await ac.get("/reports/user-1?token=test-admin-token")
     
     assert response.status_code == HTTPStatus.OK
     data = response.json()
@@ -74,7 +82,7 @@ async def test_get_public_report_not_found(app):
     app.dependency_overrides[get_experience_service] = lambda: mock_exp_service
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        response = await ac.get("/reports/user-2")
+        response = await ac.get("/reports/user-2?token=test-admin-token")
     
     assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json()["detail"] == "No report data found for this user"
