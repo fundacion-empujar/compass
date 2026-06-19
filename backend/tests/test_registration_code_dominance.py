@@ -19,6 +19,12 @@ def app():
     return app
 
 
+@pytest.fixture(autouse=True)
+def _admin_token(monkeypatch):
+    # Reports are gated by ADMIN_TOKEN (fail-closed); configure it for these lookup tests.
+    monkeypatch.setenv("ADMIN_TOKEN", "admin-secret")
+
+
 @pytest.mark.asyncio
 async def test_report_user_id_rejected_when_registration_code_present(app):
     mock_pref_repo = MagicMock(spec=IUserPreferenceRepository)
@@ -39,7 +45,7 @@ async def test_report_user_id_rejected_when_registration_code_present(app):
     app.dependency_overrides[get_experience_service] = lambda: mock_exp_service
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        response = await ac.get("/reports/user-123")
+        response = await ac.get("/reports/user-123?token=admin-secret")
 
     assert response.status_code == HTTPStatus.NOT_FOUND
     mock_pref_repo.get_user_preference_by_registration_code.assert_awaited_once_with("user-123")
@@ -66,7 +72,7 @@ async def test_report_user_id_allowed_when_registration_code_absent(app):
     app.dependency_overrides[get_experience_service] = lambda: mock_exp_service
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        response = await ac.get("/reports/user-123")
+        response = await ac.get("/reports/user-123?token=admin-secret")
 
     assert response.status_code == HTTPStatus.OK
     mock_pref_repo.get_user_preference_by_registration_code.assert_awaited_once_with("user-123")

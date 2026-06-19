@@ -22,15 +22,17 @@ def app():
 
 
 @pytest.fixture(autouse=True)
-def clear_security_token(monkeypatch):
+def clear_security_tokens(monkeypatch):
+    # Reports are gated by ADMIN_TOKEN (fail-closed); start each test from a clean slate.
     monkeypatch.delenv("SEC_TOKEN", raising=False)
+    monkeypatch.delenv("ADMIN_TOKEN", raising=False)
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("link_token", ["fundacion-empujar-2026!", "fundacion-empujar-2026"])
 async def test_report_lookup_accepts_token_with_or_without_trailing_bang(app, monkeypatch, link_token):
-    """Chat-app auto-link parsers strip a trailing '!'. With SEC_TOKEN ending in '!',
+    """Chat-app auto-link parsers strip a trailing '!'. With ADMIN_TOKEN ending in '!',
     both the original and the truncated token in the URL must validate."""
-    monkeypatch.setenv("SEC_TOKEN", "fundacion-empujar-2026!")
+    monkeypatch.setenv("ADMIN_TOKEN", "fundacion-empujar-2026!")
 
     mock_pref_repo = MagicMock(spec=IUserPreferenceRepository)
     mock_pref = UserPreferences(
@@ -57,7 +59,7 @@ async def test_report_lookup_accepts_token_with_or_without_trailing_bang(app, mo
 @pytest.mark.asyncio
 async def test_report_lookup_rejects_unrelated_token_even_with_bang_tolerance(app, monkeypatch):
     """Regression guard: tolerance only strips a trailing '!', not arbitrary substrings."""
-    monkeypatch.setenv("SEC_TOKEN", "fundacion-empujar-2026!")
+    monkeypatch.setenv("ADMIN_TOKEN", "fundacion-empujar-2026!")
 
     mock_pref_repo = MagicMock(spec=IUserPreferenceRepository)
     mock_pref_repo.get_user_preference_by_registration_code = AsyncMock(return_value=None)
@@ -78,7 +80,7 @@ async def test_report_lookup_rejects_unrelated_token_even_with_bang_tolerance(ap
 
 @pytest.mark.asyncio
 async def test_report_lookup_accepts_case_insensitive_token(app, monkeypatch):
-    monkeypatch.setenv("SEC_TOKEN", "SeCrEt")
+    monkeypatch.setenv("ADMIN_TOKEN", "SeCrEt")
 
     mock_pref_repo = MagicMock(spec=IUserPreferenceRepository)
     mock_pref = UserPreferences(
@@ -105,7 +107,9 @@ async def test_report_lookup_accepts_case_insensitive_token(app, monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_report_lookup_prefers_registration_code(app):
+async def test_report_lookup_prefers_registration_code(app, monkeypatch):
+    monkeypatch.setenv("ADMIN_TOKEN", "admin-secret")
+
     mock_pref_repo = MagicMock(spec=IUserPreferenceRepository)
     mock_pref = UserPreferences(
         user_id="user-from-reg",
@@ -122,7 +126,7 @@ async def test_report_lookup_prefers_registration_code(app):
     app.dependency_overrides[get_experience_service] = lambda: mock_exp_service
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        response = await ac.get("/reports/reg-123")
+        response = await ac.get("/reports/reg-123?token=admin-secret")
 
     assert response.status_code == HTTPStatus.OK
     assert response.json()["user_id"] == "user-from-reg"
@@ -131,7 +135,9 @@ async def test_report_lookup_prefers_registration_code(app):
 
 
 @pytest.mark.asyncio
-async def test_report_lookup_falls_back_to_user_id(app):
+async def test_report_lookup_falls_back_to_user_id(app, monkeypatch):
+    monkeypatch.setenv("ADMIN_TOKEN", "admin-secret")
+
     mock_pref_repo = MagicMock(spec=IUserPreferenceRepository)
     mock_pref_repo.get_user_preference_by_registration_code = AsyncMock(return_value=None)
     mock_pref_repo.get_user_preference_by_user_id = AsyncMock(
@@ -149,7 +155,7 @@ async def test_report_lookup_falls_back_to_user_id(app):
     app.dependency_overrides[get_experience_service] = lambda: mock_exp_service
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        response = await ac.get("/reports/user-123")
+        response = await ac.get("/reports/user-123?token=admin-secret")
 
     assert response.status_code == HTTPStatus.OK
     assert response.json()["user_id"] == "user-123"
@@ -158,7 +164,9 @@ async def test_report_lookup_falls_back_to_user_id(app):
 
 
 @pytest.mark.asyncio
-async def test_report_lookup_not_found(app):
+async def test_report_lookup_not_found(app, monkeypatch):
+    monkeypatch.setenv("ADMIN_TOKEN", "admin-secret")
+
     mock_pref_repo = MagicMock(spec=IUserPreferenceRepository)
     mock_pref_repo.get_user_preference_by_registration_code = AsyncMock(return_value=None)
     mock_pref_repo.get_user_preference_by_user_id = AsyncMock(return_value=None)
@@ -170,7 +178,7 @@ async def test_report_lookup_not_found(app):
     app.dependency_overrides[get_experience_service] = lambda: mock_exp_service
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        response = await ac.get("/reports/unknown")
+        response = await ac.get("/reports/unknown?token=admin-secret")
 
     assert response.status_code == HTTPStatus.NOT_FOUND
     mock_pref_repo.get_user_preference_by_registration_code.assert_awaited_once_with("unknown")
