@@ -1,21 +1,19 @@
 import React, { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Box, Paper, Typography, Stack, Card, CardActionArea, CardContent, Button, useTheme } from "@mui/material";
 import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1";
 import GroupAddIcon from "@mui/icons-material/GroupAdd";
 import TableViewIcon from "@mui/icons-material/TableView";
 import DownloadIcon from "@mui/icons-material/Download";
-import ManageSearchIcon from "@mui/icons-material/ManageSearch";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ErrorPage from "src/error/errorPage/ErrorPage";
 import LanguageContextMenu from "src/i18n/languageContextMenu/LanguageContextMenu";
-import { routerPaths } from "src/app/routerPaths";
 import GenerateLinkTool from "src/admin/components/GenerateLinkTool/GenerateLinkTool";
 import CreateSharedCodeTool from "src/admin/components/CreateSharedCodeTool/CreateSharedCodeTool";
 import ExportRegistrationsTool from "src/admin/components/ExportRegistrationsTool/ExportRegistrationsTool";
-import ReportLookupTool from "src/admin/components/ReportLookupTool/ReportLookupTool";
+import DownloadReportsMenu from "src/admin/components/DownloadReportsMenu/DownloadReportsMenu";
 import GeneralFaqTool from "src/admin/components/GeneralFaqTool/GeneralFaqTool";
 
 const uniqueId = "f3a2b1c0-6d5e-4f81-9a2b-adminpanel0000";
@@ -26,17 +24,15 @@ export const DATA_TEST_ID = {
   CARD_SHARED_CODE: `admin-card-shared-code-${uniqueId}`,
   CARD_EXPORT: `admin-card-export-${uniqueId}`,
   CARD_REPORTS: `admin-card-reports-${uniqueId}`,
-  CARD_REPORT_LOOKUP: `admin-card-report-lookup-${uniqueId}`,
   CARD_FAQ: `admin-card-faq-${uniqueId}`,
   BACK_BUTTON: `admin-back-button-${uniqueId}`,
 };
 
-type AdminTool = "link" | "shared" | "export" | "reportLookup" | "faq";
+type AdminTool = "link" | "shared" | "export" | "reports" | "faq";
 
 const AdminPanel: React.FC = () => {
   const theme = useTheme();
   const location = useLocation();
-  const navigate = useNavigate();
   const { t } = useTranslation();
 
   const urlToken = new URLSearchParams(location.search).get("token") || "";
@@ -77,15 +73,7 @@ const AdminPanel: React.FC = () => {
       icon: <DownloadIcon fontSize="large" color="secondary" />,
       title: t("admin.panel.cards.reports.title"),
       description: t("admin.panel.cards.reports.description"),
-      onClick: () => navigate(`${routerPaths.BULK_DOWNLOAD_REPORTS}?token=${encodeURIComponent(urlToken)}`),
-    },
-    {
-      id: "reportLookup" as const,
-      testId: DATA_TEST_ID.CARD_REPORT_LOOKUP,
-      icon: <ManageSearchIcon fontSize="large" color="primary" />,
-      title: t("admin.panel.cards.reportLookup.title"),
-      description: t("admin.panel.cards.reportLookup.description"),
-      onClick: () => setActiveTool("reportLookup"),
+      onClick: () => setActiveTool("reports"),
     },
     {
       id: "faq" as const,
@@ -105,8 +93,8 @@ const AdminPanel: React.FC = () => {
         return <CreateSharedCodeTool token={urlToken} />;
       case "export":
         return <ExportRegistrationsTool token={urlToken} />;
-      case "reportLookup":
-        return <ReportLookupTool token={urlToken} />;
+      case "reports":
+        return <DownloadReportsMenu token={urlToken} />;
       case "faq":
         return <GeneralFaqTool />;
       default:

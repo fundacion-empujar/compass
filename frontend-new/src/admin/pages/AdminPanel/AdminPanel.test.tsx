@@ -11,6 +11,7 @@ import AdminPanel, { DATA_TEST_ID } from "src/admin/pages/AdminPanel/AdminPanel"
 import { DATA_TEST_ID as LINK_TOOL_TEST_ID } from "src/admin/components/GenerateLinkTool/GenerateLinkTool";
 import { DATA_TEST_ID as SHARED_TOOL_TEST_ID } from "src/admin/components/CreateSharedCodeTool/CreateSharedCodeTool";
 import { DATA_TEST_ID as EXPORT_TOOL_TEST_ID } from "src/admin/components/ExportRegistrationsTool/ExportRegistrationsTool";
+import { DATA_TEST_ID as DOWNLOAD_REPORTS_MENU_TEST_ID } from "src/admin/components/DownloadReportsMenu/DownloadReportsMenu";
 import { DATA_TEST_ID as REPORT_LOOKUP_TOOL_TEST_ID } from "src/admin/components/ReportLookupTool/ReportLookupTool";
 import { DATA_TEST_ID as GENERAL_FAQ_TOOL_TEST_ID } from "src/admin/components/GeneralFaqTool/GeneralFaqTool";
 import { DATA_TEST_ID as ERROR_PAGE_TEST_ID } from "src/error/errorPage/ErrorPage";
@@ -53,14 +54,13 @@ describe("AdminPanel", () => {
     expect(screen.queryByTestId(DATA_TEST_ID.ADMIN_PANEL_CONTAINER)).not.toBeInTheDocument();
   });
 
-  test("renders the six tool cards when a token is present", () => {
+  test("renders the five tool cards when a token is present", () => {
     render(<AdminPanel />);
     expect(screen.getByTestId(DATA_TEST_ID.ADMIN_PANEL_CONTAINER)).toBeInTheDocument();
     expect(screen.getByTestId(DATA_TEST_ID.CARD_GENERATE_LINK)).toBeInTheDocument();
     expect(screen.getByTestId(DATA_TEST_ID.CARD_SHARED_CODE)).toBeInTheDocument();
     expect(screen.getByTestId(DATA_TEST_ID.CARD_EXPORT)).toBeInTheDocument();
     expect(screen.getByTestId(DATA_TEST_ID.CARD_REPORTS)).toBeInTheDocument();
-    expect(screen.getByTestId(DATA_TEST_ID.CARD_REPORT_LOOKUP)).toBeInTheDocument();
     expect(screen.getByTestId(DATA_TEST_ID.CARD_FAQ)).toBeInTheDocument();
   });
 
@@ -180,9 +180,14 @@ describe("AdminPanel", () => {
     expect(mockExportRegistrations).toHaveBeenCalledWith(GIVEN_TOKEN);
   });
 
-  test("opens the report-lookup tool", () => {
+  test("opens the download-reports menu and drills into the individual lookup", () => {
     render(<AdminPanel />);
-    fireEvent.click(screen.getByTestId(DATA_TEST_ID.CARD_REPORT_LOOKUP));
+    fireEvent.click(screen.getByTestId(DATA_TEST_ID.CARD_REPORTS));
+    expect(screen.getByTestId(DOWNLOAD_REPORTS_MENU_TEST_ID.DOWNLOAD_REPORTS_MENU)).toBeInTheDocument();
+    expect(screen.getByTestId(DOWNLOAD_REPORTS_MENU_TEST_ID.CARD_INDIVIDUAL)).toBeInTheDocument();
+    expect(screen.getByTestId(DOWNLOAD_REPORTS_MENU_TEST_ID.CARD_BULK)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId(DOWNLOAD_REPORTS_MENU_TEST_ID.CARD_INDIVIDUAL));
     expect(screen.getByTestId(REPORT_LOOKUP_TOOL_TEST_ID.REPORT_LOOKUP_TOOL)).toBeInTheDocument();
   });
 
