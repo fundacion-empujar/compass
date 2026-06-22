@@ -20,11 +20,7 @@
         },
         "reports": {
           "title": "Descargar informes",
-          "description": "Descargá los informes de habilidades de los usuarios"
-        },
-        "reportLookup": {
-          "title": "Buscar el informe de un estudiante",
-          "description": "Buscá y abrí el informe de un estudiante por su código"
+          "description": "Buscá el informe de un estudiante o descargá todos juntos"
         },
         "generalFaq": {
           "title": "Preguntas frecuentes",
@@ -85,6 +81,21 @@
         "faq": {
           "question": "¿Qué hace esta sección? ¿Qué columnas trae?",
           "answer": "Descarga una planilla (CSV) con todas las personas que se registraron. Cada fila trae: el ID de usuario, el código que usó, el Tipo (Individual = se registró con un enlace de seguimiento de un estudiante puntual; Grupo = usó un código compartido) y la fecha en que se registró. Se abre con Excel o Google Sheets."
+        }
+      },
+      "reports": {
+        "menu": {
+          "heading": "Descargar informes",
+          "help": "Elegí qué querés hacer: ver el informe de un estudiante puntual o descargar todos los informes juntos.",
+          "individual": {
+            "title": "Buscar el informe de un estudiante",
+            "description": "Buscá y abrí el informe de un estudiante por su código"
+          },
+          "bulk": {
+            "title": "Descarga masiva",
+            "description": "Descargá todos los informes juntos en un archivo zip"
+          },
+          "back": "Volver a las opciones"
         }
       },
       "reportLookup": {

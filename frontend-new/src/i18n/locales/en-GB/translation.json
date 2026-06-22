@@ -20,11 +20,7 @@
         },
         "reports": {
           "title": "Download reports",
-          "description": "Download users' skills reports"
-        },
-        "reportLookup": {
-          "title": "Find a student's report",
-          "description": "Search and open a student's report by their code"
+          "description": "Find a student's report or download them all"
         },
         "generalFaq": {
           "title": "Frequently asked questions",
@@ -85,6 +81,21 @@
         "faq": {
           "question": "What does this section do? What columns does it have?",
           "answer": "It downloads a spreadsheet (CSV) with everyone who signed up. Each row has: the user ID, the code they used, the Type (Individual = registered with a single-student tracking link; Group = used a shared code), and the date they signed up. It opens in Excel or Google Sheets."
+        }
+      },
+      "reports": {
+        "menu": {
+          "heading": "Download reports",
+          "help": "Choose what you want to do: open one student's report or download all reports together.",
+          "individual": {
+            "title": "Find a student's report",
+            "description": "Search and open a student's report by their code"
+          },
+          "bulk": {
+            "title": "Bulk download",
+            "description": "Download all reports together as a zip file"
+          },
+          "back": "Back to options"
         }
       },
       "reportLookup": {
