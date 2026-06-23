@@ -11,6 +11,8 @@ from pydantic import BaseModel
 from fastapi import Depends, Request, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, APIKeyHeader
 
+from common_libs.time_utilities import get_now
+
 logger = logging.getLogger(__name__)
 
 
@@ -44,6 +46,12 @@ class UserInfo(BaseModel):
     Sign in Provider
     """
 
+    super_admin: bool = False
+    """
+    Whether the user holds the ``super_admin`` Firebase custom claim (staff admin-panel access).
+    False for everyone without the claim, including anonymous users.
+    """
+
     class Config:
         extra = "forbid"
 
@@ -60,7 +68,9 @@ def _get_user_info(decoded_token: Any, token: str) -> UserInfo:
         name=decoded_token["name"] if "name" in decoded_token else None,  # Anon user will not have a name
         email=decoded_token["email"] if "email" in decoded_token else None,  # Anon user will not have an email
         token=token,
-        sign_in_provider=decoded_token["firebase"]["sign_in_provider"]
+        sign_in_provider=decoded_token["firebase"]["sign_in_provider"],
+        # Firebase custom claim; strict ``is True`` fails closed for absent/None/non-bool values.
+        super_admin=decoded_token.get("super_admin") is True
     )
 
 
@@ -178,6 +188,42 @@ class Authentication:
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
 
         return construct_user_info
+
+
+def require_super_admin(authentication: "Authentication") -> Callable[..., UserInfo]:
+    """Build a dependency that authorizes staff (``super_admin``) endpoints.
+
+    Runs the standard Firebase Bearer-token check and then requires the ``super_admin``
+    custom claim. Returns the authenticated :class:`UserInfo` so callers can audit *who*
+    acted; raises 403 for authenticated users without the claim. Because it chains the
+    ``HTTPBearer`` provider, FastAPI emits the ``firebase`` security scheme for the route
+    and the API Gateway enforces authentication at the edge. Pass the shared
+    :class:`Authentication` instance via DI, e.g. ``Depends(require_super_admin(authentication))``.
+    """
+
+    def _require_super_admin(
+        request: Request,
+        user_info: UserInfo = Depends(authentication.get_user_info()),
+    ) -> UserInfo:
+        if not user_info.super_admin:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Super-admin access required")
+
+        # Audit-log every authorized access, keyed by who acted (uid/email).
+        logger.info(
+            "Admin endpoint accessed",
+            extra={
+                "action": "admin_access",
+                "user_id": user_info.user_id,
+                "email": user_info.email,
+                "path": request.url.path,
+                "ip_address": request.client.host if request.client else None,
+                "user_agent": request.headers.get("user-agent"),
+                "timestamp": get_now().isoformat(),
+            },
+        )
+        return user_info
+
+    return _require_super_admin
 
 
 class ApiKeyAuth:

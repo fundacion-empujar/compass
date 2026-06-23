@@ -60,10 +60,10 @@ describe("PublicReportPage report lookup", () => {
   };
 
   it("prefers registration code identifier when provided", async () => {
-    renderWithRoute("/report/reg-abc?token=rt-1");
+    renderWithRoute("/report/reg-abc");
 
     await waitFor(() => {
-      expect(mockGetPublicReport).toHaveBeenCalledWith("reg-abc", "rt-1");
+      expect(mockGetPublicReport).toHaveBeenCalledWith("reg-abc");
     });
 
     expect(screen.getByText("common.buttons.download")).toBeInTheDocument();
@@ -73,7 +73,7 @@ describe("PublicReportPage report lookup", () => {
     renderWithRoute("/report/user-456");
 
     await waitFor(() => {
-      expect(mockGetPublicReport).toHaveBeenCalledWith("user-456", null);
+      expect(mockGetPublicReport).toHaveBeenCalledWith("user-456");
     });
 
     expect(screen.getByTestId("pdf-viewer")).toBeInTheDocument();

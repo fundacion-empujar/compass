@@ -384,14 +384,14 @@ app.include_router(search_router)
 add_metrics_routes(app)
 
 ############################################
-# Add public report routes
+# Add public report routes (super_admin-gated)
 ############################################
-add_public_report_routes(app)
+add_public_report_routes(app, auth)
 
 ############################################
-# Add admin routes (ADMIN_TOKEN-gated staff panel)
+# Add admin routes (super_admin-gated staff panel)
 ############################################
-add_admin_routes(app)
+add_admin_routes(app, auth)
 
 ############################################
 # Add POC chat routes

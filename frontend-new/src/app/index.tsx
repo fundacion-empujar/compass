@@ -9,6 +9,7 @@ import Consent from "src/consent/components/consentPage/Consent";
 import Landing from "src/auth/pages/Landing/Landing";
 
 import ProtectedRoute from "src/app/ProtectedRoute/ProtectedRoute";
+import AdminRoute from "src/app/AdminRoute/AdminRoute";
 import { routerPaths } from "src/app/routerPaths";
 import AuthenticationStateService from "src/auth/services/AuthenticationState.service";
 import UserPreferencesStateService from "src/userPreferences/UserPreferencesStateService";
@@ -326,15 +327,27 @@ const App = () => {
         },
         {
           path: routerPaths.REPORT,
-          element: <LazyLoadedPublicReport />,
+          element: (
+            <AdminRoute>
+              <LazyLoadedPublicReport />
+            </AdminRoute>
+          ),
         },
         {
           path: routerPaths.BULK_DOWNLOAD_REPORTS,
-          element: <LazyLoadedBulkDownloadReports />,
+          element: (
+            <AdminRoute>
+              <LazyLoadedBulkDownloadReports />
+            </AdminRoute>
+          ),
         },
         {
           path: routerPaths.ADMIN_PANEL,
-          element: <LazyLoadedAdminPanel />,
+          element: (
+            <AdminRoute>
+              <LazyLoadedAdminPanel />
+            </AdminRoute>
+          ),
         },
         {
           path: "*",

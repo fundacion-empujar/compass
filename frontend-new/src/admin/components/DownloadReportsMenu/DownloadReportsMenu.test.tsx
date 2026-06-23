@@ -12,22 +12,20 @@ jest.mock("react-router-dom", () => ({
   useNavigate: () => mockNavigate,
 }));
 
-const GIVEN_TOKEN = "admin-secret";
-
 describe("DownloadReportsMenu", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   test("renders the two options (individual and bulk)", () => {
-    render(<DownloadReportsMenu token={GIVEN_TOKEN} />);
+    render(<DownloadReportsMenu />);
     expect(screen.getByTestId(DATA_TEST_ID.DOWNLOAD_REPORTS_MENU)).toBeInTheDocument();
     expect(screen.getByTestId(DATA_TEST_ID.CARD_INDIVIDUAL)).toBeInTheDocument();
     expect(screen.getByTestId(DATA_TEST_ID.CARD_BULK)).toBeInTheDocument();
   });
 
   test("individual option shows the report-lookup form, and back returns to the options", () => {
-    render(<DownloadReportsMenu token={GIVEN_TOKEN} />);
+    render(<DownloadReportsMenu />);
 
     fireEvent.click(screen.getByTestId(DATA_TEST_ID.CARD_INDIVIDUAL));
     expect(screen.getByTestId(REPORT_LOOKUP_TOOL_TEST_ID.REPORT_LOOKUP_TOOL)).toBeInTheDocument();
@@ -37,10 +35,10 @@ describe("DownloadReportsMenu", () => {
     expect(screen.queryByTestId(REPORT_LOOKUP_TOOL_TEST_ID.REPORT_LOOKUP_TOOL)).not.toBeInTheDocument();
   });
 
-  test("bulk option navigates to the bulk-download page, forwarding the admin token", () => {
-    render(<DownloadReportsMenu token={GIVEN_TOKEN} />);
+  test("bulk option navigates to the bulk-download page", () => {
+    render(<DownloadReportsMenu />);
 
     fireEvent.click(screen.getByTestId(DATA_TEST_ID.CARD_BULK));
-    expect(mockNavigate).toHaveBeenCalledWith(`/bulk-download-reports?token=${GIVEN_TOKEN}`);
+    expect(mockNavigate).toHaveBeenCalledWith("/bulk-download-reports");
   });
 });

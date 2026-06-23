@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Box, CircularProgress, Container, Divider, Typography, useTheme } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
 import { routerPaths } from "src/app/routerPaths";
+import AuthenticationStateService from "src/auth/services/AuthenticationState.service";
 import SocialAuth from "src/auth/components/SocialAuth/SocialAuth";
 import { useSnackbar } from "src/theme/SnackbarProvider/SnackbarProvider";
 import { getUserFriendlyErrorMessage, RestAPIError } from "src/error/restAPIError/RestAPIError";
@@ -210,6 +211,9 @@ const Login: React.FC = () => {
       // decide, based on the preferences, where to navigate the user
       if (!prefs?.accepted_tc || isNaN(prefs?.accepted_tc.getTime())) {
         navigate(routerPaths.CONSENT, { replace: true });
+      } else if (AuthenticationStateService.getInstance().getIsSuperAdmin()) {
+        // Staff super-admins land on the admin panel instead of the chat.
+        navigate(routerPaths.ADMIN_PANEL, { replace: true });
       } else {
         // if the user has preferences, we can record some metrics about their device and location
         // if not the user will be redirected to the consent page to set their preferences

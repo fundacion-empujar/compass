@@ -1,4 +1,5 @@
-import { TabiyaUser } from "src/auth/auth.types";
+import { jwtDecode } from "jwt-decode";
+import { TabiyaUser, Token } from "src/auth/auth.types";
 import { PersistentStorageService } from "src/app/PersistentStorageService/PersistentStorageService";
 
 /**
@@ -55,6 +56,25 @@ export default class AuthenticationStateService {
    */
   public getUser(): TabiyaUser | null {
     return this.user;
+  }
+
+  /**
+   * Returns whether the current token carries the `super_admin` Firebase custom claim
+   * (staff admin-panel access). Decodes the in-state token, so it works after login and on
+   * bootstrap (loadToken). Returns false when there is no token or it cannot be decoded.
+   *
+   * @returns {boolean} True only for users holding the super_admin claim.
+   */
+  public getIsSuperAdmin(): boolean {
+    if (!this.token) {
+      return false;
+    }
+    try {
+      return jwtDecode<Token>(this.token).super_admin === true;
+    } catch (error) {
+      console.error("AuthenticationStateService: Failed to decode token for super_admin claim", error);
+      return false;
+    }
   }
 
   /**

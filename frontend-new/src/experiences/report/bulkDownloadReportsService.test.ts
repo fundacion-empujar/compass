@@ -5,6 +5,16 @@ jest.mock("src/envService", () => ({
   getBackendUrl: jest.fn(() => "http://localhost:8000"),
 }));
 
+// Mock the auth state so the service can read a Firebase token to send as a Bearer header
+jest.mock("src/auth/services/AuthenticationState.service", () => ({
+  __esModule: true,
+  default: {
+    getInstance: () => ({
+      getToken: () => "fake-firebase-token",
+    }),
+  },
+}));
+
 describe("BulkDownloadReportsService", () => {
   let service: BulkDownloadReportsService;
 
@@ -63,13 +73,19 @@ describe("BulkDownloadReportsService", () => {
       const onBatch = jest.fn();
       const onProgress = jest.fn();
 
-      await service.streamReports("test-token", { page_size: 10 }, onBatch, onProgress);
+      await service.streamReports({ page_size: 10 }, onBatch, onProgress);
 
+      const requestUrl = (global.fetch as jest.Mock).mock.calls[0][0] as string;
+      expect(requestUrl).toContain("page_size=10");
+      expect(requestUrl).not.toContain("token=");
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining("token=test-token"),
+        expect.any(String),
         expect.objectContaining({
           method: "GET",
-          headers: { Accept: "application/x-ndjson" },
+          headers: expect.objectContaining({
+            Accept: "application/x-ndjson",
+            Authorization: "Bearer fake-firebase-token",
+          }),
         })
       );
 
@@ -107,7 +123,7 @@ describe("BulkDownloadReportsService", () => {
       const onBatch = jest.fn();
       const onProgress = jest.fn();
 
-      await service.streamReports("test-token", {}, onBatch, onProgress);
+      await service.streamReports({}, onBatch, onProgress);
 
       expect(onBatch).toHaveBeenCalledTimes(2);
       expect(onBatch).toHaveBeenNthCalledWith(1, batch1);
@@ -150,7 +166,7 @@ describe("BulkDownloadReportsService", () => {
 
       const onBatch = jest.fn();
 
-      await service.streamReports("test-token", {}, onBatch);
+      await service.streamReports({}, onBatch);
 
       expect(onBatch).toHaveBeenCalledTimes(1);
       expect(onBatch).toHaveBeenCalledWith([report]);
@@ -175,10 +191,10 @@ describe("BulkDownloadReportsService", () => {
         started_after: "2023-01-01T00:00:00Z",
       };
 
-      await service.streamReports("test-token", filters, jest.fn());
+      await service.streamReports(filters, jest.fn());
 
       const fetchCall = (global.fetch as jest.Mock).mock.calls[0][0];
-      expect(fetchCall).toContain("token=test-token");
+      expect(fetchCall).not.toContain("token=");
       expect(fetchCall).toContain("page_size=20");
       expect(fetchCall).toContain("started_before=2024-01-01T00%3A00%3A00Z");
       expect(fetchCall).toContain("started_after=2023-01-01T00%3A00%3A00Z");
@@ -192,7 +208,7 @@ describe("BulkDownloadReportsService", () => {
         text: jest.fn().mockResolvedValue("Invalid token"),
       });
 
-      await expect(service.streamReports("bad-token", {}, jest.fn())).rejects.toThrow(
+      await expect(service.streamReports({}, jest.fn())).rejects.toThrow(
         "Failed to fetch reports: 403 Forbidden - Invalid token"
       );
     });
@@ -203,7 +219,7 @@ describe("BulkDownloadReportsService", () => {
         body: null,
       });
 
-      await expect(service.streamReports("test-token", {}, jest.fn())).rejects.toThrow("Response body is null");
+      await expect(service.streamReports({}, jest.fn())).rejects.toThrow("Response body is null");
     });
 
     it("should handle JSON parse errors gracefully", async () => {
@@ -228,7 +244,7 @@ describe("BulkDownloadReportsService", () => {
       const consoleSpy = jest.spyOn(console, "error").mockImplementation();
       const onBatch = jest.fn();
 
-      await service.streamReports("test-token", {}, onBatch);
+      await service.streamReports({}, onBatch);
 
       expect(onBatch).not.toHaveBeenCalled();
       expect(consoleSpy).toHaveBeenCalledWith("Error parsing batch line:", expect.any(Error), "Line:", "invalid json");
@@ -263,7 +279,7 @@ describe("BulkDownloadReportsService", () => {
 
       const onBatch = jest.fn();
 
-      await service.streamReports("test-token", {}, onBatch);
+      await service.streamReports({}, onBatch);
 
       expect(onBatch).toHaveBeenCalledTimes(1);
       expect(onBatch).toHaveBeenCalledWith([report]);
@@ -283,7 +299,7 @@ describe("BulkDownloadReportsService", () => {
         body: mockStream,
       });
 
-      await expect(service.streamReports("test-token", {}, jest.fn())).rejects.toThrow("Stream error");
+      await expect(service.streamReports({}, jest.fn())).rejects.toThrow("Stream error");
 
       expect(mockReleaseLock).toHaveBeenCalled();
     });
@@ -316,7 +332,7 @@ describe("BulkDownloadReportsService", () => {
 
       const onBatch = jest.fn();
 
-      await service.streamReports("test-token", {}, onBatch);
+      await service.streamReports({}, onBatch);
 
       expect(onBatch).toHaveBeenCalledTimes(1);
       expect(onBatch).toHaveBeenCalledWith([report]);

@@ -19,11 +19,7 @@ export const DATA_TEST_ID = {
 
 const EXPORT_FILE_NAME = "registrations.csv";
 
-interface ExportRegistrationsToolProps {
-  token: string;
-}
-
-const ExportRegistrationsTool: React.FC<ExportRegistrationsToolProps> = ({ token }) => {
+const ExportRegistrationsTool: React.FC = () => {
   const { t } = useTranslation();
   const [loading, setLoading] = useState<boolean>(false);
   const [done, setDone] = useState<boolean>(false);
@@ -34,7 +30,7 @@ const ExportRegistrationsTool: React.FC<ExportRegistrationsToolProps> = ({ token
     setError(null);
     setDone(false);
     try {
-      const blob = await AdminService.getInstance().exportRegistrations(token);
+      const blob = await AdminService.getInstance().exportRegistrations();
       saveAs(blob, EXPORT_FILE_NAME);
       setDone(true);
     } catch (e) {

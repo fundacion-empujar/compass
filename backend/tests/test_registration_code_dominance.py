@@ -5,24 +5,33 @@ from fastapi import FastAPI
 from httpx import AsyncClient, ASGITransport
 
 from app.users.cv.routes import add_public_report_routes
+from app.users.auth import SignInProvider, UserInfo
 from app.users.repositories import IUserPreferenceRepository
 from app.users.types import UserPreferences, SensitivePersonalDataRequirement
 from app.conversations.experience.service import IExperienceService
 from app.conversations.experience.get_experience_service import get_experience_service
 from app.users.get_user_preferences_repository import get_user_preferences_repository
+from common_libs.test_utilities.mock_auth import MockAuth
+from common_libs.test_utilities.random_data import get_random_base64_string
+
+
+def _admin_user() -> UserInfo:
+    return UserInfo(
+        user_id="admin-1",
+        name="Staff Admin",
+        email="admin@example.org",
+        token=get_random_base64_string(10),
+        sign_in_provider=SignInProvider.PASSWORD,
+        super_admin=True,
+    )
 
 
 @pytest.fixture
 def app():
     app = FastAPI()
-    add_public_report_routes(app)
+    # Reports are gated on the Firebase super_admin claim; a granted staff user reaches the lookup logic.
+    add_public_report_routes(app, MockAuth(user=_admin_user()))
     return app
-
-
-@pytest.fixture(autouse=True)
-def _admin_token(monkeypatch):
-    # Reports are gated by ADMIN_TOKEN (fail-closed); configure it for these lookup tests.
-    monkeypatch.setenv("ADMIN_TOKEN", "admin-secret")
 
 
 @pytest.mark.asyncio
@@ -45,7 +54,7 @@ async def test_report_user_id_rejected_when_registration_code_present(app):
     app.dependency_overrides[get_experience_service] = lambda: mock_exp_service
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        response = await ac.get("/reports/user-123?token=admin-secret")
+        response = await ac.get("/reports/user-123")
 
     assert response.status_code == HTTPStatus.NOT_FOUND
     mock_pref_repo.get_user_preference_by_registration_code.assert_awaited_once_with("user-123")
@@ -72,7 +81,7 @@ async def test_report_user_id_allowed_when_registration_code_absent(app):
     app.dependency_overrides[get_experience_service] = lambda: mock_exp_service
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        response = await ac.get("/reports/user-123?token=admin-secret")
+        response = await ac.get("/reports/user-123")
 
     assert response.status_code == HTTPStatus.OK
     mock_pref_repo.get_user_preference_by_registration_code.assert_awaited_once_with("user-123")

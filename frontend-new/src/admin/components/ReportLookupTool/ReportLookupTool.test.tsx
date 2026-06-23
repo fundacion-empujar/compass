@@ -11,24 +11,22 @@ jest.mock("react-router-dom", () => ({
   useNavigate: () => mockNavigate,
 }));
 
-const GIVEN_TOKEN = "admin-secret";
-
 describe("ReportLookupTool", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  test("navigates to the individual report, forwarding the admin token", () => {
-    render(<ReportLookupTool token={GIVEN_TOKEN} />);
+  test("navigates to the individual report", () => {
+    render(<ReportLookupTool />);
 
     fireEvent.change(screen.getByTestId(DATA_TEST_ID.CODE_INPUT), { target: { value: "0035cABC" } });
     fireEvent.click(screen.getByTestId(DATA_TEST_ID.SUBMIT_BUTTON));
 
-    expect(mockNavigate).toHaveBeenCalledWith(`/report/0035cABC?token=${GIVEN_TOKEN}`);
+    expect(mockNavigate).toHaveBeenCalledWith("/report/0035cABC");
   });
 
   test("disables the button and does not navigate when the input is empty", () => {
-    render(<ReportLookupTool token={GIVEN_TOKEN} />);
+    render(<ReportLookupTool />);
 
     expect(screen.getByTestId(DATA_TEST_ID.SUBMIT_BUTTON)).toBeDisabled();
     expect(mockNavigate).not.toHaveBeenCalled();

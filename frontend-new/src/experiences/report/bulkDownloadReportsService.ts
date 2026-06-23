@@ -1,5 +1,6 @@
 import { getBackendUrl } from "src/envService";
 import { Experience } from "src/experiences/experienceService/experiences.types";
+import AuthenticationStateService from "src/auth/services/AuthenticationState.service";
 
 export interface BulkReportData {
   user_id: string;
@@ -30,21 +31,19 @@ export class BulkDownloadReportsService {
   }
 
   /**
-   * Stream reports from the backend API using NDJSON format
-   * @param token - Security token for authentication
+   * Stream reports from the backend API using NDJSON format.
+   * Sends the logged-in admin's Firebase token as a Bearer header.
    * @param filters - Optional filters for date and page size
    * @param onBatch - Callback for each batch of reports received
    * @param onProgress - Optional callback for progress updates (total reports received so far)
    * @returns Promise that resolves when streaming is complete
    */
   public async streamReports(
-    token: string,
     filters: BulkDownloadFilters,
     onBatch: (reports: BulkReportData[]) => void | Promise<void>,
     onProgress?: (count: number) => void
   ): Promise<void> {
     const params = new URLSearchParams();
-    params.append("token", token);
 
     if (filters.page_size) {
       params.append("page_size", filters.page_size.toString());
@@ -58,12 +57,15 @@ export class BulkDownloadReportsService {
       params.append("started_after", filters.started_after);
     }
 
-    const url = `${this.baseUrl}?${params.toString()}`;
+    const query = params.toString();
+    const url = query ? `${this.baseUrl}?${query}` : this.baseUrl;
 
+    const token = AuthenticationStateService.getInstance().getToken();
     const response = await fetch(url, {
       method: "GET",
       headers: {
         Accept: "application/x-ndjson",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     });
 

@@ -28,11 +28,7 @@ export const DATA_TEST_ID = {
   FAQ: `shared-code-faq-${uniqueId}`,
 };
 
-interface CreateSharedCodeToolProps {
-  token: string;
-}
-
-const CreateSharedCodeTool: React.FC<CreateSharedCodeToolProps> = ({ token }) => {
+const CreateSharedCodeTool: React.FC = () => {
   const { t } = useTranslation();
   const [code, setCode] = useState<string>("");
   const [type, setType] = useState<SharedCodeType>("REGISTER");
@@ -45,7 +41,7 @@ const CreateSharedCodeTool: React.FC<CreateSharedCodeToolProps> = ({ token }) =>
     setError(null);
     setResult(null);
     try {
-      const res = await AdminService.getInstance().createSharedCode(token, {
+      const res = await AdminService.getInstance().createSharedCode({
         invitation_code: code.trim(),
         invitation_type: type,
       });

@@ -17,16 +17,12 @@ export const DATA_TEST_ID = {
   BACK_TO_OPTIONS: `download-reports-back-${uniqueId}`,
 };
 
-interface DownloadReportsMenuProps {
-  token: string;
-}
-
 /**
  * Groups the two report flows behind one card: pick "individual" (open one
  * student's report via the existing lookup form) or "bulk" (the existing
- * bulk-download page). The admin token is forwarded to both.
+ * bulk-download page). Access is gated by the super_admin login.
  */
-const DownloadReportsMenu: React.FC<DownloadReportsMenuProps> = ({ token }) => {
+const DownloadReportsMenu: React.FC = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -43,7 +39,7 @@ const DownloadReportsMenu: React.FC<DownloadReportsMenuProps> = ({ token }) => {
         >
           {t("admin.panel.reports.menu.back")}
         </Button>
-        <ReportLookupTool token={token} />
+        <ReportLookupTool />
       </Box>
     );
   }
@@ -61,7 +57,7 @@ const DownloadReportsMenu: React.FC<DownloadReportsMenuProps> = ({ token }) => {
       icon: <DownloadIcon fontSize="large" color="secondary" />,
       title: t("admin.panel.reports.menu.bulk.title"),
       description: t("admin.panel.reports.menu.bulk.description"),
-      onClick: () => navigate(`${routerPaths.BULK_DOWNLOAD_REPORTS}?token=${encodeURIComponent(token)}`),
+      onClick: () => navigate(routerPaths.BULK_DOWNLOAD_REPORTS),
     },
   ];
 

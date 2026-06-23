@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   Box,
@@ -11,10 +10,8 @@ import {
   Paper,
   Stack,
   useTheme,
-  AlertTitle,
 } from "@mui/material";
 import DownloadIcon from "@mui/icons-material/Download";
-import WarningIcon from "@mui/icons-material/Warning";
 import JSZip from "jszip";
 import { pdf } from "@react-pdf/renderer";
 import { BulkDownloadReportsService, BulkReportData } from "./bulkDownloadReportsService";
@@ -23,7 +20,6 @@ import SkillReportDocx from "./reportDocx/SkillReportDocx";
 import { saveAs } from "src/experiences/saveAs";
 import { globalAssetPreloader } from "./assetPreloader";
 import { setGlobalAssetCache } from "./util";
-import ErrorPage from "src/error/errorPage/ErrorPage";
 import LanguageContextMenu from "src/i18n/languageContextMenu/LanguageContextMenu";
 
 type DownloadStatus = "idle" | "preloading" | "streaming" | "generating" | "zipping" | "complete" | "error";
@@ -39,11 +35,8 @@ type FileFormat = "pdf" | "docx" | "both";
 
 const BulkDownloadReportPage: React.FC = () => {
   const theme = useTheme();
-  const location = useLocation();
   const { t } = useTranslation();
 
-  const searchParams = new URLSearchParams(location.search);
-  const urlToken = searchParams.get("token") || "";
   const [startedBefore, setStartedBefore] = useState<string>("");
   const [startedAfter, setStartedAfter] = useState<string>("");
   const [fileFormat, setFileFormat] = useState<FileFormat>("both");
@@ -149,7 +142,6 @@ const BulkDownloadReportPage: React.FC = () => {
       // Stream and process reports in parallel
       const service = BulkDownloadReportsService.getInstance();
       await service.streamReports(
-        urlToken.trim(),
         {
           started_before: startedBefore ? new Date(startedBefore).toISOString() : undefined,
           started_after: startedAfter ? new Date(startedAfter).toISOString() : undefined,
@@ -253,10 +245,6 @@ const BulkDownloadReportPage: React.FC = () => {
     progress.status === "generating" ||
     progress.status === "zipping";
 
-  if (!urlToken) {
-    return <ErrorPage errorMessage={t("experiences.report.bulkDownload.errors.unAuthorizedAccess")} />;
-  }
-
   return (
     <Box
       sx={{
@@ -294,12 +282,6 @@ const BulkDownloadReportPage: React.FC = () => {
         <Typography variant="body2" color="text.secondary" sx={{ mb: theme.spacing(3) }}>
           {t("experiences.report.bulkDownload.description")}
         </Typography>
-
-        {/* Security Warning about token in URL */}
-        <Alert severity="warning" icon={<WarningIcon />} sx={{ mb: theme.spacing(2) }}>
-          <AlertTitle>{t("experiences.report.bulkDownload.security.warning.title")}</AlertTitle>
-          {t("experiences.report.bulkDownload.security.warning.message")}
-        </Alert>
 
         <Stack spacing={3} gap={2}>
           {/* Date Filters */}

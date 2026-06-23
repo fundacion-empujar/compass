@@ -1,7 +1,6 @@
 import asyncio
 import json
 import logging
-import os
 from datetime import datetime, timedelta
 from http import HTTPStatus
 from typing import AsyncGenerator
@@ -10,8 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, Fas
 from fastapi.responses import StreamingResponse
 
 from app.constants.errors import HTTPErrorResponse
-from app.security_token import normalize_security_token
-from app.users.auth import Authentication, UserInfo
+from app.users.auth import Authentication, UserInfo, require_super_admin
 from app.users.cv.constants import (
     MAX_CV_SIZE_BYTES,
     MAX_MULTIPART_OVERHEAD_BYTES,
@@ -369,8 +367,10 @@ def add_user_cv_routes(users_router: APIRouter, auth: Authentication):
     users_router.include_router(router)
 
 
-def add_public_report_routes(app: FastAPI):
+def add_public_report_routes(app: FastAPI, authentication: Authentication):
     router = APIRouter(prefix="/reports", tags=["public-reports"])
+    # Staff-only: gated on the Firebase ``super_admin`` claim.
+    admin_required = require_super_admin(authentication)
 
     async def _stream_reports_generator(
             experience_service: IExperienceService,
@@ -501,31 +501,12 @@ def add_public_report_routes(app: FastAPI):
     )
     async def get_public_report(
             identifier: str = Path(description="registration code or user id", examples=["reg-123", "user-1"]),
-            token: str | None = Query(None, description="Security token for accessing the report"),
+            _admin: UserInfo = Depends(admin_required),
             user_preferences_repository: IUserPreferenceRepository = Depends(get_user_preferences_repository),
             experience_service: IExperienceService = Depends(get_experience_service),
     ) -> PublicReportResponse:
         try:
-            # 0. Validate the admin token (fail-closed). Reports moved off SEC_TOKEN to ADMIN_TOKEN so a
-            #    leaked student registration link (which carries SEC_TOKEN) can no longer read reports.
-            normalized_token = normalize_security_token(token)
-            normalized_admin_token = normalize_security_token(os.getenv("ADMIN_TOKEN"))
-            if not normalized_admin_token:
-                logger.error("ADMIN_TOKEN environment variable not configured")
-                raise HTTPException(status_code=HTTPStatus.SERVICE_UNAVAILABLE, detail="Report access not configured")
-            if not normalized_token:
-                log_non_pii_warning(
-                    "Admin token required but not provided for public CV report",
-                    {"identifier_present": bool(identifier)},
-                )
-                raise HTTPException(status_code=HTTPStatus.UNAUTHORIZED, detail="Admin token required")
-            if normalized_admin_token != normalized_token:
-                log_non_pii_warning(
-                    "Invalid admin token provided for public CV report",
-                    {"identifier_present": bool(identifier)},
-                )
-                raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="Invalid admin token")
-
+            # Access is gated by the super_admin dependency above (Firebase claim).
             # 1. Resolve identifier to user preferences (prefer registration_code)
             preferences = await user_preferences_repository.get_user_preference_by_registration_code(identifier)
             if preferences is None:
@@ -593,7 +574,7 @@ def add_public_report_routes(app: FastAPI):
     )
     async def stream_reports(
             request: Request,
-            token: str | None = Query(None, description="Security token for accessing the reports"),
+            admin: UserInfo = Depends(admin_required),
             page_size: int = Query(DEFAULT_PAGE_SIZE, description="Number of reports per page", ge=1, le=MAX_PAGE_SIZE),
             started_before: datetime | None = Query(
                 None,
@@ -613,31 +594,7 @@ def add_public_report_routes(app: FastAPI):
         - conversation_conducted_at: When the conversation was conducted (if available)
         """
         try:
-            # Validate the admin token - REQUIRED (reports moved off SEC_TOKEN to ADMIN_TOKEN)
-            normalized_admin_token = normalize_security_token(os.getenv("ADMIN_TOKEN"))
-            if not normalized_admin_token:
-                logger.error("ADMIN_TOKEN environment variable not configured")
-                raise HTTPException(
-                    status_code=HTTPStatus.SERVICE_UNAVAILABLE,
-                    detail="Bulk download service not configured"
-                )
-
-            normalized_token = normalize_security_token(token)
-
-            if not normalized_token:
-                log_non_pii_warning(
-                    "Admin token required but not provided for streaming reports",
-                    {"has_date_filter": bool(started_before or started_after)},
-                )
-                raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="Admin token required")
-
-            if normalized_admin_token != normalized_token:
-                log_non_pii_warning(
-                    "Invalid admin token provided for streaming reports",
-                    {"has_date_filter": bool(started_before or started_after)},
-                )
-                raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="Invalid admin token")
-
+            # Access is gated by the super_admin dependency above (Firebase claim).
             # Validate date range
             if started_before and started_after and started_after >= started_before:
                 raise HTTPException(
@@ -650,6 +607,8 @@ def add_public_report_routes(app: FastAPI):
                 "Bulk report download initiated",
                 extra={
                     "action": "bulk_report_download",
+                    "user_id": admin.user_id,
+                    "email": admin.email,
                     "filters": {
                         "started_before": started_before.isoformat() if started_before else None,
                         "started_after": started_after.isoformat() if started_after else None,

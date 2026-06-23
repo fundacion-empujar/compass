@@ -130,6 +130,44 @@ describe("AuthenticationStateService", () => {
       });
     });
 
+    describe("getIsSuperAdmin", () => {
+      // Build a JWT whose payload (the part jwtDecode reads) is the given object. The signature is ignored.
+      const makeToken = (payload: object) => {
+        const b64url = (obj: object) =>
+          btoa(JSON.stringify(obj)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+        return `${b64url({ alg: "none" })}.${b64url(payload)}.sig`;
+      };
+
+      it("should return false when no token is set", () => {
+        // GIVEN no token
+        service.clearToken();
+        // THEN not a super-admin
+        expect(service.getIsSuperAdmin()).toBe(false);
+      });
+
+      it("should return true when the token carries the super_admin claim", () => {
+        // GIVEN a token with super_admin: true
+        service.setToken(makeToken({ super_admin: true, exp: 9999999999 }));
+        // THEN it is recognised as super-admin
+        expect(service.getIsSuperAdmin()).toBe(true);
+      });
+
+      it("should return false when the token lacks the super_admin claim", () => {
+        // GIVEN a token without the claim
+        service.setToken(makeToken({ exp: 9999999999 }));
+        // THEN not a super-admin
+        expect(service.getIsSuperAdmin()).toBe(false);
+      });
+
+      it("should return false (and log) when the token cannot be decoded", () => {
+        // GIVEN a malformed token
+        service.setToken("not-a-jwt");
+        // THEN it fails closed
+        expect(service.getIsSuperAdmin()).toBe(false);
+        expect(console.error).toHaveBeenCalled();
+      });
+    });
+
     describe("loadToken", () => {
       it("should load token from storage and return it", () => {
         // GIVEN a token in storage

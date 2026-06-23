@@ -23,17 +23,14 @@ export class PublicReportService {
     return PublicReportService.instance;
   }
 
-  public async getPublicReport(identifier: string, token?: string | null): Promise<PublicReportData> {
-    let url = `${this.baseUrl}/${identifier}`;
-    if (token) {
-      url += `?token=${encodeURIComponent(token)}`;
-    }
+  public async getPublicReport(identifier: string): Promise<PublicReportData> {
+    const url = `${this.baseUrl}/${identifier}`;
     const response = await customFetch(url, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
       },
-      authRequired: false, // This is a public endpoint
+      authRequired: true, // staff-only: requires the super_admin Firebase token
       expectedStatusCode: 200,
       serviceName: "PublicReportService",
       serviceFunction: "getPublicReport",
