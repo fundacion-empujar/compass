@@ -10,7 +10,6 @@ from fastapi import APIRouter, Depends, FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
-from app.admin.auth import require_admin_token
 from app.admin.types import (
     CreateRegistrationLinkRequest,
     CreateRegistrationLinkResponse,
@@ -21,6 +20,7 @@ from app.constants.errors import HTTPErrorResponse
 from app.invitations.repository import UserInvitationRepository
 from app.invitations.types import UserInvitation
 from app.server_dependencies.db_dependencies import CompassDBProvider
+from app.users.auth import Authentication, require_super_admin
 from app.users.get_user_preferences_repository import get_user_preferences_repository
 from app.users.repositories import IUserPreferenceRepository
 from common_libs.time_utilities import get_now
@@ -54,12 +54,16 @@ async def _get_user_invitation_repository(
     return UserInvitationRepository(db)
 
 
-def add_admin_routes(app: FastAPI):
-    """Mount the staff admin endpoints. Every route is gated by ADMIN_TOKEN via the
-    router-level ``require_admin_token`` dependency (so the ``?token=`` query param is
-    required and documented on each one)."""
+def add_admin_routes(app: FastAPI, authentication: Authentication):
+    """Mount the staff admin endpoints. Every route is gated on the Firebase
+    ``super_admin`` custom claim via the router-level dependency, so the API
+    Gateway enforces a logged-in super-admin across the whole ``/admin`` surface."""
 
-    router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin_token)])
+    router = APIRouter(
+        prefix="/admin",
+        tags=["admin"],
+        dependencies=[Depends(require_super_admin(authentication))],
+    )
 
     @router.post(
         path="/registration-links",

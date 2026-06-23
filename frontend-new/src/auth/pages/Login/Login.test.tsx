@@ -468,6 +468,46 @@ describe("Testing Login component", () => {
     expect(console.error).not.toHaveBeenCalled();
   });
 
+  test("should navigate to the admin panel when a super-admin logs in", async () => {
+    // GIVEN an email and password
+    const givenEmail = "admin@bar.baz";
+    const givenPassword = "Pa$$word123";
+
+    // AND the email login will succeed
+    const loginMock = jest.fn();
+    jest.spyOn(FirebaseEmailAuthenticationService, "getInstance").mockReturnValue({
+      login: loginMock,
+    } as unknown as FirebaseEmailAuthenticationService);
+
+    // AND the user has previously accepted the terms and conditions
+    jest.spyOn(UserPreferencesStateService.getInstance(), "getUserPreferences").mockReturnValueOnce({
+      accepted_tc: new Date(),
+      user_id: "admin-id",
+    } as unknown as UserPreference);
+
+    // AND the user holds the super_admin claim
+    jest.spyOn(AuthenticationStateService.getInstance(), "getIsSuperAdmin").mockReturnValue(true);
+
+    render(<Login />);
+
+    // WHEN the user fills in their credentials and submits
+    act(() => {
+      (LoginWithEmailForm as jest.Mock).mock.calls[0][0].notifyOnEmailChanged(givenEmail);
+      (LoginWithEmailForm as jest.Mock).mock.calls[0][0].notifyOnPasswordChanged(givenPassword);
+    });
+    fireEvent.submit(screen.getByTestId(DATA_TEST_ID.FORM));
+
+    // THEN the user is sent to the admin panel, not the chat
+    await waitFor(() => {
+      expect(useNavigate()).toHaveBeenCalledWith(routerPaths.ADMIN_PANEL, { replace: true });
+    });
+    expect(useNavigate()).not.toHaveBeenCalledWith(routerPaths.ROOT, { replace: true });
+
+    // AND expect no errors or warnings to be logged
+    expect(console.warn).not.toHaveBeenCalled();
+    expect(console.error).not.toHaveBeenCalled();
+  });
+
   test("should navigate to consent page and not send metrics if user has not accepted terms and conditions", async () => {
     // GIVEN an email and password
     const givenEmail = "foo@bar.baz";

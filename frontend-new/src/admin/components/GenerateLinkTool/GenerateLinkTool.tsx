@@ -20,11 +20,7 @@ export const DATA_TEST_ID = {
   FAQ: `generate-link-faq-${uniqueId}`,
 };
 
-interface GenerateLinkToolProps {
-  token: string;
-}
-
-const GenerateLinkTool: React.FC<GenerateLinkToolProps> = ({ token }) => {
+const GenerateLinkTool: React.FC = () => {
   const { t } = useTranslation();
   const [code, setCode] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -41,7 +37,7 @@ const GenerateLinkTool: React.FC<GenerateLinkToolProps> = ({ token }) => {
     setCopied(false);
     setCopyFailed(false);
     try {
-      const res = await AdminService.getInstance().createRegistrationLink(token, code.trim());
+      const res = await AdminService.getInstance().createRegistrationLink(code.trim());
       setResult(res);
     } catch (e) {
       setError(e instanceof Error ? e.message : t("admin.panel.generateLink.error"));

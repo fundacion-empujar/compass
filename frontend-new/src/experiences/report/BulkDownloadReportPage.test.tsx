@@ -29,7 +29,6 @@ jest.mock("./reportDocx/SkillReportDocx", () => {
 });
 
 describe("BulkDownloadReportPage", () => {
-  const mockToken = "test-token-123";
   const mockServiceInstance = {
     streamReports: jest.fn(),
   };
@@ -45,11 +44,10 @@ describe("BulkDownloadReportPage", () => {
     });
   });
 
-  const renderComponent = (token = mockToken) => {
-    const path = token ? `/bulk-download?token=${token}` : "/bulk-download";
+  const renderComponent = () => {
     return render(
       <AllTheProviders>
-        <MemoryRouter initialEntries={[path]}>
+        <MemoryRouter initialEntries={["/bulk-download"]}>
           <Routes>
             <Route path="/bulk-download" element={<BulkDownloadReportPage />} />
           </Routes>
@@ -66,19 +64,6 @@ describe("BulkDownloadReportPage", () => {
       expect(screen.getByLabelText(/Started After/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/Started Before/i)).toBeInTheDocument();
       expect(screen.getByText("Download Reports")).toBeInTheDocument();
-    });
-
-    it("should display security warning", () => {
-      renderComponent();
-
-      expect(screen.getByText("Security Notice")).toBeInTheDocument();
-      expect(screen.getByText(/sensitive access token/i)).toBeInTheDocument();
-    });
-
-    it("should render error page when token is missing", () => {
-      renderComponent("");
-
-      expect(screen.getByText(/Unauthorized access to reports/i)).toBeInTheDocument();
     });
 
     it("should display file format options", () => {
@@ -178,7 +163,7 @@ describe("BulkDownloadReportPage", () => {
       renderComponent();
 
       mockServiceInstance.streamReports.mockImplementation(
-        async (_token: string, _filters: any, onBatch: (batch: any[]) => Promise<void>) => {
+        async (_filters: any, onBatch: (batch: any[]) => Promise<void>) => {
           const batch = [
             { user_id: "user1", registration_code: "reg1", experiences: [], conversation_conducted_at: null },
           ];
@@ -227,7 +212,7 @@ describe("BulkDownloadReportPage", () => {
       renderComponent();
 
       mockServiceInstance.streamReports.mockImplementation(
-        async (_token: string, _filters: any, onBatch: (batch: any[]) => Promise<void>) => {
+        async (_filters: any, onBatch: (batch: any[]) => Promise<void>) => {
           const batch = [
             { user_id: "user1", registration_code: "reg1", experiences: [], conversation_conducted_at: null },
           ];
@@ -282,7 +267,6 @@ describe("BulkDownloadReportPage", () => {
 
       await waitFor(() => {
         expect(mockServiceInstance.streamReports).toHaveBeenCalledWith(
-          mockToken.trim(),
           expect.objectContaining({
             started_after: new Date(startedAfterValue).toISOString(),
             started_before: new Date(startedBeforeValue).toISOString(),
@@ -300,7 +284,7 @@ describe("BulkDownloadReportPage", () => {
       renderComponent();
 
       mockServiceInstance.streamReports.mockImplementation(
-        async (_token: string, _filters: any, onBatch: (batch: any[]) => Promise<void>) => {
+        async (_filters: any, onBatch: (batch: any[]) => Promise<void>) => {
           const batch = [
             { user_id: "user1", registration_code: "reg1", experiences: [], conversation_conducted_at: null },
           ];
@@ -324,7 +308,6 @@ describe("BulkDownloadReportPage", () => {
 
       mockServiceInstance.streamReports.mockImplementation(
         async (
-          _token: string,
           _filters: any,
           onBatch: (batch: any[]) => Promise<void>,
           onProgress: (count: number) => void

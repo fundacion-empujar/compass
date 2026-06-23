@@ -1,8 +1,7 @@
 import json
-import os
 from datetime import datetime, timezone
 from http import HTTPStatus
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 from urllib.parse import quote
 
 import pytest
@@ -10,6 +9,9 @@ from fastapi import FastAPI
 from httpx import AsyncClient, ASGITransport
 
 from app.users.cv.routes import add_public_report_routes
+from app.users.auth import SignInProvider, UserInfo
+from common_libs.test_utilities.mock_auth import MockAuth
+from common_libs.test_utilities.random_data import get_random_base64_string
 from app.users.repositories import IUserPreferenceRepository
 from app.conversations.experience.service import IExperienceService
 from app.conversations.experience.get_experience_service import get_experience_service
@@ -19,22 +21,26 @@ from app.agent.experience import ExperienceEntity
 from app.users.sensitive_personal_data.types import SensitivePersonalDataRequirement
 
 
-@pytest.fixture
-def app():  # pylint: disable=missing-function-docstring
+def _admin_user(*, super_admin: bool) -> UserInfo:
+    return UserInfo(
+        user_id="admin-1",
+        name="Staff Admin",
+        email="admin@example.org",
+        token=get_random_base64_string(10),
+        sign_in_provider=SignInProvider.PASSWORD,
+        super_admin=super_admin,
+    )
+
+
+def _build_app(*, super_admin: bool = True) -> FastAPI:
     app_instance = FastAPI()
-    add_public_report_routes(app_instance)
+    add_public_report_routes(app_instance, MockAuth(user=_admin_user(super_admin=super_admin)))
     return app_instance
 
 
-@pytest.fixture(autouse=True)
-def setup_environment():
-    """Set up environment variables for testing."""
-    # Set ADMIN_TOKEN for all tests
-    os.environ["ADMIN_TOKEN"] = "valid-token"
-    yield
-    # Clean up
-    if "ADMIN_TOKEN" in os.environ:
-        del os.environ["ADMIN_TOKEN"]
+@pytest.fixture
+def app():  # pylint: disable=missing-function-docstring
+    return _build_app()
 
 
 @pytest.fixture
@@ -51,6 +57,18 @@ def mock_experience_entity():
     mock_entity.remaining_skills = []
     mock_entity.summary = "Developed software"
     return mock_entity
+
+
+@pytest.mark.asyncio
+async def test_stream_reports_requires_super_admin():
+    """An authenticated user without the super_admin claim is rejected."""
+    # GIVEN an authenticated user without the super_admin claim
+    app = _build_app(super_admin=False)
+    # WHEN they request the report stream
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        response = await ac.get("/reports?page_size=10")
+    # THEN they are rejected with 403
+    assert response.status_code == HTTPStatus.FORBIDDEN
 
 
 @pytest.mark.asyncio
@@ -90,7 +108,7 @@ async def test_stream_reports_success(app, mock_experience_entity):  # pylint: d
     app.dependency_overrides[get_experience_service] = lambda: mock_exp_service
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        response = await ac.get("/reports?page_size=10&token=valid-token")
+        response = await ac.get("/reports?page_size=10")
 
     assert response.status_code == HTTPStatus.OK
     assert response.headers["content-type"] == "application/x-ndjson"
@@ -112,33 +130,8 @@ async def test_stream_reports_success(app, mock_experience_entity):  # pylint: d
 
 
 @pytest.mark.asyncio
-async def test_stream_reports_with_token_validation(app):  # pylint: disable=redefined-outer-name
-    """Test that the endpoint requires a valid token when ADMIN_TOKEN is set."""
-    mock_pref_repo = MagicMock(spec=IUserPreferenceRepository)
-    mock_exp_service = MagicMock(spec=IExperienceService)
-
-    app.dependency_overrides[get_user_preferences_repository] = lambda: mock_pref_repo
-    app.dependency_overrides[get_experience_service] = lambda: mock_exp_service
-
-    with patch.dict(os.environ, {"ADMIN_TOKEN": "valid-token"}):
-        # Test without token
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-            response = await ac.get("/reports?page_size=10")
-
-        assert response.status_code == HTTPStatus.FORBIDDEN
-        assert response.json()["detail"] == "Admin token required"
-
-        # Test with invalid token
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-            response = await ac.get("/reports?page_size=10&token=invalid-token")
-
-        assert response.status_code == HTTPStatus.FORBIDDEN
-        assert response.json()["detail"] == "Invalid admin token"
-
-
-@pytest.mark.asyncio
-async def test_stream_reports_with_valid_token(app):  # pylint: disable=redefined-outer-name
-    """Test streaming reports with valid token."""
+async def test_stream_reports_allows_super_admin(app):  # pylint: disable=redefined-outer-name
+    """A super_admin streams reports successfully (empty result here)."""
     mock_pref_repo = MagicMock(spec=IUserPreferenceRepository)
     mock_exp_service = MagicMock(spec=IExperienceService)
 
@@ -152,11 +145,10 @@ async def test_stream_reports_with_valid_token(app):  # pylint: disable=redefine
     app.dependency_overrides[get_user_preferences_repository] = lambda: mock_pref_repo
     app.dependency_overrides[get_experience_service] = lambda: mock_exp_service
 
-    with patch.dict(os.environ, {"ADMIN_TOKEN": "valid-token"}):
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-            response = await ac.get("/reports?page_size=10&token=valid-token")
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        response = await ac.get("/reports?page_size=10")
 
-        assert response.status_code == HTTPStatus.OK
+    assert response.status_code == HTTPStatus.OK
 
 
 @pytest.mark.asyncio
@@ -185,7 +177,7 @@ async def test_stream_reports_with_date_filters(app):  # pylint: disable=redefin
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         response = await ac.get(
-            f"/reports?page_size=10&token=valid-token&started_before={quote(started_before.isoformat())}&started_after={quote(started_after.isoformat())}"
+            f"/reports?page_size=10&started_before={quote(started_before.isoformat())}&started_after={quote(started_after.isoformat())}"
         )
 
     assert response.status_code == HTTPStatus.OK
@@ -234,7 +226,7 @@ async def test_stream_reports_pagination(app, mock_experience_entity):  # pylint
     app.dependency_overrides[get_experience_service] = lambda: mock_exp_service
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        response = await ac.get("/reports?page_size=2&token=valid-token")
+        response = await ac.get("/reports?page_size=2")
 
     assert response.status_code == HTTPStatus.OK
 
@@ -278,7 +270,7 @@ async def test_stream_reports_handles_missing_sessions(app):  # pylint: disable=
     app.dependency_overrides[get_experience_service] = lambda: mock_exp_service
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        response = await ac.get("/reports?page_size=10&token=valid-token")
+        response = await ac.get("/reports?page_size=10")
 
     assert response.status_code == HTTPStatus.OK
     # Should return empty stream since user has no sessions
@@ -296,42 +288,12 @@ async def test_stream_reports_page_size_validation(app):  # pylint: disable=rede
 
     # Test page_size too small
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        response = await ac.get("/reports?page_size=0&token=valid-token")
+        response = await ac.get("/reports?page_size=0")
 
     assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
     # Test page_size too large
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        response = await ac.get("/reports?page_size=101&token=valid-token")
+        response = await ac.get("/reports?page_size=101")
 
     assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-
-
-@pytest.mark.asyncio
-async def test_stream_reports_case_insensitive_token(app):  # pylint: disable=redefined-outer-name
-    """Test that token comparison is case-insensitive."""
-    mock_pref_repo = MagicMock(spec=IUserPreferenceRepository)
-    mock_exp_service = MagicMock(spec=IExperienceService)
-
-    # Mock stream_user_preferences as async generator returning empty
-    async def mock_stream(page_size, started_before, started_after):  # pylint: disable=unused-argument
-        return
-        yield  # Make it a generator  # pylint: disable=unreachable
-
-    mock_pref_repo.stream_user_preferences = mock_stream
-
-    app.dependency_overrides[get_user_preferences_repository] = lambda: mock_pref_repo
-    app.dependency_overrides[get_experience_service] = lambda: mock_exp_service
-
-    with patch.dict(os.environ, {"ADMIN_TOKEN": "ValidToken"}):
-        # Test with lowercase token
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-            response = await ac.get("/reports?page_size=10&token=validtoken")
-
-        assert response.status_code == HTTPStatus.OK
-
-        # Test with uppercase token
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-            response = await ac.get("/reports?page_size=10&token=VALIDTOKEN")
-
-        assert response.status_code == HTTPStatus.OK

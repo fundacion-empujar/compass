@@ -10,22 +10,35 @@ from fastapi.testclient import TestClient
 from app.admin.routes import add_admin_routes, _get_user_invitation_repository
 from app.invitations.repository import UserInvitationRepository
 from app.invitations.types import ClaimSource, InvitationType, SecureLinkCodeClaim
+from app.users.auth import Authentication, SignInProvider, UserInfo
 from app.users.get_user_preferences_repository import get_user_preferences_repository
 from app.users.repositories import IUserPreferenceRepository
 from app.users.sensitive_personal_data.types import SensitivePersonalDataRequirement
 from app.users.types import UserPreferences
+from common_libs.test_utilities.mock_auth import MockAuth
+from common_libs.test_utilities.random_data import get_random_base64_string
 
-GIVEN_ADMIN_TOKEN = "admin-secret"  # nosec B105 - test fixture value
 GIVEN_SEC_TOKEN = "sec-secret"  # nosec B105 - test fixture value
 GIVEN_FRONTEND_URL = "https://app.example.test"
 
 _VALID_SHARED_CODE_BODY = {"invitation_code": "grupo-2026", "invitation_type": "REGISTER"}
 
 
+def _admin_user(*, super_admin: bool) -> UserInfo:
+    return UserInfo(
+        user_id="admin-1",
+        name="Staff Admin",
+        email="admin@example.org",
+        token=get_random_base64_string(10),
+        sign_in_provider=SignInProvider.PASSWORD,
+        super_admin=super_admin,
+    )
+
+
 @pytest.fixture(autouse=True)
 def _admin_env():
-    prev = {k: os.environ.get(k) for k in ("ADMIN_TOKEN", "SEC_TOKEN", "FRONTEND_URL")}
-    os.environ["ADMIN_TOKEN"] = GIVEN_ADMIN_TOKEN
+    # SEC_TOKEN and FRONTEND_URL are needed to assemble per-student registration links.
+    prev = {k: os.environ.get(k) for k in ("SEC_TOKEN", "FRONTEND_URL")}
     os.environ["SEC_TOKEN"] = GIVEN_SEC_TOKEN
     os.environ["FRONTEND_URL"] = GIVEN_FRONTEND_URL
     yield
@@ -56,40 +69,62 @@ def mock_preferences_repo():
     return repo
 
 
-@pytest.fixture
-def client(mock_invitation_repo, mock_preferences_repo):
+def _build_client(*, super_admin: bool, mock_invitation_repo, mock_preferences_repo) -> TestClient:
     app = FastAPI()
-    add_admin_routes(app)
+    add_admin_routes(app, MockAuth(user=_admin_user(super_admin=super_admin)))
     app.dependency_overrides[_get_user_invitation_repository] = lambda: mock_invitation_repo
     app.dependency_overrides[get_user_preferences_repository] = lambda: mock_preferences_repo
-    yield TestClient(app)
-    app.dependency_overrides = {}
+    return TestClient(app)
 
 
-class TestAdminTokenGating:
-    def test_missing_token_returns_401(self, client):
-        response = client.get("/admin/registrations/export")
-        assert response.status_code == HTTPStatus.UNAUTHORIZED
+@pytest.fixture
+def client(mock_invitation_repo, mock_preferences_repo):
+    test_client = _build_client(
+        super_admin=True, mock_invitation_repo=mock_invitation_repo, mock_preferences_repo=mock_preferences_repo
+    )
+    yield test_client
+    test_client.app.dependency_overrides = {}
 
-    def test_wrong_token_returns_403(self, client):
-        response = client.get("/admin/registrations/export?token=not-the-token")
-        assert response.status_code == HTTPStatus.FORBIDDEN
 
-    def test_admin_token_not_configured_returns_503(self, client):
-        os.environ.pop("ADMIN_TOKEN", None)
-        response = client.get("/admin/registrations/export?token=whatever")
-        assert response.status_code == HTTPStatus.SERVICE_UNAVAILABLE
+class TestSuperAdminGating:
+    def test_non_super_admin_is_forbidden(self, mock_invitation_repo, mock_preferences_repo):
+        # GIVEN an authenticated user WITHOUT the super_admin claim
+        client = _build_client(
+            super_admin=False, mock_invitation_repo=mock_invitation_repo, mock_preferences_repo=mock_preferences_repo
+        )
+        # WHEN they call any admin route
+        # THEN every route rejects them with 403
+        assert client.get("/admin/registrations/export").status_code == HTTPStatus.FORBIDDEN
+        assert (
+            client.post("/admin/shared-codes", json=_VALID_SHARED_CODE_BODY).status_code == HTTPStatus.FORBIDDEN
+        )
+        assert (
+            client.post("/admin/registration-links", json={"registration_code": "0035cABC"}).status_code
+            == HTTPStatus.FORBIDDEN
+        )
 
-    def test_trailing_exclamation_is_tolerated(self, client):
-        # normalize_security_token strips a single trailing '!' (chat-app link mangling).
-        response = client.get(f"/admin/registrations/export?token={GIVEN_ADMIN_TOKEN}!")
-        assert response.status_code == HTTPStatus.OK
+    def test_super_admin_is_allowed(self, client):
+        # GIVEN a super_admin (the default client fixture)
+        # WHEN they call an admin route
+        # THEN it succeeds, with no ?token= anywhere
+        assert client.get("/admin/registrations/export").status_code == HTTPStatus.OK
+
+    def test_admin_routes_emit_firebase_security_in_openapi(self):
+        # GIVEN the admin routes mounted with the real Authentication (HTTPBearer "firebase")
+        app = FastAPI()
+        add_admin_routes(app, Authentication())
+        # WHEN the OpenAPI schema is generated
+        schema = app.openapi()
+        # THEN the admin operation carries the firebase security requirement, so the API Gateway
+        #      enforces a logged-in Firebase user at the edge (guards the gateway cutover).
+        export_op = schema["paths"]["/admin/registrations/export"]["get"]
+        assert {"firebase": []} in export_op.get("security", [])
 
 
 class TestRegistrationLinks:
     def test_creates_link(self, client):
         response = client.post(
-            f"/admin/registration-links?token={GIVEN_ADMIN_TOKEN}",
+            "/admin/registration-links",
             json={"registration_code": "0035cABC"},
         )
         assert response.status_code == HTTPStatus.OK
@@ -109,7 +144,7 @@ class TestRegistrationLinks:
             )
         )
         response = client.post(
-            f"/admin/registration-links?token={GIVEN_ADMIN_TOKEN}",
+            "/admin/registration-links",
             json={"registration_code": "0035cABC"},
         )
         assert response.status_code == HTTPStatus.OK
@@ -117,7 +152,7 @@ class TestRegistrationLinks:
 
     def test_blank_registration_code_is_rejected(self, client):
         response = client.post(
-            f"/admin/registration-links?token={GIVEN_ADMIN_TOKEN}",
+            "/admin/registration-links",
             json={"registration_code": "   "},
         )
         assert response.status_code == HTTPStatus.BAD_REQUEST
@@ -125,7 +160,7 @@ class TestRegistrationLinks:
     def test_missing_frontend_url_returns_503(self, client):
         os.environ.pop("FRONTEND_URL", None)
         response = client.post(
-            f"/admin/registration-links?token={GIVEN_ADMIN_TOKEN}",
+            "/admin/registration-links",
             json={"registration_code": "0035cABC"},
         )
         assert response.status_code == HTTPStatus.SERVICE_UNAVAILABLE
@@ -134,7 +169,7 @@ class TestRegistrationLinks:
 class TestSharedCodes:
     def test_creates_shared_code_with_defaults(self, client, mock_invitation_repo):
         response = client.post(
-            f"/admin/shared-codes?token={GIVEN_ADMIN_TOKEN}",
+            "/admin/shared-codes",
             json=_VALID_SHARED_CODE_BODY,
         )
         assert response.status_code == HTTPStatus.CREATED
@@ -152,7 +187,7 @@ class TestSharedCodes:
 
     def test_rejects_inverted_validity_window(self, client):
         response = client.post(
-            f"/admin/shared-codes?token={GIVEN_ADMIN_TOKEN}",
+            "/admin/shared-codes",
             json={
                 "invitation_code": "grupo-2026",
                 "invitation_type": "LOGIN",
@@ -202,7 +237,7 @@ class TestRegistrationsExport:
 
         mock_preferences_repo.stream_user_preferences = _stream
 
-        response = client.get(f"/admin/registrations/export?token={GIVEN_ADMIN_TOKEN}")
+        response = client.get("/admin/registrations/export")
         assert response.status_code == HTTPStatus.OK
         assert "text/csv" in response.headers["content-type"]
         # UTF-8 BOM so Excel renders the Spanish headers correctly.

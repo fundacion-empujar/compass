@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { PublicReportData, PublicReportService } from "./publicReportService";
 import SkillReportPDF from "./reportPdf/SkillReportPDF";
 import { PDFViewer, PDFDownloadLink } from "@react-pdf/renderer";
@@ -9,7 +9,6 @@ import { useTranslation } from "react-i18next";
 
 const PublicReportPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const location = useLocation();
   const [reportData, setReportData] = useState<PublicReportData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -17,11 +16,8 @@ const PublicReportPage: React.FC = () => {
 
   useEffect(() => {
     if (id) {
-      const searchParams = new URLSearchParams(location.search);
-      const token = searchParams.get("token");
-
       PublicReportService.getInstance()
-        .getPublicReport(id, token)
+        .getPublicReport(id)
         .then((data) => {
           setReportData(data);
           setLoading(false);
@@ -32,7 +28,7 @@ const PublicReportPage: React.FC = () => {
           setLoading(false);
         });
     }
-  }, [id, location.search, t]);
+  }, [id, t]);
 
   if (loading) return <Backdrop isShown={loading} transparent={true} />;
 

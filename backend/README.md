@@ -176,7 +176,6 @@ The backend uses the following environment variables:
 - `BACKEND_FEATURES`: (optional) A JSON like dictionary with the features enabled status and configurations specific to each feature.
 - `BACKEND_EXPERIENCE_PIPELINE_CONFIG`: (optional) The configuration for the experience pipeline as a JSON like dictionary. See `class ExperiencePipelineConfig`.
 - `SEC_TOKEN`: Token used to validate secure registration links and report lookups.
-- `ADMIN_TOKEN`: Token gating the staff admin panel (invitation/registration tools) and report downloads. Kept separate from `SEC_TOKEN` so a student registration link cannot reach admin tools.
   > Note: The `FRONTEND_URL` should be set irrespective of the `TARGET_ENVIRONMENT` value.
 
 
@@ -212,7 +211,6 @@ BACKEND_SENTRY_CONFIG='{"tracesSampleRate": 0.2, "enableLogs": true, "logLevel":
 BACKEND_FEATURES=<BACKEND_FEATURES>
 BACKEND_EXPERIENCE_PIPELINE_CONFIG=<BACKEND_EXPERIENCE_PIPELINE_CONFIG>
 SEC_TOKEN=<STRING>
-ADMIN_TOKEN=<STRING>
 
 # CV storage and limits (optional; required to persist uploads)
 BACKEND_CV_STORAGE_BUCKET=<GCS_BUCKET_NAME>
@@ -230,6 +228,20 @@ BACKEND_CV_RATE_LIMIT_PER_MINUTE=<INTEGER>
 - Manual/shared invitation codes stay unlimited-use and editable when no tokenized link is present.
 - The most recent secure link in a session wins (persisted through the registration page) and the UI locks the prefilled code while surfacing validation results.
 - Reporting and analytics prefer `registration_code` and fall back to `user_id` for users who registered via manual/shared invitations.
+
+### Staff admin panel access
+
+The admin panel (`/admin/*`) and the report-download endpoints are gated by a Firebase **`super_admin`** custom claim — no shared secret, no `?token=` link. A staff member signs in on the normal login page; if they hold the claim they are routed to the admin panel instead of the chat, and every admin/report call carries their Firebase ID token.
+
+Grant or revoke the role by email with `GOOGLE_APPLICATION_CREDENTIALS` pointing at the target Firebase project:
+
+```shell
+poetry run python scripts/set_admin_role.py --grant  <email>
+poetry run python scripts/set_admin_role.py --revoke <email>
+poetry run python scripts/set_admin_role.py --list
+```
+
+The account must already exist — register it through the normal sign-up flow first. After a grant or revoke the user must log in again; the claim only appears in a freshly issued token.
 
 ### Logging
 

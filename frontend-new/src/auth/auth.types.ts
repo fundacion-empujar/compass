@@ -8,6 +8,8 @@ export type Token = {
   iss: string;
   exp: number;
   iat: number;
+  /** Firebase custom claim granting staff admin-panel access. */
+  super_admin?: boolean;
   [key: string]: any;
 };
 

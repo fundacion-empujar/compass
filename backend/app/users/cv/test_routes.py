@@ -460,16 +460,29 @@ class TestGetUploadedCVs:
 
 
 class TestPublicReportRoutes:
+    @staticmethod
+    def _stub_auth(super_admin: bool):
+        """Mock Authentication yielding a UserInfo with the given super_admin claim."""
+        from app.users.auth import SignInProvider, UserInfo
+        from common_libs.test_utilities.mock_auth import MockAuth
+        from common_libs.test_utilities.random_data import get_random_base64_string
+
+        return MockAuth(user=UserInfo(
+            user_id="admin-1",
+            name="Staff Admin",
+            email="admin@example.org",
+            token=get_random_base64_string(10),
+            sign_in_provider=SignInProvider.PASSWORD,
+            super_admin=super_admin,
+        ))
+
     @pytest.mark.asyncio
-    async def test_get_public_report_with_valid_token(self, monkeypatch):
-        # GIVEN ADMIN_TOKEN is configured
-        monkeypatch.setenv("ADMIN_TOKEN", "secret-token-123")
-        
-        # AND mocked dependencies
+    async def test_get_public_report_as_super_admin(self):
+        # GIVEN a super_admin and mocked dependencies
         from app.users.cv.routes import add_public_report_routes
         from app.users.get_user_preferences_repository import get_user_preferences_repository
         from app.conversations.experience.get_experience_service import get_experience_service
-        
+
         mock_user_prefs_repo = MagicMock()
         mock_user_prefs_repo.get_user_preference_by_registration_code = AsyncMock(return_value=SimpleNamespace(
             user_id="user-123",
@@ -483,47 +496,43 @@ class TestPublicReportRoutes:
             accepted_tc=datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
             registration_code=None,
         ))
-        
+
         mock_experience_service = MagicMock()
         mock_experience_service.get_experiences_by_session_id = AsyncMock(return_value=[])
-        
+
         app = FastAPI()
         app.dependency_overrides[get_user_preferences_repository] = lambda: mock_user_prefs_repo
         app.dependency_overrides[get_experience_service] = lambda: mock_experience_service
-        add_public_report_routes(app)
-        
+        add_public_report_routes(app, self._stub_auth(super_admin=True))
+
         client = TestClient(app)
-        
-        # WHEN requesting report with valid token
-        resp = client.get("/reports/user-123?token=secret-token-123")
-        
+
+        # WHEN a super_admin requests the report (no ?token= needed)
+        resp = client.get("/reports/user-123")
+
         # THEN 200 OK
         assert resp.status_code == HTTPStatus.OK
         assert resp.json()["user_id"] == "user-123"
 
     @pytest.mark.asyncio
-    async def test_get_public_report_without_token_when_required(self, monkeypatch):
-        # GIVEN ADMIN_TOKEN is configured
-        monkeypatch.setenv("ADMIN_TOKEN", "secret-token-123")
-        
-        # AND mocked dependencies (though they won't be called)
+    async def test_get_public_report_requires_super_admin(self):
+        # GIVEN an authenticated user WITHOUT the super_admin claim
         from app.users.cv.routes import add_public_report_routes
         from app.users.get_user_preferences_repository import get_user_preferences_repository
         from app.conversations.experience.get_experience_service import get_experience_service
-        
+
         mock_user_prefs_repo = MagicMock()
         mock_experience_service = MagicMock()
-        
+
         app = FastAPI()
         app.dependency_overrides[get_user_preferences_repository] = lambda: mock_user_prefs_repo
         app.dependency_overrides[get_experience_service] = lambda: mock_experience_service
-        add_public_report_routes(app)
-        
+        add_public_report_routes(app, self._stub_auth(super_admin=False))
+
         client = TestClient(app)
-        
-        # WHEN requesting report without token
+
+        # WHEN requesting the report without the claim
         resp = client.get("/reports/user-123")
-        
-        # THEN 401 Unauthorized
-        assert resp.status_code == HTTPStatus.UNAUTHORIZED
-        assert "Admin token required" in resp.json()["detail"]
+
+        # THEN 403 Forbidden
+        assert resp.status_code == HTTPStatus.FORBIDDEN

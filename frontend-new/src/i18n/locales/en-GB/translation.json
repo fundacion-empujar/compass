@@ -3,7 +3,6 @@
     "panel": {
       "title": "Admin panel",
       "subtitle": "Choose what you want to do",
-      "unauthorized": "Unauthorized access to the admin panel",
       "back": "Back",
       "cards": {
         "generateLink": {
@@ -704,14 +703,7 @@
         },
         "errors": {
           "tokenRequired": "Security token is required",
-          "noReports": "No reports found matching the filters",
-          "unAuthorizedAccess": "Unauthorized access to reports"
-        },
-        "security": {
-          "warning": {
-            "title": "Security Notice",
-            "message": "This page contains a sensitive access token in the URL. Do not share this link with others. Close this tab when finished to prevent unauthorised access."
-          }
+          "noReports": "No reports found matching the filters"
         }
       }
     }

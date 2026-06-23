@@ -15,16 +15,11 @@ export const DATA_TEST_ID = {
   FAQ: `report-lookup-faq-${uniqueId}`,
 };
 
-interface ReportLookupToolProps {
-  token: string;
-}
-
 /**
  * Search for one student's individual report by registration code / user id and open it.
- * Reuses the existing public report page; the admin token is forwarded so the (now
- * ADMIN_TOKEN-gated) report endpoint authorizes the lookup.
+ * Reuses the existing public report page; access is gated by the super_admin login.
  */
-const ReportLookupTool: React.FC<ReportLookupToolProps> = ({ token }) => {
+const ReportLookupTool: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [identifier, setIdentifier] = useState<string>("");
@@ -35,7 +30,7 @@ const ReportLookupTool: React.FC<ReportLookupToolProps> = ({ token }) => {
       return;
     }
     const path = routerPaths.REPORT.replace(":id", encodeURIComponent(trimmed));
-    navigate(`${path}?token=${encodeURIComponent(token)}`);
+    navigate(path);
   };
 
   return (

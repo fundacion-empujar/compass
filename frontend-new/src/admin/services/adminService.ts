@@ -1,4 +1,5 @@
 import { getBackendUrl } from "src/envService";
+import AuthenticationStateService from "src/auth/services/AuthenticationState.service";
 
 export interface CreateRegistrationLinkResult {
   registration_code: string;
@@ -27,9 +28,9 @@ export interface CreateSharedCodeResult {
 }
 
 /**
- * Talks to the ADMIN_TOKEN-gated `/admin` endpoints. The token is read from the
- * admin panel's own URL and passed as the `?token=` query param on every call.
- * Modeled on BulkDownloadReportsService (singleton + getBackendUrl + native fetch).
+ * Talks to the `/admin` endpoints, which are gated on the Firebase `super_admin` claim.
+ * Sends the logged-in admin's Firebase ID token as a Bearer header (like the app's other
+ * authenticated calls). Singleton + getBackendUrl + native fetch.
  */
 export class AdminService {
   private static instance: AdminService;
@@ -47,13 +48,12 @@ export class AdminService {
   }
 
   public async createRegistrationLink(
-    token: string,
     registrationCode: string,
     invitationCodeTemplate?: string
   ): Promise<CreateRegistrationLinkResult> {
-    const response = await fetch(`${this.baseUrl}/registration-links?${this.tokenQuery(token)}`, {
+    const response = await fetch(`${this.baseUrl}/registration-links`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...this.authHeaders() },
       body: JSON.stringify({
         registration_code: registrationCode,
         invitation_code_template: invitationCodeTemplate ?? null,
@@ -62,19 +62,19 @@ export class AdminService {
     return this.parseJson<CreateRegistrationLinkResult>(response);
   }
 
-  public async createSharedCode(token: string, input: CreateSharedCodeInput): Promise<CreateSharedCodeResult> {
-    const response = await fetch(`${this.baseUrl}/shared-codes?${this.tokenQuery(token)}`, {
+  public async createSharedCode(input: CreateSharedCodeInput): Promise<CreateSharedCodeResult> {
+    const response = await fetch(`${this.baseUrl}/shared-codes`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...this.authHeaders() },
       body: JSON.stringify(input),
     });
     return this.parseJson<CreateSharedCodeResult>(response);
   }
 
-  public async exportRegistrations(token: string): Promise<Blob> {
-    const response = await fetch(`${this.baseUrl}/registrations/export?${this.tokenQuery(token)}`, {
+  public async exportRegistrations(): Promise<Blob> {
+    const response = await fetch(`${this.baseUrl}/registrations/export`, {
       method: "GET",
-      headers: { Accept: "text/csv" },
+      headers: { Accept: "text/csv", ...this.authHeaders() },
     });
     if (!response.ok) {
       throw new Error(await this.errorMessage(response));
@@ -82,8 +82,9 @@ export class AdminService {
     return response.blob();
   }
 
-  private tokenQuery(token: string): string {
-    return new URLSearchParams({ token }).toString();
+  private authHeaders(): Record<string, string> {
+    const token = AuthenticationStateService.getInstance().getToken();
+    return token ? { Authorization: `Bearer ${token}` } : {};
   }
 
   private async parseJson<T>(response: Response): Promise<T> {

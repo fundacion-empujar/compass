@@ -3,7 +3,6 @@
     "panel": {
       "title": "Panel de administración",
       "subtitle": "Elegí qué querés hacer",
-      "unauthorized": "Acceso no autorizado al panel de administración",
       "back": "Volver",
       "cards": {
         "generateLink": {
@@ -704,14 +703,7 @@
         },
         "errors": {
           "tokenRequired": "Se requiere el token de seguridad",
-          "noReports": "No se encontraron informes que coincidan con los filtros",
-          "unAuthorizedAccess": "Acceso no autorizado a los informes"
-        },
-        "security": {
-          "warning": {
-            "title": "Aviso de Seguridad",
-            "message": "Esta página contiene un token de acceso sensible en la URL. No compartas este enlace con otros. Cerrá esta pestaña cuando termines para evitar acceso no autorizado."
-          }
+          "noReports": "No se encontraron informes que coincidan con los filtros"
         }
       }
     }

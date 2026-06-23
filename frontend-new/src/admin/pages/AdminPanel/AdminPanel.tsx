@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Box, Paper, Typography, Stack, Card, CardActionArea, CardContent, Button, useTheme } from "@mui/material";
 import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1";
@@ -8,7 +7,6 @@ import TableViewIcon from "@mui/icons-material/TableView";
 import DownloadIcon from "@mui/icons-material/Download";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import ErrorPage from "src/error/errorPage/ErrorPage";
 import LanguageContextMenu from "src/i18n/languageContextMenu/LanguageContextMenu";
 import GenerateLinkTool from "src/admin/components/GenerateLinkTool/GenerateLinkTool";
 import CreateSharedCodeTool from "src/admin/components/CreateSharedCodeTool/CreateSharedCodeTool";
@@ -32,15 +30,9 @@ type AdminTool = "link" | "shared" | "export" | "reports" | "faq";
 
 const AdminPanel: React.FC = () => {
   const theme = useTheme();
-  const location = useLocation();
   const { t } = useTranslation();
 
-  const urlToken = new URLSearchParams(location.search).get("token") || "";
   const [activeTool, setActiveTool] = useState<AdminTool | null>(null);
-
-  if (!urlToken) {
-    return <ErrorPage errorMessage={t("admin.panel.unauthorized")} />;
-  }
 
   const cards = [
     {
@@ -88,13 +80,13 @@ const AdminPanel: React.FC = () => {
   const renderActiveTool = () => {
     switch (activeTool) {
       case "link":
-        return <GenerateLinkTool token={urlToken} />;
+        return <GenerateLinkTool />;
       case "shared":
-        return <CreateSharedCodeTool token={urlToken} />;
+        return <CreateSharedCodeTool />;
       case "export":
-        return <ExportRegistrationsTool token={urlToken} />;
+        return <ExportRegistrationsTool />;
       case "reports":
-        return <DownloadReportsMenu token={urlToken} />;
+        return <DownloadReportsMenu />;
       case "faq":
         return <GeneralFaqTool />;
       default:

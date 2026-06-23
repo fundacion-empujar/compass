@@ -14,7 +14,6 @@ import { DATA_TEST_ID as EXPORT_TOOL_TEST_ID } from "src/admin/components/Export
 import { DATA_TEST_ID as DOWNLOAD_REPORTS_MENU_TEST_ID } from "src/admin/components/DownloadReportsMenu/DownloadReportsMenu";
 import { DATA_TEST_ID as REPORT_LOOKUP_TOOL_TEST_ID } from "src/admin/components/ReportLookupTool/ReportLookupTool";
 import { DATA_TEST_ID as GENERAL_FAQ_TOOL_TEST_ID } from "src/admin/components/GeneralFaqTool/GeneralFaqTool";
-import { DATA_TEST_ID as ERROR_PAGE_TEST_ID } from "src/error/errorPage/ErrorPage";
 
 const mockCreateRegistrationLink = jest.fn();
 const mockCreateSharedCode = jest.fn();
@@ -35,26 +34,17 @@ jest.mock("src/experiences/saveAs", () => ({
   saveAs: jest.fn(),
 }));
 
-const GIVEN_TOKEN = "admin-secret";
-
 describe("AdminPanel", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    window.location.hash = `#/admin-panel?token=${GIVEN_TOKEN}`;
+    window.location.hash = "#/admin-panel";
   });
 
   afterEach(() => {
     window.location.hash = "";
   });
 
-  test("shows the ErrorPage when no token is present in the URL", () => {
-    window.location.hash = "#/admin-panel";
-    render(<AdminPanel />);
-    expect(screen.getByTestId(ERROR_PAGE_TEST_ID.ERROR_MESSAGE)).toBeInTheDocument();
-    expect(screen.queryByTestId(DATA_TEST_ID.ADMIN_PANEL_CONTAINER)).not.toBeInTheDocument();
-  });
-
-  test("renders the five tool cards when a token is present", () => {
+  test("renders the five tool cards", () => {
     render(<AdminPanel />);
     expect(screen.getByTestId(DATA_TEST_ID.ADMIN_PANEL_CONTAINER)).toBeInTheDocument();
     expect(screen.getByTestId(DATA_TEST_ID.CARD_GENERATE_LINK)).toBeInTheDocument();
@@ -82,7 +72,7 @@ describe("AdminPanel", () => {
     await waitFor(() => {
       expect(screen.getByTestId(LINK_TOOL_TEST_ID.LINK_READY)).toBeInTheDocument();
     });
-    expect(mockCreateRegistrationLink).toHaveBeenCalledWith(GIVEN_TOKEN, "0035cABC");
+    expect(mockCreateRegistrationLink).toHaveBeenCalledWith("0035cABC");
     expect(screen.getByTestId(LINK_TOOL_TEST_ID.COPY_BUTTON)).toBeInTheDocument();
     // the raw URL is hidden by design — staff just copy & share it
     expect(screen.queryByTestId(LINK_TOOL_TEST_ID.RESULT_LINK)).not.toBeInTheDocument();
@@ -161,7 +151,7 @@ describe("AdminPanel", () => {
     await waitFor(() => {
       expect(screen.getByTestId(SHARED_TOOL_TEST_ID.SUCCESS)).toBeInTheDocument();
     });
-    expect(mockCreateSharedCode).toHaveBeenCalledWith(GIVEN_TOKEN, {
+    expect(mockCreateSharedCode).toHaveBeenCalledWith({
       invitation_code: "grupo-2026",
       invitation_type: "REGISTER",
     });
@@ -177,7 +167,7 @@ describe("AdminPanel", () => {
     await waitFor(() => {
       expect(screen.getByTestId(EXPORT_TOOL_TEST_ID.SUCCESS)).toBeInTheDocument();
     });
-    expect(mockExportRegistrations).toHaveBeenCalledWith(GIVEN_TOKEN);
+    expect(mockExportRegistrations).toHaveBeenCalledWith();
   });
 
   test("opens the download-reports menu and drills into the individual lookup", () => {
