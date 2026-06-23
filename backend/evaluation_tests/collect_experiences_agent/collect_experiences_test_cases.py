@@ -67,9 +67,13 @@ test_cases = [
             No inventes información.
 
             Tu única experiencia es:
-            - Asistente de ventas en el local de tu viejo, desde enero de 2015 hasta diciembre de 2022.
+            - Asistente de ventas en el local de tu viejo, un almacén de barrio que se llama
+              "Almacén La Esquina", desde enero de 2015 hasta diciembre de 2022.
 
             Cuando cuentes ese laburo, decí que eras asistente de ventas (no digas solo "laburé en el local").
+            La primera vez contá solo que era "el local de tu viejo", sin dar el nombre. Si el bot te
+            pregunta cómo se llama el local y a qué se dedica, recién ahí decí que se llama
+            "Almacén La Esquina" y que es un almacén de barrio.
 
             No tenés otras experiencias: nunca tuviste otro laburo, nunca hiciste una pasantía,
             nunca tuviste tu propio negocio, nunca fuiste voluntario/a ni hiciste trabajo freelance.
@@ -86,8 +90,96 @@ test_cases = [
         expected_experience_data=[{
             # No "location" key: the field was removed from the flow/model in this fork.
             "experience_title": AnyOf(ContainsString("asistente"), ContainsString("vent")),
-            "company": AnyOf(ContainsString("viejo"), ContainsString("padre"), ContainsString("local")),
+            # The fix lets the agent ask for the shop's name -> often recorded as the business name
+            # ("Almacén La Esquina"); when it doesn't ask, the relationship fallback ("local de mi viejo")
+            # is still valid (never the relative's personal name). Accept either; the strict
+            # business-name assertion lives in argentina_negocio_familiar_nombre_es.
+            "company": AnyOf(ContainsString("esquina"), ContainsString("almac"),
+                             ContainsString("viejo"), ContainsString("local")),
             "timeline": {"start": ContainsString("2015"), "end": ContainsString("2022")},
+        }]
+    ),
+    # Relative's business -> ask the business name + what it does, record the NAME
+    # ("La Huerta"), not "el negocio de mi tio", and never ask the uncle's personal name. UNSEEN_UNPAID
+    # stays 0 (this is a real business, not caregiving). The positive `company` match on the business
+    # name is the fix assertion: recording the relationship instead would fail it.
+    CollectExperiencesAgentTestCase(
+        name='argentina_negocio_familiar_nombre_es',
+        locale=Locale.ES_AR,
+        country_of_user=Country.ARGENTINA,
+        simulated_user_prompt=dedent("""
+            Actuá como una persona joven de Argentina. Estás chateando con un bot para armar tu CV.
+            Usá jerga argentina (laburo, guita, dale, buenísimo). Sé conciso/a. No inventes información.
+
+            Tu única experiencia es:
+            - Vendedor/a en el negocio de tu tío, desde marzo de 2019 hasta diciembre de 2021.
+
+            Reglas importantes:
+            - La primera vez contá solo que "laburaste en el negocio de tu tío", sin dar el nombre.
+            - Cuando cuentes qué hacías, decí que eras vendedor/a (atendías a los clientes y cobrabas);
+              no digas solo que "hacías de todo".
+            - Recién si el bot te pregunta cómo se llama el negocio y a qué se dedica, respondé:
+              se llama "La Huerta" y es una verdulería (vende frutas y verduras).
+            - Nunca des el nombre de pila ni datos personales de tu tío; si te lo preguntan, decí que preferís no decirlo.
+            - No tenés otras experiencias: nunca tuviste otro laburo, ni pasantía, ni emprendimiento propio,
+              ni voluntariado, ni trabajo freelance.
+            Respondé "sí" o "no" cuando corresponda. Decí "así está bien" si te piden confirmar.
+            """),
+        evaluations=[Evaluation(type=EvaluationType.SINGLE_LANGUAGE, expected=100)],
+        expected_experiences_count_min=1,
+        expected_experiences_count_max=1,
+        expected_work_types={WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT: (0, 1),
+                             WorkType.SELF_EMPLOYMENT: (0, 1),
+                             WorkType.FORMAL_SECTOR_UNPAID_TRAINEE_WORK: (0, 0),
+                             WorkType.UNSEEN_UNPAID: (0, 0)},
+        matchers=["matcher"],
+        expected_experience_data=[{
+            # No "location" key: the field was removed from the flow/model in this fork.
+            "experience_title": AnyOf(ContainsString("vend"), ContainsString("venta"),
+                                      ContainsString("atend")),
+            # The fix: the recorded company is the BUSINESS NAME, not "el negocio de mi tío".
+            "company": AnyOf(ContainsString("huerta"), ContainsString("verduler")),
+            "timeline": {"start": ContainsString("2019"), "end": ContainsString("2021")},
+        }]
+    ),
+    # No-loop guard: relative's business but the user can't/won't give the name.
+    # The agent must ask ONCE, then accept the fallback (the relationship description, today's behavior)
+    # and move on. A PASS here = the conversation completed (no infinite re-asking) and company is the
+    # relationship fallback ("el negocio de mi tío"), never the relative's personal name.
+    CollectExperiencesAgentTestCase(
+        name='argentina_negocio_familiar_sin_nombre_es',
+        locale=Locale.ES_AR,
+        country_of_user=Country.ARGENTINA,
+        simulated_user_prompt=dedent("""
+            Actuá como una persona joven de Argentina. Estás chateando con un bot para armar tu CV.
+            Usá jerga argentina (laburo, guita, dale). Sé conciso/a. No inventes información.
+
+            Tu única experiencia es:
+            - Ayudante en el negocio de tu tío, desde marzo de 2019 hasta diciembre de 2021.
+
+            Reglas importantes:
+            - Contá que "laburaste en el negocio de tu tío". Cuando cuentes qué hacías, decí que eras ayudante.
+            - Si el bot te pregunta cómo se llama el negocio o a qué se dedica, decí que no te acordás
+              del nombre, que era "el negocio de mi tío" nomás. NO inventes un nombre de fantasía.
+            - Nunca des el nombre de pila ni datos personales de tu tío.
+            - No tenés otras experiencias: nunca tuviste otro laburo, ni pasantía, ni emprendimiento propio,
+              ni voluntariado, ni trabajo freelance.
+            Respondé "sí" o "no" cuando corresponda. Decí "así está bien" si te piden confirmar.
+            """),
+        evaluations=[Evaluation(type=EvaluationType.SINGLE_LANGUAGE, expected=100)],
+        expected_experiences_count_min=1,
+        expected_experiences_count_max=1,
+        expected_work_types={WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT: (0, 1),
+                             WorkType.SELF_EMPLOYMENT: (0, 1),
+                             WorkType.FORMAL_SECTOR_UNPAID_TRAINEE_WORK: (0, 0),
+                             WorkType.UNSEEN_UNPAID: (0, 0)},
+        matchers=["matcher"],
+        expected_experience_data=[{
+            "experience_title": AnyOf(ContainsString("ayud"), ContainsString("negocio"),
+                                      ContainsString("vend"), ContainsString("atend")),
+            # Fallback after asking once: the relationship description, never the personal name.
+            "company": AnyOf(ContainsString("tío"), ContainsString("tio"), ContainsString("negocio")),
+            "timeline": {"start": ContainsString("2019"), "end": ContainsString("2021")},
         }]
     ),
     # Regression case for the "~40% dead-end": mixed experiences where one is ongoing (no end date)
