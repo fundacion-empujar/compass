@@ -85,8 +85,6 @@ describe("AdminService", () => {
       json: async () => ({ detail: "Super-admin access required" }),
     });
 
-    await expect(AdminService.getInstance().createRegistrationLink("x")).rejects.toThrow(
-      /Super-admin access required/
-    );
+    await expect(AdminService.getInstance().createRegistrationLink("x")).rejects.toThrow(/Super-admin access required/);
   });
 });

@@ -1,16 +1,6 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Box,
-  Button,
-  TextField,
-  Typography,
-  LinearProgress,
-  Alert,
-  Paper,
-  Stack,
-  useTheme,
-} from "@mui/material";
+import { Box, Button, TextField, Typography, LinearProgress, Alert, Paper, Stack, useTheme } from "@mui/material";
 import DownloadIcon from "@mui/icons-material/Download";
 import JSZip from "jszip";
 import { pdf } from "@react-pdf/renderer";

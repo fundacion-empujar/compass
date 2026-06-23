@@ -307,11 +307,7 @@ describe("BulkDownloadReportPage", () => {
       renderComponent();
 
       mockServiceInstance.streamReports.mockImplementation(
-        async (
-          _filters: any,
-          onBatch: (batch: any[]) => Promise<void>,
-          onProgress: (count: number) => void
-        ) => {
+        async (_filters: any, onBatch: (batch: any[]) => Promise<void>, onProgress: (count: number) => void) => {
           const batch = [
             { user_id: "user1", registration_code: "reg1", experiences: [], conversation_conducted_at: null },
           ];
