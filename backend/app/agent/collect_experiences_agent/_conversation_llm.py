@@ -387,7 +387,15 @@ class _ConversationLLM:
                 ##'company' instructions
                     The receiver of work. Can be an organization, a company, a household or a family etc.
                     If I have not provided the receiver, or what it does, ask me for it.
-                    If the receiver of the work is a person, a household, or a family, then use the receiver type and don't ask for a name.
+                    A business linked to a relative is a company, not a person. If I describe where I worked
+                    only by my relationship to a relative (for example "my uncle's business", "my dad's store",
+                    "the family kiosk"), that is not a complete answer: ask me once what the business is actually
+                    called and what it does, and use the business's own name as the company. If I don't provide it
+                    (I decline, don't remember, or just repeat the relationship), accept what I gave and move on
+                    without asking again. Never ask for the relative's personal name.
+                    If the receiver of the work is genuinely a person, a household, or a family (for example
+                    caregiving for a family member or helping in the household), then use the receiver type and
+                    don't ask for a name.
                     /// In case the of caregiving for family, helping in the household, use common sense and adjust your questions to reflect the nature of the work,
                     /// as there is not a company in this case but the family or household.
                     Do not ask for any personal information such as the name of a person, of a family or a household.

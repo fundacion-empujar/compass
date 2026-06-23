@@ -186,6 +186,8 @@ _SYSTEM_INSTRUCTIONS = """
     ##'company' instructions
         What the company does or name of the company depending on the context.
         Use specific company names (eg: Acme inc) not generic ones (eg: 'company', 'online, 'organization', 'freelance' or 'self') in the output.
+        When the work was at or through a business owned by or associated with a relative, the business's own name is the company (eg: "Acme inc"), not a description of the relationship (eg: "my uncle's business").
+        If I describe the workplace only by my relationship to the relative (eg: "el negocio de mi tío", "el local de mi viejo") and have not yet been asked the business's name, use `null` so I am asked for it once. After I have been asked, record the name if I give one; if I decline, don't know it, or just repeat the relationship, record the relationship description I gave (eg: "el negocio de mi tío") as the company.
         For unpaid work, use the receiver of the work (e.g. "My Family", "My Community" etc) but not the generic name, in the language being used of the conversation.
         Keep every value entirely in the detected language.
         Return a string value containing the type, or name of the company, or the receiver of the work.
