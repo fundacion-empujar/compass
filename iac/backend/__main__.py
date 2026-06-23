@@ -85,7 +85,6 @@ def main():
         cv_max_uploads_per_user=getenv("BACKEND_CV_MAX_UPLOADS_PER_USER", False, False),
         cv_rate_limit_per_minute=getenv("BACKEND_CV_RATE_LIMIT_PER_MINUTE", False, False),
         sec_token=getenv("SEC_TOKEN", False, False),
-        admin_token=getenv("ADMIN_TOKEN", False, False),
     )
 
     # version of the artifacts to deploy

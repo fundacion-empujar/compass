@@ -57,7 +57,6 @@ class BackendServiceConfig:
     cv_max_uploads_per_user: Optional[str]
     cv_rate_limit_per_minute: Optional[str]
     sec_token: Optional[str]
-    admin_token: Optional[str]
     default_locale: str
 
 
@@ -419,9 +418,6 @@ def _deploy_cloud_run_service(
                         gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
                             name="SEC_TOKEN",
                             value=backend_service_cfg.sec_token),
-                        gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
-                            name="ADMIN_TOKEN",
-                            value=backend_service_cfg.admin_token),
                         gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
                             name="BACKEND_DEFAULT_LOCALE",
                             value=backend_service_cfg.default_locale),
