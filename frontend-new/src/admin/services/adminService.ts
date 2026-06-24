@@ -71,17 +71,6 @@ export class AdminService {
     return this.parseJson<CreateSharedCodeResult>(response);
   }
 
-  public async exportRegistrations(): Promise<Blob> {
-    const response = await fetch(`${this.baseUrl}/registrations/export`, {
-      method: "GET",
-      headers: { Accept: "text/csv", ...this.authHeaders() },
-    });
-    if (!response.ok) {
-      throw new Error(await this.errorMessage(response));
-    }
-    return response.blob();
-  }
-
   private authHeaders(): Record<string, string> {
     const token = AuthenticationStateService.getInstance().getToken();
     return token ? { Authorization: `Bearer ${token}` } : {};

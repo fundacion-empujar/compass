@@ -11,10 +11,6 @@ from app.admin.routes import add_admin_routes, _get_user_invitation_repository
 from app.invitations.repository import UserInvitationRepository
 from app.invitations.types import ClaimSource, InvitationType, SecureLinkCodeClaim
 from app.users.auth import Authentication, SignInProvider, UserInfo
-from app.users.get_user_preferences_repository import get_user_preferences_repository
-from app.users.repositories import IUserPreferenceRepository
-from app.users.sensitive_personal_data.types import SensitivePersonalDataRequirement
-from app.users.types import UserPreferences
 from common_libs.test_utilities.mock_auth import MockAuth
 from common_libs.test_utilities.random_data import get_random_base64_string
 
@@ -57,44 +53,26 @@ def mock_invitation_repo():
     return repo
 
 
-@pytest.fixture
-def mock_preferences_repo():
-    repo = MagicMock(spec=IUserPreferenceRepository)
-
-    async def _empty_stream(page_size, started_before, started_after):
-        if False:  # default: an async generator that yields nothing
-            yield []
-
-    repo.stream_user_preferences = _empty_stream
-    return repo
-
-
-def _build_client(*, super_admin: bool, mock_invitation_repo, mock_preferences_repo) -> TestClient:
+def _build_client(*, super_admin: bool, mock_invitation_repo) -> TestClient:
     app = FastAPI()
     add_admin_routes(app, MockAuth(user=_admin_user(super_admin=super_admin)))
     app.dependency_overrides[_get_user_invitation_repository] = lambda: mock_invitation_repo
-    app.dependency_overrides[get_user_preferences_repository] = lambda: mock_preferences_repo
     return TestClient(app)
 
 
 @pytest.fixture
-def client(mock_invitation_repo, mock_preferences_repo):
-    test_client = _build_client(
-        super_admin=True, mock_invitation_repo=mock_invitation_repo, mock_preferences_repo=mock_preferences_repo
-    )
+def client(mock_invitation_repo):
+    test_client = _build_client(super_admin=True, mock_invitation_repo=mock_invitation_repo)
     yield test_client
     test_client.app.dependency_overrides = {}
 
 
 class TestSuperAdminGating:
-    def test_non_super_admin_is_forbidden(self, mock_invitation_repo, mock_preferences_repo):
+    def test_non_super_admin_is_forbidden(self, mock_invitation_repo):
         # GIVEN an authenticated user WITHOUT the super_admin claim
-        client = _build_client(
-            super_admin=False, mock_invitation_repo=mock_invitation_repo, mock_preferences_repo=mock_preferences_repo
-        )
+        client = _build_client(super_admin=False, mock_invitation_repo=mock_invitation_repo)
         # WHEN they call any admin route
         # THEN every route rejects them with 403
-        assert client.get("/admin/registrations/export").status_code == HTTPStatus.FORBIDDEN
         assert (
             client.post("/admin/shared-codes", json=_VALID_SHARED_CODE_BODY).status_code == HTTPStatus.FORBIDDEN
         )
@@ -107,7 +85,10 @@ class TestSuperAdminGating:
         # GIVEN a super_admin (the default client fixture)
         # WHEN they call an admin route
         # THEN it succeeds, with no ?token= anywhere
-        assert client.get("/admin/registrations/export").status_code == HTTPStatus.OK
+        assert (
+            client.post("/admin/registration-links", json={"registration_code": "0035cABC"}).status_code
+            == HTTPStatus.OK
+        )
 
     def test_admin_routes_emit_firebase_security_in_openapi(self):
         # GIVEN the admin routes mounted with the real Authentication (HTTPBearer "firebase")
@@ -117,8 +98,8 @@ class TestSuperAdminGating:
         schema = app.openapi()
         # THEN the admin operation carries the firebase security requirement, so the API Gateway
         #      enforces a logged-in Firebase user at the edge (guards the gateway cutover).
-        export_op = schema["paths"]["/admin/registrations/export"]["get"]
-        assert {"firebase": []} in export_op.get("security", [])
+        registration_links_op = schema["paths"]["/admin/registration-links"]["post"]
+        assert {"firebase": []} in registration_links_op.get("security", [])
 
 
 class TestRegistrationLinks:
@@ -196,60 +177,3 @@ class TestSharedCodes:
             },
         )
         assert response.status_code == HTTPStatus.BAD_REQUEST
-
-
-class TestRegistrationsExport:
-    def test_streams_csv_with_type_and_filters_codeless_rows(self, client, mock_preferences_repo):
-        async def _stream(page_size, started_before, started_after):
-            yield [
-                # per-student tracking link: registration_code set ⇒ Tipo Individual
-                UserPreferences(
-                    user_id="user-1",
-                    registration_code="0035cABC",
-                    invitation_code="0035cABC",
-                    accepted_tc=datetime(2026, 3, 1, tzinfo=timezone.utc),
-                    sensitive_personal_data_requirement=SensitivePersonalDataRequirement.NOT_AVAILABLE,
-                ),
-                # no codes at all ⇒ omitted
-                UserPreferences(
-                    user_id="user-2",
-                    registration_code=None,
-                    invitation_code=None,
-                    sensitive_personal_data_requirement=SensitivePersonalDataRequirement.NOT_AVAILABLE,
-                ),
-                # shared group code: no registration_code ⇒ Tipo Grupo
-                UserPreferences(
-                    user_id="user-3",
-                    registration_code=None,
-                    invitation_code="grupo-2026",
-                    accepted_tc=datetime(2026, 4, 1, tzinfo=timezone.utc),
-                    sensitive_personal_data_requirement=SensitivePersonalDataRequirement.NOT_AVAILABLE,
-                ),
-                # formula-leading code ⇒ must be neutralized against CSV/Excel injection
-                UserPreferences(
-                    user_id="user-4",
-                    registration_code=None,
-                    invitation_code="=danger",
-                    accepted_tc=datetime(2026, 5, 1, tzinfo=timezone.utc),
-                    sensitive_personal_data_requirement=SensitivePersonalDataRequirement.NOT_AVAILABLE,
-                ),
-            ]
-
-        mock_preferences_repo.stream_user_preferences = _stream
-
-        response = client.get("/admin/registrations/export")
-        assert response.status_code == HTTPStatus.OK
-        assert "text/csv" in response.headers["content-type"]
-        # UTF-8 BOM so Excel renders the Spanish headers correctly.
-        assert response.content.startswith(b"\xef\xbb\xbf")
-
-        lines = response.text.strip().splitlines()
-        assert lines[0].lstrip("﻿") == "ID de usuario,Código usado,Tipo,Fecha de registro"
-        # one "Código usado" column + a derived Tipo, instead of the confusing code pair
-        assert any(line.startswith("user-1,0035cABC,Individual,") for line in lines)
-        assert any(line.startswith("user-3,grupo-2026,Grupo,") for line in lines)
-        # the row with no codes is omitted
-        assert not any(line.startswith("user-2,") for line in lines)
-        # CSV formula injection neutralized: a "="-leading code is prefixed with a quote
-        assert "'=danger" in response.text
-        assert ",=danger" not in response.text

@@ -1,5 +1,3 @@
-import csv
-import io
 import logging
 import os
 from datetime import timedelta
@@ -7,7 +5,6 @@ from http import HTTPStatus
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException
-from fastapi.responses import StreamingResponse
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from app.admin.types import (
@@ -21,31 +18,13 @@ from app.invitations.repository import UserInvitationRepository
 from app.invitations.types import UserInvitation
 from app.server_dependencies.db_dependencies import CompassDBProvider
 from app.users.auth import Authentication, require_super_admin
-from app.users.get_user_preferences_repository import get_user_preferences_repository
-from app.users.repositories import IUserPreferenceRepository
 from common_libs.time_utilities import get_now
 
 logger = logging.getLogger(__name__)
 
 # HashRouter: the registration screen is served at <FRONTEND_URL>/#/register
 _REGISTER_LINK_TEMPLATE = "{frontend_url}/#/register?{query}"
-_EXPORT_PAGE_SIZE = 200
 _DEFAULT_SHARED_CODE_VALIDITY_DAYS = 365
-# Staff-facing CSV (Spanish headers; the audience is es-AR Empujar staff). We expose a single
-# "Código usado" column (invitation_code is always filled) plus a derived Tipo, instead of the
-# confusing invitation_code/registration_code pair that staff couldn't tell apart.
-_EXPORT_COLUMNS = ["ID de usuario", "Código usado", "Tipo", "Fecha de registro"]
-_REGISTRATION_TYPE_INDIVIDUAL = "Individual"
-_REGISTRATION_TYPE_GROUP = "Grupo"
-# A cell starting with one of these is treated as a formula by Excel/Sheets. invitation_code is
-# user-influenced and the export opens in a spreadsheet, so neutralize formula injection.
-_CSV_FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
-
-
-def _csv_safe(value: str) -> str:
-    if value and value[0] in _CSV_FORMULA_PREFIXES:
-        return "'" + value
-    return value
 
 
 async def _get_user_invitation_repository(
@@ -141,60 +120,6 @@ def add_admin_routes(app: FastAPI, authentication: Authentication):
             valid_from=valid_from,
             valid_until=valid_until,
             sensitive_personal_data_requirement=invitation.sensitive_personal_data_requirement,
-        )
-
-    @router.get(
-        path="/registrations/export",
-        name="export registrations as CSV",
-        description="Stream a CSV of who registered with which code "
-                    "(the code each person used, plus whether it was an individual or group code).",
-    )
-    async def _export_registrations(
-        user_preferences_repository: IUserPreferenceRepository = Depends(get_user_preferences_repository),
-    ) -> StreamingResponse:
-        async def _generate_csv():
-            header = io.StringIO()
-            csv.writer(header).writerow(_EXPORT_COLUMNS)
-            # UTF-8 BOM so Excel opens the Spanish headers/accents correctly.
-            yield "﻿" + header.getvalue()
-
-            try:
-                async for batch in user_preferences_repository.stream_user_preferences(
-                    page_size=_EXPORT_PAGE_SIZE, started_before=None, started_after=None
-                ):
-                    buffer = io.StringIO()
-                    writer = csv.writer(buffer)
-                    for pref in batch:
-                        # Only rows that registered via a code carry reconciliation value.
-                        if not (pref.registration_code or pref.invitation_code):
-                            continue
-                        # registration_code set ⇒ a per-student tracking link (Individual);
-                        # otherwise the person used a shared group code (Grupo).
-                        registration_type = (
-                            _REGISTRATION_TYPE_INDIVIDUAL if pref.registration_code else _REGISTRATION_TYPE_GROUP
-                        )
-                        writer.writerow([
-                            _csv_safe(pref.user_id or ""),
-                            _csv_safe(pref.invitation_code or pref.registration_code or ""),
-                            registration_type,
-                            pref.accepted_tc.isoformat() if pref.accepted_tc else "",
-                        ])
-                    yield buffer.getvalue()
-            except Exception:
-                # Status 200 + headers were already sent when streaming began, so this can't become
-                # an error response. Log it (a truncated export is otherwise silent) and propagate so
-                # the client's download fails visibly instead of looking complete.
-                logger.exception("Failed while streaming the registrations export (CSV truncated)")
-                raise
-
-        return StreamingResponse(
-            _generate_csv(),
-            media_type="text/csv; charset=utf-8",
-            headers={
-                "Content-Disposition": "attachment; filename=registrations.csv",
-                "Cache-Control": "no-cache",
-                "X-Content-Type-Options": "nosniff",
-            },
         )
 
     app.include_router(router)
