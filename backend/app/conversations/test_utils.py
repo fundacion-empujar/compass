@@ -8,9 +8,12 @@ from app.agent.explore_experiences_agent_director import ExperienceState, DiveIn
 from app.application_state import ApplicationState
 from app.conversations.constants import BEGINNING_CONVERSATION_PERCENTAGE, FINISHED_CONVERSATION_PERCENTAGE, \
     COLLECT_EXPERIENCES_PERCENTAGE, DIVE_IN_EXPERIENCES_PERCENTAGE
-from app.conversations.types import ConversationPhaseResponse, CurrentConversationPhaseResponse
-from app.conversations.utils import get_current_conversation_phase_response
+from app.conversations.types import ConversationPhaseResponse, CurrentConversationPhaseResponse, ConversationMessageSender
+from app.conversations.utils import get_current_conversation_phase_response, filter_conversation_history, \
+    get_messages_from_conversation_manager
 from app.agent.explore_experiences_agent_director import ConversationPhase as CounselingConversationPhase
+from app.agent.agent_types import AgentInput, AgentOutput, LLMQuickReplyOption
+from app.conversation_memory.conversation_memory_types import ConversationTurn, ConversationHistory, ConversationContext
 from common_libs.test_utilities import get_random_session_id
 
 logger = logging.getLogger(__name__)
@@ -143,3 +146,91 @@ class TestConversationPhase:
             current=explored + 1,
             total=total
         )
+
+
+def _make_turn(*, index: int, message_id: str, output_message: str = "ok",
+               quick_reply_labels: list[str] | None = None, artificial: bool = False) -> ConversationTurn:
+    return ConversationTurn(
+        index=index,
+        input=AgentInput(
+            message_id=f"in_{index}",
+            message="" if artificial else f"user {index}",
+            is_artificial=artificial,
+        ),
+        output=AgentOutput(
+            message_id=message_id,
+            message_for_user=output_message,
+            finished=False,
+            agent_response_time_in_sec=0.1,
+            llm_stats=[],
+            quick_reply_options=[LLMQuickReplyOption(label=label) for label in quick_reply_labels]
+            if quick_reply_labels else None,
+        ),
+    )
+
+
+def _compass_messages(messages):
+    return [m for m in messages if m.sender == ConversationMessageSender.COMPASS]
+
+
+class TestFilterConversationHistoryQuickReplyOptions:
+    @pytest.mark.asyncio
+    async def test_attaches_options_to_last_compass_message_only(self):
+        # GIVEN a history where BOTH turns' outputs carry quick-reply options
+        history = ConversationHistory(turns=[
+            _make_turn(index=0, message_id="c0", quick_reply_labels=["stale"]),
+            _make_turn(index=1, message_id="c1", quick_reply_labels=["Yes", "No"]),
+        ])
+        # WHEN filtering the conversation history
+        messages = await filter_conversation_history(history, [])
+        # THEN only the last COMPASS message exposes options (no stale buttons on earlier messages)
+        compass = _compass_messages(messages)
+        assert compass[0].quick_reply_options is None
+        assert [o.label for o in compass[-1].quick_reply_options] == ["Yes", "No"]
+
+    @pytest.mark.asyncio
+    async def test_no_options_when_last_turn_has_none(self):
+        # GIVEN a history whose last turn carries no quick-reply options
+        history = ConversationHistory(turns=[
+            _make_turn(index=0, message_id="c0", quick_reply_labels=["x"]),
+            _make_turn(index=1, message_id="c1"),
+        ])
+        # WHEN filtering the conversation history
+        messages = await filter_conversation_history(history, [])
+        # THEN no message exposes quick-reply options
+        assert all(m.quick_reply_options is None for m in messages)
+
+    @pytest.mark.asyncio
+    async def test_empty_history_returns_no_messages(self):
+        # GIVEN an empty history
+        # WHEN filtering the conversation history
+        messages = await filter_conversation_history(ConversationHistory(turns=[]), [])
+        # THEN no messages are produced
+        assert messages == []
+
+
+class TestGetMessagesFromConversationManagerQuickReplyOptions:
+    @pytest.mark.asyncio
+    async def test_attaches_options_to_last_message_only(self):
+        # GIVEN a context where both turns' outputs carry quick-reply options
+        context = ConversationContext(all_history=ConversationHistory(turns=[
+            _make_turn(index=0, message_id="c0", quick_reply_labels=["stale"]),
+            _make_turn(index=1, message_id="c1", quick_reply_labels=["Yes", "No"]),
+        ]))
+        # WHEN building the messages from the conversation manager
+        messages = await get_messages_from_conversation_manager(context, from_index=0)
+        # THEN only the last message exposes options (no stale buttons on earlier messages)
+        assert messages[0].quick_reply_options is None
+        assert [o.label for o in messages[-1].quick_reply_options] == ["Yes", "No"]
+
+    @pytest.mark.asyncio
+    async def test_respects_from_index_slice(self):
+        context = ConversationContext(all_history=ConversationHistory(turns=[
+            _make_turn(index=0, message_id="c0"),
+            _make_turn(index=1, message_id="c1", quick_reply_labels=["Yes"]),
+        ]))
+        # WHEN requesting only the latest turn's messages
+        messages = await get_messages_from_conversation_manager(context, from_index=1)
+        # THEN that single message carries the options
+        assert len(messages) == 1
+        assert [o.label for o in messages[0].quick_reply_options] == ["Yes"]

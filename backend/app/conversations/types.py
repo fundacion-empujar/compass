@@ -39,6 +39,15 @@ class ConversationMessageSender(int, Enum):
     COMPASS = 1
 
 
+class QuickReplyOption(BaseModel):
+    """A quick-reply button option displayed below a chat message."""
+    label: str
+    """The text displayed on the button and sent as the user's input when clicked"""
+
+    class Config:
+        extra = "forbid"
+
+
 # TODO: The UserConversationMessage and CompassConversationmessage types have diverged
 # add a type for each
 class ConversationMessage(BaseModel):
@@ -55,6 +64,8 @@ class ConversationMessage(BaseModel):
     """The sender of the message, either USER or COMPASS"""
     reaction: MessageReaction | None = None
     """Optional reaction to the message"""
+    quick_reply_options: list[QuickReplyOption] | None = None
+    """Optional quick-reply button options for this message (last COMPASS message only)"""
 
     @field_serializer('sent_at')
     def serialize_sent_at(self, value: datetime) -> str:

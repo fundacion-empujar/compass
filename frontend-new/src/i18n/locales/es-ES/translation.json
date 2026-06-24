@@ -266,6 +266,11 @@
       "viewUploadedLabel": "CVs subidos anteriormente"
     },
     "chatMessage": {
+      "suggestedActions": {
+        "quickReplyButtons": {
+          "chooseOne": "Elige una opción:"
+        }
+      },
       "typingChatMessage": {
         "typing": "Escribiendo",
         "thinking": "La IA está pensando, por favor espera"

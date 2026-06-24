@@ -11,7 +11,8 @@ from app.agent.llm_caller import LLMCaller
 from app.agent.prompt_template import get_language_style
 from app.agent.prompt_template.agent_prompt_template import STD_AGENT_CHARACTER
 from app.agent.prompt_template.format_prompt import replace_placeholders_with_indent
-from app.agent.agent_types import AgentType, AgentOutput, LLMStats, AgentInput
+from app.agent.prompt_template.quick_reply_prompt import QUICK_REPLY_PROMPT
+from app.agent.agent_types import AgentType, AgentOutput, LLMStats, AgentInput, LLMQuickReplyOption
 from app.agent.simple_llm_agent.prompt_response_template import get_json_examples_instructions
 from app.conversation_memory.conversation_formatter import ConversationHistoryFormatter
 from app.conversation_memory.conversation_memory_types import ConversationContext
@@ -77,6 +78,9 @@ class WelcomeAgentLLMResponse(BaseModel):
         description="""Message for the user that the LLM produces"""
     )
 
+    quick_reply_options: list[LLMQuickReplyOption] | None = None
+    """Optional quick-reply button options the LLM may suggest for limited-answer questions."""
+
     model_config = ConfigDict(extra="forbid")
 
 
@@ -133,7 +137,8 @@ class WelcomeAgent(Agent):
                 finished=False,
                 agent_type=self.agent_type,
                 agent_response_time_in_sec=round(time.time() - agent_start_time, 2),
-                llm_stats=[]
+                llm_stats=[],
+                quick_reply_options=WelcomeAgent.get_first_encounter_quick_replies(locale)
             )
 
         llm_stats: list[LLMStats] = []
@@ -170,12 +175,19 @@ class WelcomeAgent(Agent):
             # After that, the agent will be executed only to answer questions and not to start the skill discovery/exploration session
             self._state.user_started_discovery = response.user_indicated_start
 
+        # Prefer the LLM's own quick-reply options; otherwise, while the user has not yet started,
+        # always offer a way to begin or to keep asking questions.
+        subsequent_quick_replies = response.quick_reply_options
+        if not subsequent_quick_replies and not response.user_indicated_start:
+            subsequent_quick_replies = WelcomeAgent.get_first_encounter_quick_replies(locale)
+
         return AgentOutput(
             message_for_user=response.message,
             finished=response.user_indicated_start,
             agent_type=self.agent_type,
             agent_response_time_in_sec=round(time.time() - agent_start_time, 2),
-            llm_stats=llm_stats
+            llm_stats=llm_stats,
+            quick_reply_options=subsequent_quick_replies
         )
 
     @staticmethod
@@ -223,12 +235,21 @@ class WelcomeAgent(Agent):
             reasoning=model_response.reasoning,
             message=model_response.message.strip('"'),
             user_indicated_start=model_response.user_indicated_start,
+            quick_reply_options=model_response.quick_reply_options,
             llm_stats=llm_stats_list
         ), 0, None
 
     @staticmethod
     def get_first_encounter_message(locale: str):
         return t("messages", "welcomeAgentFirstEncounter", locale)
+
+    @staticmethod
+    def get_first_encounter_quick_replies(locale: str) -> list[LLMQuickReplyOption]:
+        # Fixed starter buttons offered alongside the very first welcome message.
+        return [
+            LLMQuickReplyOption(label=t("messages", "welcomeAgentQuickReplies.start", locale)),
+            LLMQuickReplyOption(label=t("messages", "welcomeAgentQuickReplies.question", locale)),
+        ]
 
     @staticmethod
     def get_system_instructions(state: WelcomeAgentState) -> str:
@@ -297,6 +318,8 @@ class WelcomeAgent(Agent):
         
         #JSON Response Instructions
             {json_response_instructions}
+
+        {quick_reply_prompt}
         
         #Attention!
             When answering questions do not get curried away and start the exploration session. 
@@ -313,7 +336,8 @@ class WelcomeAgent(Agent):
                                                                language_style=get_language_style(),
                                                                agent_character=STD_AGENT_CHARACTER,
                                                                json_response_instructions=WelcomeAgent.get_json_response_instructions(
-                                                                   state))
+                                                                   state),
+                                                               quick_reply_prompt=QUICK_REPLY_PROMPT)
         return system_instructions
 
     @staticmethod
@@ -361,6 +385,7 @@ class WelcomeAgent(Agent):
             - user_indicated_start: A boolean flag to signal that I am ready to start with the skills exploration session.
                         When I say or indicate or show desire or intention that I am ready to start, set to true, false otherwise.
             - message:  Your message to the user in double quotes formatted as a json string
+            - quick_reply_options: An optional array of quick-reply button options, each an object with a "label" field (the button text). Only include when your message asks a question with a limited set of clear answers (yes/no, confirmation, starters); omit for free-text questions.
         
         {few_shot_examples_instructions}
         """)

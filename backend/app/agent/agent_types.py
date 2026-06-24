@@ -76,6 +76,14 @@ class LLMStats(BaseModel):
         extra = "forbid"
 
 
+class LLMQuickReplyOption(BaseModel):
+    """Quick-reply option for the LLM to suggest in its response."""
+    label: str = Field(description="Short button text displayed to the user and sent as their reply when clicked (max ~40 chars)")
+
+    class Config:
+        extra = "forbid"
+
+
 class AgentOutput(BaseModel):
     """
     The output of an agent
@@ -97,6 +105,9 @@ class AgentOutput(BaseModel):
 
     llm_stats: list[LLMStats]
     """The stats for each call to an LLM that was used to generate the response"""
+
+    quick_reply_options: Optional[list[LLMQuickReplyOption]] = None
+    """Optional quick-reply button options suggested alongside this response"""
 
     sent_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     """The sent_at of the message"""

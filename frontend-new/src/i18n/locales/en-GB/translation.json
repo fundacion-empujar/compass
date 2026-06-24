@@ -266,6 +266,11 @@
       "viewUploadedLabel": "Previously uploaded CVs"
     },
     "chatMessage": {
+      "suggestedActions": {
+        "quickReplyButtons": {
+          "chooseOne": "Choose one:"
+        }
+      },
       "typingChatMessage": {
         "typing": "Typing",
         "thinking": "Please wait, I'm thinking"
