@@ -10,21 +10,18 @@ import { render, screen, fireEvent, waitFor } from "src/_test_utilities/test-uti
 import AdminPanel, { DATA_TEST_ID } from "src/admin/pages/AdminPanel/AdminPanel";
 import { DATA_TEST_ID as LINK_TOOL_TEST_ID } from "src/admin/components/GenerateLinkTool/GenerateLinkTool";
 import { DATA_TEST_ID as SHARED_TOOL_TEST_ID } from "src/admin/components/CreateSharedCodeTool/CreateSharedCodeTool";
-import { DATA_TEST_ID as EXPORT_TOOL_TEST_ID } from "src/admin/components/ExportRegistrationsTool/ExportRegistrationsTool";
 import { DATA_TEST_ID as DOWNLOAD_REPORTS_MENU_TEST_ID } from "src/admin/components/DownloadReportsMenu/DownloadReportsMenu";
 import { DATA_TEST_ID as REPORT_LOOKUP_TOOL_TEST_ID } from "src/admin/components/ReportLookupTool/ReportLookupTool";
 import { DATA_TEST_ID as GENERAL_FAQ_TOOL_TEST_ID } from "src/admin/components/GeneralFaqTool/GeneralFaqTool";
 
 const mockCreateRegistrationLink = jest.fn();
 const mockCreateSharedCode = jest.fn();
-const mockExportRegistrations = jest.fn();
 
 jest.mock("src/admin/services/adminService", () => ({
   AdminService: {
     getInstance: jest.fn(() => ({
       createRegistrationLink: (...args: unknown[]) => mockCreateRegistrationLink(...args),
       createSharedCode: (...args: unknown[]) => mockCreateSharedCode(...args),
-      exportRegistrations: (...args: unknown[]) => mockExportRegistrations(...args),
     })),
   },
 }));
@@ -44,12 +41,11 @@ describe("AdminPanel", () => {
     window.location.hash = "";
   });
 
-  test("renders the five tool cards", () => {
+  test("renders the four tool cards", () => {
     render(<AdminPanel />);
     expect(screen.getByTestId(DATA_TEST_ID.ADMIN_PANEL_CONTAINER)).toBeInTheDocument();
     expect(screen.getByTestId(DATA_TEST_ID.CARD_GENERATE_LINK)).toBeInTheDocument();
     expect(screen.getByTestId(DATA_TEST_ID.CARD_SHARED_CODE)).toBeInTheDocument();
-    expect(screen.getByTestId(DATA_TEST_ID.CARD_EXPORT)).toBeInTheDocument();
     expect(screen.getByTestId(DATA_TEST_ID.CARD_REPORTS)).toBeInTheDocument();
     expect(screen.getByTestId(DATA_TEST_ID.CARD_FAQ)).toBeInTheDocument();
   });
@@ -155,19 +151,6 @@ describe("AdminPanel", () => {
       invitation_code: "grupo-2026",
       invitation_type: "REGISTER",
     });
-  });
-
-  test("exports registrations", async () => {
-    mockExportRegistrations.mockResolvedValue(new Blob(["user_id\n"], { type: "text/csv" }));
-
-    render(<AdminPanel />);
-    fireEvent.click(screen.getByTestId(DATA_TEST_ID.CARD_EXPORT));
-    fireEvent.click(screen.getByTestId(EXPORT_TOOL_TEST_ID.EXPORT_BUTTON));
-
-    await waitFor(() => {
-      expect(screen.getByTestId(EXPORT_TOOL_TEST_ID.SUCCESS)).toBeInTheDocument();
-    });
-    expect(mockExportRegistrations).toHaveBeenCalledWith();
   });
 
   test("opens the download-reports menu and drills into the individual lookup", () => {

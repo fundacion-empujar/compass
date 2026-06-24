@@ -3,14 +3,12 @@ import { useTranslation } from "react-i18next";
 import { Box, Paper, Typography, Stack, Card, CardActionArea, CardContent, Button, useTheme } from "@mui/material";
 import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1";
 import GroupAddIcon from "@mui/icons-material/GroupAdd";
-import TableViewIcon from "@mui/icons-material/TableView";
 import DownloadIcon from "@mui/icons-material/Download";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import LanguageContextMenu from "src/i18n/languageContextMenu/LanguageContextMenu";
 import GenerateLinkTool from "src/admin/components/GenerateLinkTool/GenerateLinkTool";
 import CreateSharedCodeTool from "src/admin/components/CreateSharedCodeTool/CreateSharedCodeTool";
-import ExportRegistrationsTool from "src/admin/components/ExportRegistrationsTool/ExportRegistrationsTool";
 import DownloadReportsMenu from "src/admin/components/DownloadReportsMenu/DownloadReportsMenu";
 import GeneralFaqTool from "src/admin/components/GeneralFaqTool/GeneralFaqTool";
 
@@ -20,13 +18,12 @@ export const DATA_TEST_ID = {
   ADMIN_PANEL_CONTAINER: `admin-panel-container-${uniqueId}`,
   CARD_GENERATE_LINK: `admin-card-generate-link-${uniqueId}`,
   CARD_SHARED_CODE: `admin-card-shared-code-${uniqueId}`,
-  CARD_EXPORT: `admin-card-export-${uniqueId}`,
   CARD_REPORTS: `admin-card-reports-${uniqueId}`,
   CARD_FAQ: `admin-card-faq-${uniqueId}`,
   BACK_BUTTON: `admin-back-button-${uniqueId}`,
 };
 
-type AdminTool = "link" | "shared" | "export" | "reports" | "faq";
+type AdminTool = "link" | "shared" | "reports" | "faq";
 
 const AdminPanel: React.FC = () => {
   const theme = useTheme();
@@ -52,14 +49,6 @@ const AdminPanel: React.FC = () => {
       onClick: () => setActiveTool("shared"),
     },
     {
-      id: "export" as const,
-      testId: DATA_TEST_ID.CARD_EXPORT,
-      icon: <TableViewIcon fontSize="large" color="primary" />,
-      title: t("admin.panel.cards.export.title"),
-      description: t("admin.panel.cards.export.description"),
-      onClick: () => setActiveTool("export"),
-    },
-    {
       id: "reports" as const,
       testId: DATA_TEST_ID.CARD_REPORTS,
       icon: <DownloadIcon fontSize="large" color="secondary" />,
@@ -83,8 +72,6 @@ const AdminPanel: React.FC = () => {
         return <GenerateLinkTool />;
       case "shared":
         return <CreateSharedCodeTool />;
-      case "export":
-        return <ExportRegistrationsTool />;
       case "reports":
         return <DownloadReportsMenu />;
       case "faq":

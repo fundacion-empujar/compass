@@ -52,18 +52,6 @@ describe("AdminService", () => {
     expect((init.headers as Record<string, string>).Authorization).toBe(`Bearer ${GIVEN_TOKEN}`);
   });
 
-  test("exportRegistrations sends a Bearer header and returns the blob", async () => {
-    const givenBlob = new Blob(["user_id\n"], { type: "text/csv" });
-    (global.fetch as jest.Mock).mockResolvedValue({ ok: true, blob: async () => givenBlob });
-
-    const result = await AdminService.getInstance().exportRegistrations();
-
-    const [url, init] = (global.fetch as jest.Mock).mock.calls[0];
-    expect(url).toBe("https://backend.test/admin/registrations/export");
-    expect((init.headers as Record<string, string>).Authorization).toBe(`Bearer ${GIVEN_TOKEN}`);
-    expect(result).toBe(givenBlob);
-  });
-
   test("omits the Authorization header when no token is present", async () => {
     // GIVEN no in-memory token
     jest.spyOn(AuthenticationStateService.getInstance(), "getToken").mockReturnValue(null);

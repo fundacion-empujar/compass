@@ -13,10 +13,6 @@
           "title": "Abrir el acceso a un grupo",
           "description": "Crea un código que pueden usar muchas personas"
         },
-        "export": {
-          "title": "Ver quién se ha registrado",
-          "description": "Descarga una hoja de cálculo con los códigos y quién los usó"
-        },
         "reports": {
           "title": "Descargar informes",
           "description": "Busca el informe de un estudiante o descárgalos todos juntos"
@@ -71,17 +67,6 @@
           "answer": "El código es válido durante 1 año desde el día que lo creas y se puede usar muchísimas veces (prácticamente sin límite). Pasado ese año deja de funcionar y tienes que crear uno nuevo."
         }
       },
-      "export": {
-        "heading": "Ver quién se ha registrado",
-        "help": "Descarga una hoja de cálculo (CSV) con todos los registros y los códigos que usaron.",
-        "submit": "Descargar hoja de cálculo",
-        "success": "Listo. Se ha descargado la hoja de cálculo.",
-        "error": "No hemos podido descargar la hoja de cálculo. Inténtalo de nuevo.",
-        "faq": {
-          "question": "¿Qué hace esta sección? ¿Qué columnas trae?",
-          "answer": "Descarga una hoja de cálculo (CSV) con todas las personas que se registraron. Cada fila trae: el ID de usuario, el código que usó, el Tipo (Individual = se registró con un enlace de seguimiento de un estudiante en concreto; Grupo = usó un código compartido) y la fecha en que se registró. Se abre con Excel o Google Sheets."
-        }
-      },
       "reports": {
         "menu": {
           "heading": "Descargar informes",
@@ -121,7 +106,7 @@
         },
         "sections": {
           "question": "¿Para qué sirve cada sección del panel?",
-          "answer": "• Crear enlace de seguimiento individual: genera un enlace propio para un estudiante.\n• Abrir el acceso a un grupo: crea un código que pueden usar muchas personas.\n• Ver quién se ha registrado: descarga una hoja de cálculo con todos los registros.\n• Descargar informes: descarga los informes (CV) de los usuarios.\n• Buscar el informe de un estudiante: abre el informe de una sola persona."
+          "answer": "• Crear enlace de seguimiento individual: genera un enlace propio para un estudiante.\n• Abrir el acceso a un grupo: crea un código que pueden usar muchas personas.\n• Descargar informes: descarga los informes (CV) de los usuarios.\n• Buscar el informe de un estudiante: abre el informe de una sola persona."
         },
         "report": {
           "question": "¿Qué es el «informe», el «reporte» o el «CV»?",
