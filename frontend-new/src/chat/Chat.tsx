@@ -576,9 +576,7 @@ export const Chat: React.FC<Readonly<ChatProps>> = ({
         // Clear any quick-reply buttons from earlier messages once the user has acted.
         setMessages((prev) =>
           prev.map((msg) =>
-            msg.payload?.quick_reply_options
-              ? { ...msg, payload: { ...msg.payload, quick_reply_options: null } }
-              : msg
+            msg.payload?.quick_reply_options ? { ...msg, payload: { ...msg.payload, quick_reply_options: null } } : msg
           )
         );
       }
