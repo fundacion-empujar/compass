@@ -158,6 +158,14 @@ export const Chat: React.FC<Readonly<ChatProps>> = ({
     setMessages((prevMessages) => prevMessages.filter((msg) => msg.message_id !== messageId));
   }, []);
 
+  // Quick-reply taps route through handleSend. We use a ref because the message generators below
+  // (sendMessage/initializeChat) are defined before handleSend, and the ref keeps a stable callback
+  // pointing at the latest handleSend without a closure-ordering problem.
+  const handleQuickReplyRef = useRef<(label: string) => void>(() => {});
+  const handleQuickReply = useCallback((label: string) => {
+    handleQuickReplyRef.current(label);
+  }, []);
+
   const { showSkillsRanking } = useSkillsRanking(addMessageToChat, removeMessageFromChat);
 
   // Depending on the typing state, add or remove the typing message from the messages list
@@ -565,6 +573,14 @@ export const Chat: React.FC<Readonly<ChatProps>> = ({
         // optimistically add the user's message for a more responsive feel
         const message = generateUserMessage(userMessage, new Date().toISOString());
         addMessageToChat(message);
+        // Clear any quick-reply buttons from earlier messages once the user has acted.
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.payload?.quick_reply_options
+              ? { ...msg, payload: { ...msg.payload, quick_reply_options: null } }
+              : msg
+          )
+        );
       }
 
       try {
@@ -579,14 +595,17 @@ export const Chat: React.FC<Readonly<ChatProps>> = ({
         }
 
         response.messages.forEach((messageItem, idx) => {
-          const isConclusionMessage = response.conversation_completed && idx === response.messages.length - 1;
+          const isLastMessage = idx === response.messages.length - 1;
+          const isConclusionMessage = response.conversation_completed && isLastMessage;
           if (!isConclusionMessage) {
             addMessageToChat(
               generateCompassMessage(
                 messageItem.message_id,
                 messageItem.message,
                 messageItem.sent_at,
-                messageItem.reaction
+                messageItem.reaction,
+                isLastMessage ? messageItem.quick_reply_options : null,
+                isLastMessage && messageItem.quick_reply_options ? handleQuickReply : undefined
               )
             );
           }
@@ -639,7 +658,7 @@ export const Chat: React.FC<Readonly<ChatProps>> = ({
         setAiIsTyping(false);
       }
     },
-    [addMessageToChat, exploredExperiences, fetchExperiences, activeSessionId, showSkillsRanking]
+    [addMessageToChat, exploredExperiences, fetchExperiences, activeSessionId, showSkillsRanking, handleQuickReply]
   );
 
   const initializeChat = useCallback(
@@ -682,11 +701,19 @@ export const Chat: React.FC<Readonly<ChatProps>> = ({
           const isConclusionMessage = history.conversation_completed;
           const mappedMessages = history.messages
             .filter((_, idx) => !(isConclusionMessage && idx === history.messages.length - 1))
-            .map((message: ConversationMessage) => {
+            .map((message: ConversationMessage, idx, arr) => {
               if (message.sender === ConversationMessageSender.USER) {
                 return generateUserMessage(message.message, message.sent_at);
               }
-              return generateCompassMessage(message.message_id, message.message, message.sent_at, message.reaction);
+              const isLastMessage = idx === arr.length - 1;
+              return generateCompassMessage(
+                message.message_id,
+                message.message,
+                message.sent_at,
+                message.reaction,
+                isLastMessage ? message.quick_reply_options : null,
+                isLastMessage && message.quick_reply_options ? handleQuickReply : undefined
+              );
             });
 
           setMessages(mappedMessages);
@@ -745,7 +772,7 @@ export const Chat: React.FC<Readonly<ChatProps>> = ({
         setAiIsTyping(false);
       }
     },
-    [addMessageToChat, setAiIsTyping, showSkillsRanking, sendMessage]
+    [addMessageToChat, setAiIsTyping, showSkillsRanking, sendMessage, handleQuickReply]
   );
 
   // Resets the text field for the next message
@@ -757,6 +784,13 @@ export const Chat: React.FC<Readonly<ChatProps>> = ({
     },
     [sendMessage, activeSessionId]
   );
+
+  // Keep the quick-reply ref pointing at the latest handleSend so tapped buttons send like typed input.
+  useEffect(() => {
+    handleQuickReplyRef.current = (label: string) => {
+      void handleSend(label);
+    };
+  }, [handleSend]);
 
   /**
    * --- Callbacks for child components ---

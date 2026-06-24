@@ -11,6 +11,11 @@ export interface MessageReaction {
   kind: ReactionKind | null;
 }
 
+// A quick-reply button option displayed below a chat message.
+export interface QuickReplyOption {
+  label: string;
+}
+
 // Type for individual conversation messages
 export interface ConversationMessage {
   message_id: string;
@@ -18,6 +23,7 @@ export interface ConversationMessage {
   sent_at: string; // ISO formatted datetime string
   sender: ConversationMessageSender; // Either 'USER' or 'COMPASS'
   reaction: MessageReaction | null;
+  quick_reply_options?: QuickReplyOption[] | null; // optional quick-reply buttons (last COMPASS message only)
 }
 
 export interface ConversationResponse {

@@ -162,6 +162,32 @@ describe("Chat Utils", () => {
       expect(console.error).not.toHaveBeenCalled();
       expect(console.warn).not.toHaveBeenCalled();
     });
+
+    test("should include quick_reply_options and the handler in the payload when provided", () => {
+      // GIVEN quick-reply options and a click handler
+      const givenOptions = [{ label: "Yes" }, { label: "No" }];
+      const onQuickReplyClick = jest.fn();
+
+      // WHEN generating a brujula message with them
+      const result = generateCompassMessage("id", "msg", "2024-03-20T12:00:00Z", null, givenOptions, onQuickReplyClick);
+
+      // THEN the payload carries both the options and the handler
+      expect(result.payload).toEqual(
+        expect.objectContaining({
+          quick_reply_options: givenOptions,
+          onQuickReplyClick: onQuickReplyClick,
+        })
+      );
+    });
+
+    test("should omit quick-reply keys from the payload when not provided", () => {
+      // WHEN generating a brujula message without quick-reply args
+      const result = generateCompassMessage("id", "msg", "2024-03-20T12:00:00Z", null);
+
+      // THEN the payload contains neither key (kept clean for messages without buttons)
+      expect(result.payload).not.toHaveProperty("quick_reply_options");
+      expect(result.payload).not.toHaveProperty("onQuickReplyClick");
+    });
   });
 
   describe("generateTypingMessage", () => {

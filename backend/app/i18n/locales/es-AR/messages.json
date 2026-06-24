@@ -1,5 +1,9 @@
 {
   "welcomeAgentFirstEncounter": "¡Bienvenido al chatbot Brújula!\n\nEn esta conversación te voy a ayudar a identificar tus habilidades profesionales.\n\nPrimero, te voy preguntar brevemente sobre tus experiencias laborales (incluyendo trabajos no remunerados, voluntariados, emprendimientos, o ayuda en la familia).\n\nDespués, cuando tengamos una lista completa de tus experiencias previas, vamos a repasar cada una en más detalle y hablar de tus actividades.\n\nCada persona es distinta, pero la conversación suele durar entre 20 y 30 minutos. Si creaste una cuenta al registrarte, podés pausar y volver cuando quieras.\n\n¿Listo para empezar?",
+  "welcomeAgentQuickReplies": {
+    "start": "¡Empecemos!",
+    "question": "Tengo una pregunta"
+  },
   "collectExperiences": {
     "didNotUnderstand": "Perdón, no entendí. ¿Podés decirlo de otra manera?",
     "moveToOtherExperiences": "Sigamos con otras experiencias laborales.",

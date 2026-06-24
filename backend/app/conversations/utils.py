@@ -8,7 +8,7 @@ from app.agent.explore_experiences_agent_director import ConversationPhase as Co
 from app.application_state import ApplicationState
 from app.conversation_memory.conversation_memory_types import ConversationHistory, ConversationContext
 from app.conversations.types import ConversationMessage, ConversationMessageSender, MessageReaction, \
-    ConversationPhaseResponse, CurrentConversationPhaseResponse
+    ConversationPhaseResponse, CurrentConversationPhaseResponse, QuickReplyOption
 from app.conversations.reactions.types import Reaction
 from app.conversations.constants import BEGINNING_CONVERSATION_PERCENTAGE, FINISHED_CONVERSATION_PERCENTAGE, \
     DIVE_IN_EXPERIENCES_PERCENTAGE, COLLECT_EXPERIENCES_PERCENTAGE
@@ -27,6 +27,18 @@ def _convert_to_message_reaction(reaction: Reaction | None) -> MessageReaction |
     return MessageReaction.from_reaction(reaction)
 
 
+def _extract_quick_reply_options(turn_output) -> list[QuickReplyOption] | None:
+    """
+    Convert an agent output's quick-reply options into response-model options.
+    Quick-reply options are only ever surfaced for the last COMPASS message (the callers
+    enforce this), so stale buttons never appear on earlier messages.
+    """
+    options = getattr(turn_output, "quick_reply_options", None)
+    if not options:
+        return None
+    return [QuickReplyOption(label=option.label) for option in options]
+
+
 async def filter_conversation_history(history: 'ConversationHistory', reactions_for_session: list[Reaction]) -> list[
     ConversationMessage]:
     """
@@ -36,6 +48,7 @@ async def filter_conversation_history(history: 'ConversationHistory', reactions_
     :return: List[ConversationMessage]
     """
     messages = []
+    _last_turn = history.turns[-1] if history.turns else None
     for turn in history.turns:
         # remove artificial messages
         if not turn.input.is_artificial:
@@ -54,12 +67,15 @@ async def filter_conversation_history(history: 'ConversationHistory', reactions_
                 compass_reaction = reaction
                 reactions_for_session.pop(i)
                 break
+        # Only the last COMPASS message carries quick-reply options (avoids stale buttons on history).
+        quick_reply_options = _extract_quick_reply_options(turn.output) if turn is _last_turn else None
         messages.append(ConversationMessage(
             message_id=turn.output.message_id,
             message=turn.output.message_for_user,
             sent_at=turn.output.sent_at.astimezone(timezone.utc).isoformat(),
             sender=ConversationMessageSender.COMPASS,
-            reaction=_convert_to_message_reaction(compass_reaction)
+            reaction=_convert_to_message_reaction(compass_reaction),
+            quick_reply_options=quick_reply_options
         ))
     return messages
 
@@ -76,16 +92,19 @@ async def get_messages_from_conversation_manager(context: 'ConversationContext',
     # to produce a coherent conversation flow with all the messages that have been added to the history
     # during this conversation turn with the user
     _hist = context.all_history
-    _last = _hist.turns[-1]
+    _last = _hist.turns[-1] if _hist.turns else None
 
     messages = []
     for turn in context.all_history.turns[from_index:]:
         turn.output.sent_at = datetime.now(timezone.utc)
+        # Only the last COMPASS message of this turn carries quick-reply options.
+        quick_reply_options = _extract_quick_reply_options(turn.output) if turn is _last else None
         messages.append(ConversationMessage(
             message_id=turn.output.message_id,
             message=turn.output.message_for_user,
             sent_at=turn.output.sent_at.astimezone(timezone.utc).isoformat(),
             sender=ConversationMessageSender.COMPASS,
+            quick_reply_options=quick_reply_options
         ))
     return messages
 
