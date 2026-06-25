@@ -4,6 +4,7 @@
       "title": "Panel de administración",
       "subtitle": "Elige qué quieres hacer",
       "back": "Volver",
+      "goToChat": "Ir a la conversación",
       "cards": {
         "generateLink": {
           "title": "Crear enlace de seguimiento individual",

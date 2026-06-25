@@ -1,11 +1,15 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { Box, Paper, Typography, Stack, Card, CardActionArea, CardContent, Button, useTheme } from "@mui/material";
 import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1";
 import GroupAddIcon from "@mui/icons-material/GroupAdd";
 import DownloadIcon from "@mui/icons-material/Download";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
+import { routerPaths } from "src/app/routerPaths";
+import PrimaryIconButton from "src/theme/PrimaryIconButton/PrimaryIconButton";
 import LanguageContextMenu from "src/i18n/languageContextMenu/LanguageContextMenu";
 import GenerateLinkTool from "src/admin/components/GenerateLinkTool/GenerateLinkTool";
 import CreateSharedCodeTool from "src/admin/components/CreateSharedCodeTool/CreateSharedCodeTool";
@@ -21,6 +25,7 @@ export const DATA_TEST_ID = {
   CARD_REPORTS: `admin-card-reports-${uniqueId}`,
   CARD_FAQ: `admin-card-faq-${uniqueId}`,
   BACK_BUTTON: `admin-back-button-${uniqueId}`,
+  GO_TO_CHAT_BUTTON: `admin-go-to-chat-button-${uniqueId}`,
 };
 
 type AdminTool = "link" | "shared" | "reports" | "faq";
@@ -28,6 +33,7 @@ type AdminTool = "link" | "shared" | "reports" | "faq";
 const AdminPanel: React.FC = () => {
   const theme = useTheme();
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   const [activeTool, setActiveTool] = useState<AdminTool | null>(null);
 
@@ -97,7 +103,25 @@ const AdminPanel: React.FC = () => {
         sx={{ maxWidth: 700, width: "100%", padding: (sx) => sx.spacing(4), position: "relative" }}
         data-testid={DATA_TEST_ID.ADMIN_PANEL_CONTAINER}
       >
-        <Box sx={{ position: "absolute", top: (sx) => sx.fixedSpacing(2), right: (sx) => sx.fixedSpacing(2) }}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: (sx) => sx.fixedSpacing(2),
+            right: (sx) => sx.fixedSpacing(2),
+            display: "flex",
+            alignItems: "center",
+            gap: (sx) => sx.fixedSpacing(1),
+          }}
+        >
+          <PrimaryIconButton
+            sx={{ color: theme.palette.common.black }}
+            onClick={() => navigate(routerPaths.ROOT)}
+            title={t("admin.panel.goToChat").toLowerCase()}
+            aria-label={t("admin.panel.goToChat")}
+            data-testid={DATA_TEST_ID.GO_TO_CHAT_BUTTON}
+          >
+            <ChatBubbleOutlineIcon />
+          </PrimaryIconButton>
           <LanguageContextMenu removeMargin />
         </Box>
 
