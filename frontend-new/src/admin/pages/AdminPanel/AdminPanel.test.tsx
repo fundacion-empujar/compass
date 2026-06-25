@@ -13,6 +13,13 @@ import { DATA_TEST_ID as SHARED_TOOL_TEST_ID } from "src/admin/components/Create
 import { DATA_TEST_ID as DOWNLOAD_REPORTS_MENU_TEST_ID } from "src/admin/components/DownloadReportsMenu/DownloadReportsMenu";
 import { DATA_TEST_ID as REPORT_LOOKUP_TOOL_TEST_ID } from "src/admin/components/ReportLookupTool/ReportLookupTool";
 import { DATA_TEST_ID as GENERAL_FAQ_TOOL_TEST_ID } from "src/admin/components/GeneralFaqTool/GeneralFaqTool";
+import { routerPaths } from "src/app/routerPaths";
+
+const mockNavigate = jest.fn();
+jest.mock("react-router-dom", () => ({
+  ...jest.requireActual("react-router-dom"),
+  useNavigate: () => mockNavigate,
+}));
 
 const mockCreateRegistrationLink = jest.fn();
 const mockCreateSharedCode = jest.fn();
@@ -48,6 +55,12 @@ describe("AdminPanel", () => {
     expect(screen.getByTestId(DATA_TEST_ID.CARD_SHARED_CODE)).toBeInTheDocument();
     expect(screen.getByTestId(DATA_TEST_ID.CARD_REPORTS)).toBeInTheDocument();
     expect(screen.getByTestId(DATA_TEST_ID.CARD_FAQ)).toBeInTheDocument();
+  });
+
+  test("navigates to the conversation screen when the chat button is clicked", () => {
+    render(<AdminPanel />);
+    fireEvent.click(screen.getByTestId(DATA_TEST_ID.GO_TO_CHAT_BUTTON));
+    expect(mockNavigate).toHaveBeenCalledWith(routerPaths.ROOT);
   });
 
   test("opens the generate-link tool, submits a code, and shows a copy button (URL hidden)", async () => {
