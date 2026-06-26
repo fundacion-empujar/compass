@@ -10,7 +10,8 @@ from app.countries import Country
 from app.server_config import UNSUMMARIZED_WINDOW_SIZE, TO_BE_SUMMARIZED_WINDOW_SIZE
 from app.agent.experience import WorkType
 from app.agent.skill_explorer_agent._conversation_llm import _ConversationLLM, _FINAL_MESSAGE_KEY
-from app.i18n.translation_service import t
+from app.i18n.translation_service import t, get_i18n_manager
+from app.i18n.types import Locale
 
 from common_libs.test_utilities import get_random_session_id
 from common_libs.test_utilities.guard_caplog import guard_caplog, assert_log_error_warnings
@@ -166,6 +167,7 @@ test_cases = [
     ),
     _TestCaseConversation(
         country_of_user=Country.ARGENTINA,
+        locale=Locale.ES_AR,
         name="argentina",
         summary="Te conté que laburo de asistente de ventas en el local de mi viejo y que también ayudo en la casa de mi vieja.",
         turns=[("Sí, sigo laburando ahí.",
@@ -198,6 +200,7 @@ test_cases = [
                          ids=[case.name for case in get_test_cases_to_run(test_cases)])
 async def test_skills_explorer_agent_first_message(test_case, caplog: pytest.LogCaptureFixture):
     logger = logging.getLogger()
+    get_i18n_manager().set_locale(test_case.locale)
 
     # WHEN the tool is executed with the given experience and country
     # Set the capl-og at the level in question - 1 to ensure that the root logger is set to the correct level.
@@ -232,8 +235,9 @@ async def test_skills_explorer_agent_first_message(test_case, caplog: pytest.Log
 
         # THEN expect that the conversation has not ended
         assert out.message_for_user != t("messages", _FINAL_MESSAGE_KEY)
-        # AND the model is asking the first question
-        assert out.message_for_user.lower().find("typical day") != -1
+        # AND the model is asking the first question (about a typical day, in the test-case locale)
+        expected_phrase = "día típico" if test_case.locale == Locale.ES_AR else "typical day"
+        assert expected_phrase in out.message_for_user.lower()
         # And there are not <br> tags in the output
         assert out.message_for_user.find("<br>") == -1
 
