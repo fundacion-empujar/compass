@@ -226,7 +226,7 @@ test_cases_data_extraction = [
 @pytest.mark.parametrize('test_case', get_test_cases_to_run(test_cases_data_extraction),
                          ids=[case.name for case in get_test_cases_to_run(test_cases_data_extraction)])
 async def test_data_extraction(test_case: _TestCaseDataExtraction, caplog: pytest.LogCaptureFixture,
-                               setup_multi_locale_app_config):
+                               setup_application_config):
     logger = logging.getLogger()
     get_i18n_manager().set_locale(test_case.locale)
 
@@ -252,9 +252,11 @@ async def test_data_extraction(test_case: _TestCaseDataExtraction, caplog: pytes
 
         # WHEN the data extraction LLM is executed
         data_extraction_llm = _DataExtractionLLM(logger)
-        last_referenced_experience_index, _ = await data_extraction_llm.execute(user_input=user_input,
-                                                                                context=context,
-                                                                                collected_experience_data_so_far=collected_data)
+        extraction_result = await data_extraction_llm.execute(
+            user_input=user_input,
+            context=context,
+            collected_experience_data_so_far=collected_data)
+        last_referenced_experience_index = extraction_result.last_referenced_experience_index
 
         failures = []
         # THEN the last referenced experience index should be the expected one

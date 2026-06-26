@@ -192,6 +192,14 @@ pytest -m evaluation_test --locales_to_run all           # everything, incl. Eng
 | `loop_detection_test.py` (synthetic) | ✅ es-AR mirrors | `argentina_*` run; English cases skipped |
 | `loop_detection_scripted_user_test.py` (real EN session replay) | ⛔ | English by nature; `--locales_to_run all` |
 | English parsing sub-tools (entity/intent/temporal/responsibilities/decomposition) | ⛔ | language-specific, no es-AR twin yet |
+| Component LLM evals — collect-exp data-extraction, skill-explorer first-message | ✅ es-AR cases | their `locale=Locale.ES_AR` cases run by default |
+
+**App-config fixture + upstream-API drift (fork convention):** component evals take app-config setup from the
+shared **`setup_application_config`** fixture (root `backend/conftest.py`); this fork does **not** define
+upstream's `setup_multi_locale_app_config`. When porting eval files from `tabiya-tech/compass`, reconcile them
+against the fork's API — e.g. rename that fixture arg, and read `_DataExtractionLLM.execute()`'s result as a
+`DataExtractionLLMResult` object (`.last_referenced_experience_index`), not a tuple. Mirror the **live agent**
+(`collect_experiences_agent.py`) as the reference, not the ⛔ parsing-sub-tool tests (which aren't run here).
 
 Standalone (non-parametrized) tests can't use the filter — guard them with
 `@pytest.mark.skipif(not locale_should_run(Locale.EN_US), ...)` (English-only) or `Locale.ES_AR` (Spanish-only).
