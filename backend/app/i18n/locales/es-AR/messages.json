@@ -29,7 +29,8 @@
       "location": "ubicación"
     },
     "askAboutType": "Preguntame sobre experiencias que incluyan: {experience_type}",
-    "recapPrompt": "Hagamos un repaso y dame la chance de corregir cualquier error."
+    "recapPrompt": "Hagamos un repaso y dame la chance de corregir cualquier error.",
+    "recapTemplate": "Hagamos un repaso de la información que recopilamos hasta ahora:\n{summary}\n¿Hay algo que quieras agregar o cambiar?"
   },
   "exploreExperiences": {
     "noMoreExperiences": "Parece que no hay experiencias para seguir conversando.",

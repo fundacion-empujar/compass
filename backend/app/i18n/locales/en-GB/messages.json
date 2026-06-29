@@ -29,7 +29,8 @@
       "location": "location"
     },
     "askAboutType": "Ask me about experiences that include: {experience_type}",
-    "recapPrompt": "Let's recap, and give me a chance to correct any mistakes."
+    "recapPrompt": "Let's recap, and give me a chance to correct any mistakes.",
+    "recapTemplate": "Let's recap the information we have collected so far:\n{summary}\nIs there anything you would like to add or change?"
   },
   "exploreExperiences": {
     "noMoreExperiences": "It looks like, there are no experiences to discuss further.",

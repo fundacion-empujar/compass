@@ -24,7 +24,6 @@ from common_libs.llm.models_utils import LLMConfig, LLMResponse, get_config_vari
 from common_libs.llm.schema_builder import with_response_schema
 from common_libs.retry import Retry
 from app.i18n.translation_service import t, get_i18n_manager
-from app.i18n.locale_detector import get_locale_hint
 
 _NO_EXPERIENCE_COLLECTED = "No experience data has been collected yet"
 _FINAL_MESSAGE = "Thank you for sharing your experiences. Let's move on to the next step."
@@ -467,7 +466,6 @@ class _ConversationLLM:
         </system_instructions>
         """)
 
-        summary_language_hint = get_locale_hint("the recap, confirmation question, and final response")
         return replace_placeholders_with_indent(system_instructions_template,
                                                 country_of_user_segment=_get_country_of_user_segment(country_of_user),
                                                 agent_character=STD_AGENT_CHARACTER,
@@ -546,6 +544,11 @@ def _transition_instructions(*,
     duplicate_hint = ""
     if len(collected_data) > 1:
         duplicate_hint = "Also, with the above question inform me that if one of the work experiences seems to be duplicated, I can ask you to remove it.\n"
+    # Render the recap from a localized i18n template so it is in the conversation language by
+    # construction; the model echoes it verbatim. A literal English exemplar here previously
+    # leaked the recap to English even with an es-AR language context.
+    recap_message = t("messages", "collectExperiences.recapTemplate",
+                      summary=_get_summary_of_experiences(collected_data).rstrip("\n"))
     summarize_and_confirm = dedent("""
         Review the <Conversation History> carefully.
 
@@ -555,10 +558,9 @@ def _transition_instructions(*,
 
         {language_style}
 
-        Ask me in {user_language} language:
-            "Let's recap the information we have collected so far:
-            {summary_of_experiences}
-            Is there anything you would like to add or change?".
+        If you have not yet presented the recap, send me exactly the following text
+        (it is already written in {user_language}; do not translate it into any other language):
+            "{recap_message}"
         The summary is plain prose in the message field (no Markdown or other text formatting).
         {duplicate_hint}
         If you have ALREADY presented the recap, do not repeat it:
@@ -573,7 +575,7 @@ def _transition_instructions(*,
     return replace_placeholders_with_indent(summarize_and_confirm,
                                             language_style=get_language_style(),
                                             user_language=user_language,
-                                            summary_of_experiences=_get_summary_of_experiences(collected_data),
+                                            recap_message=recap_message,
                                             duplicate_hint=duplicate_hint)
 
 
@@ -788,7 +790,8 @@ def _get_example_summary() -> str:
 def _get_summary_of_experiences(collected_data: list[CollectedData]) -> str:
     summary = ""
     if len(collected_data) == 0:
-        return "• No work experiences identified so far"
+        # Localized: this string can be echoed verbatim into the recap (which says "send exactly").
+        return "• " + t("messages", "collectExperiences.noExperienceCollected")
     for experience in collected_data:
         summary += "• " + ExperienceEntity.get_structured_summary(
             experience_title=experience.experience_title or "",

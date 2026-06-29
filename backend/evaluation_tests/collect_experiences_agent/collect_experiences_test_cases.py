@@ -373,6 +373,43 @@ test_cases = [
             "experience_title": AnyOf(ContainsString("abuela"), ContainsString("cuidado")),
         }]
     ),
+    # es-AR regression guard for the end-of-collection RECAP language leak (prod conv 195403258753279):
+    # one clear formal-waged experience + terse "No" to the other three work types reaches the recap fast.
+    # SINGLE_LANGUAGE catches an English recap, since the rest of the conversation is Spanish.
+    CollectExperiencesAgentTestCase(
+        name='argentina_un_solo_empleo_recap_es',
+        locale=Locale.ES_AR,
+        country_of_user=Country.ARGENTINA,
+        simulated_user_prompt=dedent("""
+            Actuá como una persona joven de Argentina. Estás chateando con un bot para armar tu CV.
+            Usá jerga argentina (laburo, guita, dale, buenísimo). Sé conciso/a. No inventes información.
+
+            Tu ÚNICA experiencia laboral es:
+            - Cocinero/a en un restaurante llamado "La Parrilla de Jorge", en relación de dependencia
+              (empleado/a por un sueldo, no es tu negocio), desde octubre de 2025 hasta hoy (sigue en curso).
+
+            Reglas importantes:
+            - Cuando cuentes el laburo, decí que eras cocinero/a en La Parrilla de Jorge.
+            - NO tenés ninguna otra experiencia: nunca tuviste tu propio emprendimiento ni hiciste
+              trabajos por cuenta propia o freelance, nunca hiciste una pasantía no paga, y nunca
+              hiciste trabajo no pago como voluntariado, cuidados o ayuda en un hogar.
+            - Respondé "no" cortito cuando te pregunten por esos otros tipos de trabajo.
+            - Cuando el bot te muestre el repaso de tus experiencias, decí "así está bien, nada más".
+            """),
+        evaluations=[Evaluation(type=EvaluationType.SINGLE_LANGUAGE, expected=100),
+                     Evaluation(type=EvaluationType.RECAP_CONSISTENCY, expected=80)],
+        expected_experiences_count_min=1,
+        expected_experiences_count_max=1,
+        expected_work_types={WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT: (1, 1),
+                             WorkType.SELF_EMPLOYMENT: (0, 0),
+                             WorkType.FORMAL_SECTOR_UNPAID_TRAINEE_WORK: (0, 0),
+                             WorkType.UNSEEN_UNPAID: (0, 0)},
+        matchers=["matcher"],
+        expected_experience_data=[{
+            "experience_title": ContainsString("cocin"),
+            "company": AnyOf(ContainsString("parrilla"), ContainsString("jorge"), ContainsString("restaur")),
+        }]
+    ),
     CollectExperiencesAgentTestCase(
         name='monther_of_two_e2e',
         simulated_user_prompt=dedent("""
