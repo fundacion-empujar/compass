@@ -171,8 +171,9 @@ Out of scope: `QnaAgent` / `SimpleAgentDirector` (dead code) and Farewell (untes
 the English e2e archetypes as authentic Argentine scenarios — asks-about-process, care-work, CV-bulk-dump,
 open-persona, many-experiences (3–6 experiences) — each asserting `SINGLE_LANGUAGE = 100` + `CONCISENESS`
 (+ extraction where applicable), pinned to the deployed pipeline config (4 clusters × 2). Single-experience cases pass;
-the three multi-experience cases currently fail **conciseness only**, on a separately-tracked agent repetition /
-duplicate-question issue — they double as its regression signal.
+the multi-experience cases currently fail **CONCISENESS** on a tracked repetition / context-loss bug (they double as
+its regression signal), and `cv_bulk_dump` additionally trips **SINGLE_LANGUAGE** on an *isolated* English
+experience-title leak — see **Suite status at handover** below.
 
 **Running** (filter lives in `get_test_cases_to_run_func.py`):
 
@@ -206,3 +207,26 @@ Standalone (non-parametrized) tests can't use the filter — guard them with
 
 **Keep in sync:** when you change conversation flow or agent behaviour, update/add the es-AR eval in the same PR
 (on the PR checklist).
+
+### Suite status at handover (2026-06-30)
+
+Snapshot of where the es-AR suite stands at handover. These are live-LLM evaluations, so pass/fail is **stochastic** —
+this is a **by-category** status (grounded in the June runs + the last evaluation batch I ran), not a frozen pass count.
+
+**Green (passing):**
+
+- Language-agnostic capability tests (ESCO linking / ranking / occupation inference / clustering) — always run.
+- es-AR loop-detection (`skill_explorer_agent/loop_detection_test.py`, 5 cases × 3 repeats).
+- Component es-AR data-extraction (`collect_experiences_agent/_data_extraction_llm_es_test.py`) and skill-explorer first-message.
+- Per-agent es-AR happy-path cases (Welcome, LLM Router, Collect-Experiences, Skill-Explorer).
+- Single-experience end-to-end archetypes.
+
+**Red (known, tracked against open bugs — not flakiness):**
+
+- **Multi-experience e2e archetypes** (`cv_bulk_dump`, `open_persona`, and the 3–6-experience cases) fail
+  **CONCISENESS** — the agent repeats itself / re-asks across multiple experiences (single-experience passes).
+- **`cv_bulk_dump`** additionally trips **SINGLE_LANGUAGE** intermittently — an *isolated* English experience-title
+  leak on the self-employment job; every other archetype and agent stays single-language.
+
+These are reproduced bugs that were not fixed this engagement (deferred). Reproduction rates + committed run logs:
+`backend/evaluation_tests/handover_eval_findings_2026-06-29/`.
