@@ -84,9 +84,13 @@ async def test_first_turn_non_empty_keeps_qa_aligned(
         ]
     )
 
-    # Make the extraction tool a no-op so the test never hits a real LLM.
+    # Stub the extraction tool so the test never hits a real LLM. It returns a real
+    # responsibility so the empty-responsibilities finish guard does not intervene —
+    # this test is about (Q, A) alignment on the normal finish path, not that guard.
     extraction_instance = MagicMock()
-    extraction_instance.execute = AsyncMock(return_value=(ResponsibilitiesData(), []))
+    extraction_instance.execute = AsyncMock(
+        return_value=(ResponsibilitiesData(responsibilities=["I make clothes"]), [])
+    )
     mock_extraction_tool_cls.return_value = extraction_instance
 
     agent = _make_agent()
@@ -141,8 +145,12 @@ async def test_first_turn_empty_keeps_qa_aligned(
         ]
     )
 
+    # Return a real responsibility so the empty-responsibilities finish guard does not
+    # intervene — this test targets (Q, A) alignment on the normal finish path.
     extraction_instance = MagicMock()
-    extraction_instance.execute = AsyncMock(return_value=(ResponsibilitiesData(), []))
+    extraction_instance.execute = AsyncMock(
+        return_value=(ResponsibilitiesData(responsibilities=["I make clothes"]), [])
+    )
     mock_extraction_tool_cls.return_value = extraction_instance
 
     agent = _make_agent()
@@ -164,3 +172,90 @@ async def test_first_turn_empty_keeps_qa_aligned(
     # No extraction call on the silent first turn either — the empty branch never
     # reaches the extraction code regardless of first-turn status.
     assert extraction_instance.execute.await_count == 2
+
+
+@pytest.mark.asyncio
+@patch("app.agent.skill_explorer_agent.skill_explorer_agent._ResponsibilitiesExtractionTool")
+@patch("app.agent.skill_explorer_agent.skill_explorer_agent._ConversationLLM")
+async def test_finish_with_empty_responsibilities_is_probed_then_allowed(
+    mock_conversation_llm_cls, mock_extraction_tool_cls
+):
+    """
+    Guard: when the conversation LLM wants to finish but no responsibilities have
+    been extracted, the agent must override finished=False and ask a concrete-task
+    probe instead — bounded by _MAX_EMPTY_FINISH_RETRIES. Once the retries are
+    exhausted, a truly empty finish is allowed so the flow cannot loop forever.
+
+    This prevents the contradictory state seen in production where the agent
+    presented a skills summary and finished, yet the director then skipped the
+    experience with skippedExperienceMissingDetails because responsibilities was empty.
+    """
+    final_message = t("messages", _FINAL_MESSAGE_KEY)
+    probe_message = t("messages", "exploreSkills.probeForConcreteTask")
+    # The LLM tries to finish every turn after the opener.
+    mock_conversation_llm_cls.return_value = _scripted_conversation_llm_instance(
+        [
+            _agent_output("Q1: Tell me about a typical day.", finished=False),
+            _agent_output(final_message, finished=True),  # 1st finish attempt -> probed
+            _agent_output(final_message, finished=True),  # 2nd finish attempt -> probed
+            _agent_output(final_message, finished=True),  # retries exhausted -> allowed
+        ]
+    )
+
+    # Extraction never yields any responsibilities (mirrors a disengaged user).
+    extraction_instance = MagicMock()
+    extraction_instance.execute = AsyncMock(return_value=(ResponsibilitiesData(), []))
+    mock_extraction_tool_cls.return_value = extraction_instance
+
+    agent = _make_agent()
+    context = ConversationContext()
+
+    await agent.execute(AgentInput(message=""), context)  # opener
+    out1 = await agent.execute(AgentInput(message="dunno"), context)
+    out2 = await agent.execute(AgentInput(message="nothing"), context)
+    out3 = await agent.execute(AgentInput(message="ok"), context)
+
+    # First two finish attempts are converted into probes, not a finish.
+    assert out1.finished is False and out1.message_for_user == probe_message
+    assert out2.finished is False and out2.message_for_user == probe_message
+    # After _MAX_EMPTY_FINISH_RETRIES, the empty finish is finally allowed through.
+    assert out3.finished is True
+    assert agent.state.empty_finish_attempts[agent.experience_entity.uuid] == 2
+
+
+@pytest.mark.asyncio
+@patch("app.agent.skill_explorer_agent.skill_explorer_agent._ResponsibilitiesExtractionTool")
+@patch("app.agent.skill_explorer_agent.skill_explorer_agent._ConversationLLM")
+async def test_finish_with_responsibilities_is_respected(
+    mock_conversation_llm_cls, mock_extraction_tool_cls
+):
+    """
+    Regression: when responsibilities WERE extracted, the guard must not interfere —
+    the conversation is allowed to finish normally on the first request.
+    """
+    final_message = t("messages", _FINAL_MESSAGE_KEY)
+    mock_conversation_llm_cls.return_value = _scripted_conversation_llm_instance(
+        [
+            _agent_output("Q1: Tell me about a typical day.", finished=False),
+            _agent_output(final_message, finished=True),
+        ]
+    )
+
+    # Extraction yields a real responsibility, which execute() merges onto the entity.
+    extraction_instance = MagicMock()
+    extraction_instance.execute = AsyncMock(
+        return_value=(ResponsibilitiesData(responsibilities=["I serve food"]), [])
+    )
+    mock_extraction_tool_cls.return_value = extraction_instance
+
+    agent = _make_agent()
+    context = ConversationContext()
+
+    await agent.execute(AgentInput(message=""), context)  # opener
+    out = await agent.execute(AgentInput(message="I serve food"), context)
+
+    assert out.finished is True
+    assert out.message_for_user == final_message
+    # No probing occurred.
+    assert agent.experience_entity.uuid not in agent.state.empty_finish_attempts
+    assert agent.experience_entity.responsibilities.responsibilities == ["I serve food"]

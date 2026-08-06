@@ -61,6 +61,7 @@
   },
   "exploreSkills": {
     "finalMessage": "Thank you for sharing these details! I have all the information I need.",
+    "probeForConcreteTask": "Before we move on, could you tell me one specific thing you actually did in this role? Even a small everyday task helps.",
     "question": {
       "formalWaged": "What do you think is important when working in such a company?",
       "selfEmployment": "What do you think is important when you are your own boss?",
