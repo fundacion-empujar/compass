@@ -254,11 +254,8 @@ class PickTopSkillsTool:
                                ][:top_k]
 
         if len(most_relevant_skills) == 0:
-            self._logger.warning(f"Not enough skills above the threshold {threshold}.")
-            # If there are not enough skills above the threshold, we take the top_k skills
-            most_relevant_skills = [
-                                       skill for skill, score in skills_ordered_by_score
-                                   ][:top_k]
+            self._logger.warning(f"No skills scored at or above the threshold {threshold}. "
+                                 f"Returning no skills for this cluster instead of backfilling with low-relevance ones.")
 
         # Remove the most relevant skills from the original list to get the remaining skills
         most_relevant_skills_uuids = {e.UUID for e in most_relevant_skills}

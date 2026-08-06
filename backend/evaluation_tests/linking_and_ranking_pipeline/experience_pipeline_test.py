@@ -307,8 +307,9 @@ async def test_experience_pipeline(test_case: ExperiencePipelineTestCase, setup_
             # do the assertion in a way that the test fails and the diff can be shown in the IDE
             assert sorted(actual_top_skill_preferred_labels) == sorted(test_case.expected_top_skills)
 
-        # AND the number of skills returned is equal to the number of configured clusters
-        assert len(actual_top_skill_preferred_labels) == given_config.number_of_clusters
+        # AND the number of skills returned never exceeds the configured maximum
+        # (a cluster may legitimately contribute fewer skills, or none, when nothing clears the relevance threshold)
+        assert len(actual_top_skill_preferred_labels) <= given_config.number_of_clusters * given_config.number_of_top_skills_to_pick_per_cluster
 
         # AND the logs should not contain any errors
         assert_log_error_warnings(caplog=caplog, expect_errors_in_logs=False, expect_warnings_in_logs=True)
