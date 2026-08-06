@@ -61,6 +61,7 @@
   },
   "exploreSkills": {
     "finalMessage": "¡Gracias por compartir estos detalles! Tengo toda la información que necesito.",
+    "probeForConcreteTask": "Antes de continuar, ¿podrías contarme una cosa concreta que hayas hecho en este puesto? Aunque sea una tarea pequeña del día a día, me sirve.",
     "question": {
       "formalWaged": "¿Qué creés que es importante al trabajar en una empresa así?",
       "selfEmployment": "¿Qué creés que es importante cuando sos tu propio jefe?",

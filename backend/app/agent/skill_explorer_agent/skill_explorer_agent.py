@@ -12,6 +12,11 @@ from ._responsibilities_extraction_tool import _ResponsibilitiesExtractionTool
 from app.countries import Country
 from app.i18n.translation_service import t
 
+# Maximum number of extra probing questions to ask when the conversation LLM wants to
+# finish exploring an experience but no responsibilities have been extracted yet. Bounds
+# the retry so a disengaged user giving no usable answers cannot cause an endless loop.
+_MAX_EMPTY_FINISH_RETRIES = 2
+
 
 class SkillsExplorerAgentState(BaseModel):
     """
@@ -56,11 +61,20 @@ class SkillsExplorerAgentState(BaseModel):
     answers_provided: list[str] = Field(default_factory=list)
     """
     Tracks answers provided by the user during the conversation.
-    
+
     This is useful for generating a more accurate summary of the user's experience, which can be used
     for the CV generation or other purposes.
-    
+
     The array is on par with the question_asked_until_now array, meaning that the i-th answer corresponds to the i-th question.
+    """
+
+    empty_finish_attempts: dict[str, int] = Field(default_factory=dict)
+    """
+    The key is the experience uuid and the value is how many times the conversation LLM
+    tried to finish exploring that experience while no responsibilities had been extracted.
+
+    Used to bound how many extra probing questions we ask before allowing a finish with
+    an empty responsibilities list, so a disengaged user cannot cause an endless loop.
     """
 
     class Config:
@@ -89,7 +103,10 @@ class SkillsExplorerAgentState(BaseModel):
                                         question_asked_until_now=_doc.get("question_asked_until_now", []),
                                         # For backward compatibility with old documents that don't have the answers_provided field,
                                         # set it to an empty list
-                                        answers_provided=_doc.get("answers_provided", []))
+                                        answers_provided=_doc.get("answers_provided", []),
+                                        # For backward compatibility with old documents that don't have the
+                                        # empty_finish_attempts field, set it to an empty dict
+                                        empty_finish_attempts=_doc.get("empty_finish_attempts", {}))
 
 
 class SkillsExplorerAgent(Agent):
@@ -182,6 +199,22 @@ class SkillsExplorerAgent(Agent):
                                                                experience_title=self.experience_entity.experience_title,
                                                                work_type=self.experience_entity.work_type,
                                                                logger=self.logger)
+
+        # Guard: do not let the conversation LLM finish an experience while no responsibilities
+        # have been extracted. An empty responsibilities list makes ExploreExperiencesAgentDirector
+        # skip the experience (skippedExperienceMissingDetails) — which is contradictory when the
+        # agent has just presented a skills summary to the user. Instead, ask one more targeted
+        # question, bounded by _MAX_EMPTY_FINISH_RETRIES so a disengaged user cannot loop forever.
+        if conversation_llm_output.finished and not self.experience_entity.responsibilities.responsibilities:
+            _attempts = self.state.empty_finish_attempts.get(self.experience_entity.uuid, 0)
+            if _attempts < _MAX_EMPTY_FINISH_RETRIES:
+                self.state.empty_finish_attempts[self.experience_entity.uuid] = _attempts + 1
+                self.logger.info(
+                    "SkillsExplorerAgent: conversation wanted to finish with no responsibilities "
+                    "for experience '%s'; asking a follow-up probe (attempt %d/%d).",
+                    self.experience_entity.experience_title, _attempts + 1, _MAX_EMPTY_FINISH_RETRIES)
+                conversation_llm_output.finished = False
+                conversation_llm_output.message_for_user = t("messages", "exploreSkills.probeForConcreteTask")
 
         if conversation_llm_output.message_for_user != t("messages", _FINAL_MESSAGE_KEY):
             # don't add the final message to the list of questions asked, since it is not a question
