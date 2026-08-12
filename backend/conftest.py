@@ -11,6 +11,14 @@ from app.server_dependencies.db_dependencies import CompassDBProvider
 from app.version.types import Version
 from app.i18n.types import Locale
 from app.app_config import ApplicationConfig, set_application_config, get_application_config
+from common_libs.observability.config import TracingConfig
+from common_libs.observability.tracing import init_tracing
+
+
+# LLM tracing must never reach the network from a test run. `init_tracing` with a disabled config
+# leaves the module-level client as None, which makes every tracing helper a no-op, so the
+# instrumentation is exercised (the code paths run) without any egress.
+init_tracing(TracingConfig(enabled=False))
 
 
 @pytest.fixture(scope='session')

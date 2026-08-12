@@ -16,6 +16,9 @@ from app.conversations.utils import get_messages_from_conversation_manager, filt
     get_total_explored_experiences, get_current_conversation_phase_response
 from app.sensitive_filter import sensitive_filter
 from app.metrics.application_state_metrics_recorder.recorder import IApplicationStateMetricsRecorder
+from app.application_state import ApplicationState
+from app.observability.module_types import TraceModule, TraceSubModule
+from common_libs.observability.tracing import start_trace, update_observation
 
 
 class ConversationAlreadyConcludedError(Exception):
@@ -81,11 +84,38 @@ class ConversationService(IConversationService):
         if filter_pii:
             user_input = await sensitive_filter.obfuscate(user_input)
 
+        state = await self._application_state_metrics_recorder.get_state(session_id)
+
+        # The root trace for one conversation turn. Everything the turn triggers — the agent
+        # director, the agents it routes to, the experience pipeline — nests underneath it. The
+        # Build your Profile conversation session is the trace session, which is also what the turn
+        # is sampled on, so a sampled conversation stays sampled for its whole life.
+        # This conversation only explores experiences, so every turn belongs to the same module and
+        # sub module.
+        with start_trace(
+                name="conversation.turn",
+                module=TraceModule.BUILD_YOUR_PROFILE.value,
+                sub_module=TraceSubModule.EXPLORE_EXPERIENCES.value,
+                user_id=user_id,
+                session_id=session_id,
+                input=user_input,
+        ) as trace:
+            response = await self._send(user_id, session_id, user_input, state)
+            update_observation(
+                trace,
+                output=[message.message for message in response.messages],
+                metadata={
+                    "current_phase": response.current_phase.phase if response.current_phase else None,
+                    "conversation_completed": response.conversation_completed,
+                    "experiences_explored": response.experiences_explored,
+                },
+            )
+            return response
+
+    async def _send(self, user_id: str, session_id: int, user_input: str,
+                    state: ApplicationState) -> ConversationResponse:
         # set the sent_at for the user input
         user_input = AgentInput(message=user_input, sent_at=datetime.now(timezone.utc))
-
-        # set the state of the agent director, the conversation memory manager and all the agents
-        state = await self._application_state_metrics_recorder.get_state(session_id)
 
         # Check if the conversation has ended
         if state.agent_director_state.current_phase == ConversationPhase.ENDED:
