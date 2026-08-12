@@ -7,7 +7,7 @@ from app.agent.agent import Agent
 from app.agent.agent_types import AgentInput, AgentOutput
 from app.agent.agent_types import AgentType
 from app.agent.collect_experiences_agent._conversation_llm import _ConversationLLM, ConversationLLMAgentOutput, \
-    _get_experience_type, fill_incomplete_fields_as_declined
+    _get_experience_type, fill_incomplete_fields_as_declined, was_recap_presented
 from app.agent.collect_experiences_agent._dataextraction_llm import _DataExtractionLLM
 from app.agent.collect_experiences_agent._transition_decision_tool import TransitionDecisionTool, TransitionDecision
 from app.agent.collect_experiences_agent._types import CollectedData
@@ -30,6 +30,17 @@ def _deserialize_work_types(value: list[str] | list[WorkType]) -> list[WorkType]
         # Otherwise, we return the value as is
         return [WorkType[x] if isinstance(x, str) else x for x in value]
     return value
+
+
+def _snapshot_collected_data(collected_data: list[CollectedData]) -> list[dict]:
+    """Snapshot of the experience data the user actually provided.
+
+    Used to detect whether a turn changed the collected experiences. Derived/bookkeeping
+    fields are excluded so that re-indexing or a re-derived display title does not read
+    as a change made by the user.
+    """
+    return [elem.model_dump(exclude={"index", "defined_at_turn_number", "normalized_experience_title"})
+            for elem in collected_data]
 
 
 def _select_normalized_title(*,
@@ -250,6 +261,11 @@ class CollectExperiencesAgent(Agent):
             raise ValueError("CollectExperiencesAgent: execute() called before state was initialized")
 
         collected_data = self._state.collected_data
+        collected_data_before = _snapshot_collected_data(collected_data)
+        # Whether the message the user is replying to is the recap of the collected experiences.
+        # Read from the conversation history before the data extraction runs, so it is compared
+        # against the experiences the recap was built from.
+        recap_awaiting_answer = was_recap_presented(context=context, collected_data=collected_data)
         last_referenced_experience_index = -1
         data_extraction_llm_stats = []
         if user_input.message == "":
@@ -267,6 +283,12 @@ class CollectExperiencesAgent(Agent):
             last_referenced_experience_index = extraction_result.last_referenced_experience_index
             data_extraction_llm_stats = extraction_result.llm_stats
 
+        if recap_awaiting_answer and _snapshot_collected_data(collected_data) != collected_data_before:
+            # The user corrected the list instead of confirming it (e.g. added a forgotten experience).
+            # The corrected list has to be recapped again before the collection can end.
+            self.logger.info("Collected data changed in answer to the recap - a new recap is required")
+            recap_awaiting_answer = False
+
         await self._normalize_experience_titles(collected_data=collected_data)
 
         conversation_llm = _ConversationLLM()
@@ -281,7 +303,8 @@ class CollectExperiencesAgent(Agent):
             exploring_type=exploring_type,
             unexplored_types=self._state.unexplored_types,
             explored_types=self._state.explored_types,
-            logger=self.logger)
+            logger=self.logger,
+            recap_presented=recap_awaiting_answer)
         self._state.first_time_visit = False  # The first time visit is over
 
         transition_decision_tool = TransitionDecisionTool(self.logger)
@@ -355,21 +378,44 @@ class CollectExperiencesAgent(Agent):
                 exploring_type=next_exploring_type,
                 unexplored_types=self._state.unexplored_types,
                 explored_types=self._state.explored_types,
-                logger=self.logger)
+                logger=self.logger,
+                # This turn ends the last work type, so the recap is being laid out right now.
+                recap_presented=False)
 
             conversation_llm_output.llm_stats = first_pass_llm_stats + conversation_llm_output.llm_stats
 
         elif transition_decision == TransitionDecision.END_CONVERSATION:
-            conversation_llm_output.finished = True
-            self.logger.info(
-                "Transition decision: END_CONVERSATION"
-                "\n  - all work types explored: %s"
-                "\n  - discovered experiences: %s"
-                "\n  - reasoning: %s",
-                len(self._state.unexplored_types) == 0,
-                self._state.collected_data,
-                reasoning_text
-            )
+            # END_CONVERSATION is only reachable once every work type has been explored, so the response
+            # above is either the recap itself or the answer to it. The collection may only end after the
+            # user has actually seen the recap of the final list and replied to it.
+            if not recap_awaiting_answer:
+                self.logger.info(
+                    "Transition decision: END_CONVERSATION ignored - the recap of the collected experiences "
+                    "has not been answered yet, waiting for the user's reply"
+                )
+                # The user considers the collection done, so treat whatever is still missing on the
+                # experiences as declined - as we do when a work type is completed. Otherwise an
+                # experience that stays incomplete would hold back the recap indefinitely.
+                for explored_type in self._state.explored_types:
+                    fill_incomplete_fields_as_declined(self._state.collected_data, explored_type)
+            elif user_input.is_artificial:
+                # An empty/artificial input is not an answer to the recap (e.g. the frontend re-opening
+                # the conversation). Ending here would skip the user's chance to correct the list.
+                self.logger.info(
+                    "Transition decision: END_CONVERSATION ignored - the recap was answered by an "
+                    "artificial input ('%s'), waiting for the user's reply", user_input.message
+                )
+            else:
+                conversation_llm_output.finished = True
+                self.logger.info(
+                    "Transition decision: END_CONVERSATION"
+                    "\n  - all work types explored: %s"
+                    "\n  - discovered experiences: %s"
+                    "\n  - reasoning: %s",
+                    len(self._state.unexplored_types) == 0,
+                    self._state.collected_data,
+                    reasoning_text
+                )
         elif transition_decision == TransitionDecision.CONTINUE:
             self.logger.info(
                 "Transition decision: CONTINUE"

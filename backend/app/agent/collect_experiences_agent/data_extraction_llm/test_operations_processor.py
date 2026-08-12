@@ -270,6 +270,73 @@ class TestExperienceDataProcessor:
         assert actual_collected_data[0].company == "Shoprite"
         assert actual_collected_data[0].start_date == "2020"
 
+    def test_add_same_title_into_completed_experience_is_not_merged(self, processor, mock_logger):
+        """A new job with the same title as an already completed one is a separate experience.
+
+        Regression: "Cashier at Blue Star Group" (fully collected) was silently overwritten by the
+        next "Cashier" the user reported, so it vanished from the recap.
+        """
+        # GIVEN an existing experience whose details were already fully collected
+        given_collected_data = [
+            _create_collected_data(
+                index=0,
+                experience_title="Cashier and salesperson",
+                company="Blue Star Group",
+                start_date="2022/10",
+                end_date="2023/01",
+                work_type=WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT.name
+            )
+        ]
+
+        # AND an ADD reporting another job with the same title, whose details are not collected yet
+        given_experiences_data = [
+            create_experience_data(
+                data_operation="ADD",
+                index=1,
+                experience_title="Cashier and salesperson",
+                work_type=WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT.name
+            )
+        ]
+
+        # WHEN processing the operations
+        _, actual_collected_data = processor.process(given_experiences_data, given_collected_data, 3)
+
+        # THEN both experiences are kept and the collected one is untouched
+        assert len(actual_collected_data) == 2
+        assert actual_collected_data[0].company == "Blue Star Group"
+        assert actual_collected_data[0].start_date == "2022/10"
+        assert actual_collected_data[1].company is None
+
+    def test_add_same_title_different_company_is_not_merged(self, processor, mock_logger):
+        """Same title at a different employer is a different experience, even while still incomplete."""
+        # GIVEN an existing experience that is still missing its dates
+        given_collected_data = [
+            _create_collected_data(
+                index=0,
+                experience_title="Cashier",
+                company="Blue Star Group",
+                work_type=WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT.name
+            )
+        ]
+
+        # AND an ADD with the same title but another company
+        given_experiences_data = [
+            create_experience_data(
+                data_operation="ADD",
+                index=1,
+                experience_title="Cashier",
+                company="Fibro SRL",
+                work_type=WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT.name
+            )
+        ]
+
+        # WHEN processing the operations
+        _, actual_collected_data = processor.process(given_experiences_data, given_collected_data, 3)
+
+        # THEN both are kept
+        assert len(actual_collected_data) == 2
+        assert [elem.company for elem in actual_collected_data] == ["Blue Star Group", "Fibro SRL"]
+
     def test_add_same_title_different_work_type_are_not_merged(self, processor, mock_logger):
         """Two ADDs sharing a title but with DIFFERENT work types must not be merged."""
         # GIVEN empty collected data
@@ -440,8 +507,8 @@ class TestExperienceDataProcessor:
 
     def test_merge_add_changing_title_resets_normalized_title(self, processor, mock_logger):
         """An ADD that merges into an existing experience and changes its title clears the normalized title."""
-        # GIVEN an existing experience (with a normalized title) that an ADD will merge into
-        existing = _create_collected_data(index=0, experience_title="Baker", company="Bread Co.")
+        # GIVEN an existing experience still missing its details (with a normalized title) that an ADD will merge into
+        existing = _create_collected_data(index=0, experience_title="Baker", company=None)
         existing.normalized_experience_title = "Pastry maker"
         given_collected_data = [existing]
 
