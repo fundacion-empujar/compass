@@ -182,6 +182,10 @@ The backend uses the following environment variables:
   > **Coordination:** When enabling this setting, also set the corresponding frontend variable `GLOBAL_DISABLE_REGISTRATION_CODE` to hide the registration code input from users. Mismatched configuration (frontend hides input but backend requires code, or vice versa) will lead to confusing user errors.
 
   > Note: The `FRONTEND_URL` should be set irrespective of the `TARGET_ENVIRONMENT` value.
+- `BACKEND_ENABLE_TRACING`: (optional) Set to `True` to enable LLM tracing to Langfuse. Defaults to `False`.
+- `BACKEND_LANGFUSE_HOST`: (optional) The Langfuse ingestion host (default `https://cloud.langfuse.com`).
+- `BACKEND_LANGFUSE_PUBLIC_KEY` / `BACKEND_LANGFUSE_SECRET_KEY`: (optional) The Langfuse project keys.
+- `BACKEND_TRACING_CONFIG`: (optional) A JSON object controlling the tracing behaviour. See [LLM tracing](#llm-tracing).
 
 
 
@@ -222,6 +226,13 @@ GLOBAL_DISABLE_REGISTRATION_CODE=False
 BACKEND_CV_STORAGE_BUCKET=<GCS_BUCKET_NAME>
 BACKEND_CV_MAX_UPLOADS_PER_USER=<INTEGER>
 BACKEND_CV_RATE_LIMIT_PER_MINUTE=<INTEGER>
+
+# LLM tracing (optional; see the LLM tracing section)
+BACKEND_ENABLE_TRACING=False|True
+BACKEND_LANGFUSE_HOST=<LANGFUSE_HOST>
+BACKEND_LANGFUSE_PUBLIC_KEY=<LANGFUSE_PUBLIC_KEY>
+BACKEND_LANGFUSE_SECRET_KEY=<LANGFUSE_SECRET_KEY>
+BACKEND_TRACING_CONFIG='{"turnSampleRate": 1.0, "pipelineSampleRate": 1.0, "maskPii": true}'
 ```
 
 > ATTENTION: The .env file should be kept secure and not shared with others as it contains sensitive information.
@@ -398,6 +409,85 @@ poetry run pytest --log-cli-level=DEBUG -v -m "not (smoke_test or evaluation_tes
 ```
 
 > Note: See [here](https://docs.pytest.org/en/latest/how-to/logging.html) for more information on logging in pytest.
+
+## LLM tracing
+
+Every LLM call the backend makes can be traced to [Langfuse](https://langfuse.com), grouped by
+**module** (Build your Profile, CV Upload), by the **sub module** within it (Explore Experiences)
+and by the **agent** that produced it. Tracing is **off by default** — a deployment with no Langfuse
+credentials behaves exactly as it did before.
+
+### Turning it on
+
+Set the following in `.env` (see `.env.example`):
+
+```bash
+BACKEND_ENABLE_TRACING=True
+BACKEND_LANGFUSE_HOST=http://localhost:3000
+BACKEND_LANGFUSE_PUBLIC_KEY=pk-lf-...
+BACKEND_LANGFUSE_SECRET_KEY=sk-lf-...
+BACKEND_TRACING_CONFIG={"turnSampleRate": 1.0, "pipelineSampleRate": 1.0, "maskPii": true}
+```
+
+### Running Langfuse locally
+
+```bash
+git clone https://github.com/langfuse/langfuse.git
+cd langfuse && docker compose up -d
+```
+
+Then open http://localhost:3000, create a project and copy its keys into `.env`.
+
+### Configuration (`BACKEND_TRACING_CONFIG`)
+
+All keys are optional; see `common_libs/observability/config.py` for the authoritative list.
+
+| Key | Default | Meaning |
+| --- | --- | --- |
+| `turnSampleRate` | `1.0` | Fraction of conversation turns traced. Deterministic per session (per user where there is no session), so a session is never half-traced. |
+| `pipelineSampleRate` | `1.0` | Fraction of experience-pipeline runs traced. The pipeline fans out to ~50-60 LLM calls per experience and dominates volume, so set this lower (0.1-0.2) in production. |
+| `maskPii` | `true` | Redact e-mail addresses, phone numbers and long digit runs before export. |
+| `maxPayloadChars` | `10000` | Truncate each string in a payload to this length. |
+| `flushAt` / `flushInterval` / `timeout` | `512` / `5.0` / `10` | Exporter batching and its hard HTTP timeout. |
+
+### What is traced
+
+- **Root trace per unit of user-facing work**, tagged `module:<module>` and `sub_module:<sub module>`,
+  carrying the user id and the session id so the Langfuse session view groups a whole conversation.
+  Both dimensions are human readable, exactly as they read in the UI ("Build your Profile",
+  "Explore Experiences"), and are also trace *metadata*, which is what the module and sub module
+  breakdowns group on.
+- **The session** is the Build your Profile session id. It is also the sampling key, so a sampled
+  session stays sampled for its whole life; a CV upload, which has no session, is sampled on the user.
+- **One agent observation per agent execution**, named after the agent type. Applied automatically to
+  every `Agent` subclass via `Agent.__init_subclass__`.
+- **One generation per LLM call**, from the single chokepoint `BasicLLM.generate_content`, with the
+  model, generation parameters, prompt, completion and token usage.
+- **Retry and JSON-repair behaviour** from `LLMCaller`, as attempt counts and a
+  `llm_call_failed_attempts` / `llm_repetition_trap` score.
+
+Log records carry `trace_id`, `trace_module` and `trace_sub_module`, so a Cloud Logging line can be
+pivoted straight to the trace it belongs to.
+
+### Privacy
+
+Brújula prompts contain users' life stories. Masking is **client-side and heuristic** — it redacts
+mechanically detectable identifiers and truncates payloads, but it is a blast-radius control, not a
+guarantee. Two consequences:
+
+- Deployments with a data-residency obligation should point `BACKEND_LANGFUSE_HOST` at a
+  **self-hosted** Langfuse rather than Langfuse Cloud.
+- **Data retention** is a Langfuse project setting, not an SDK setting. Configure it per project in
+  the Langfuse UI (Cloud) or via the deployment's retention configuration (self-hosted).
+
+Masking deliberately does **not** use `app.sensitive_filter.sensitive_filter.obfuscate()`: that is a
+Google DLP network call per string, which is unusable inline on the hundreds of spans a single
+conversation produces.
+
+### Cost
+
+A completed Build Your Profile conversation produces roughly 650 billable Langfuse units, about 80%
+of which come from the experience pipeline. Lower `pipelineSampleRate` first.
 
 ## Generating Embeddings
 

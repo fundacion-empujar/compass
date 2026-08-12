@@ -6,6 +6,7 @@ from app.countries import Country
 from app.users.cv.constants import DEFAULT_MAX_UPLOADS_PER_USER, DEFAULT_RATE_LIMIT_PER_MINUTE
 from app.version.types import Version
 from app.i18n.types import Locale
+from common_libs.observability.config import TracingConfig
 
 from features.types import FeatureSetupConfig
 
@@ -86,6 +87,12 @@ class ApplicationConfig(BaseModel):
     disable_registration_code: bool = False
     """
     A flag to disable registration code validation for registered users.
+    """
+
+    tracing_config: TracingConfig = Field(default_factory=TracingConfig)
+    """
+    The LLM tracing (Langfuse) configuration. Disabled by default; see
+    `common_libs.observability.config.parse_tracing_config` for how it is loaded from the environment.
     """
 
 
