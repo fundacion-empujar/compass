@@ -225,21 +225,34 @@ class OperationsProcessor:
     @staticmethod
     def _find_same_experience_for_add(add_payload: CollectedData, work_type_str: str | None,
                                       collected: list[CollectedData]) -> int:
-        """Index of an existing experience with the same work_type and exact (case-insensitive) title, else -1.
+        """Index of an existing experience the ADD is a re-mention of, else -1.
 
-        Exact (not substring) match avoids merging distinct experiences that share a title prefix.
+        A re-mention has the same work_type and the exact (case-insensitive) title. Exact (not
+        substring) match avoids merging distinct experiences that share a title prefix.
+        An experience whose details were already fully collected is never merged into: the same
+        job title at two different employers is two experiences, and merging the second one would
+        silently overwrite the first (e.g. "Cashier at A" followed by "Cashier at B").
         """
         new_title = (add_payload.experience_title or "").strip().lower()
         if not new_title:
             return -1
+        new_company = (add_payload.company or "").strip().lower()
         for i, existing in enumerate(collected):
             if (existing.work_type or "").strip() != (work_type_str or "").strip():
                 continue
             existing_title = (existing.experience_title or "").strip().lower()
             if not existing_title:
                 continue
-            if new_title == existing_title:
-                return i
+            if new_title != existing_title:
+                continue
+            if not CollectedData.is_incomplete(existing):
+                # Its details are already collected and confirmed - this ADD is a different experience.
+                continue
+            existing_company = (existing.company or "").strip().lower()
+            if new_company and existing_company and new_company != existing_company:
+                # Same title, different employer - a different experience.
+                continue
+            return i
         return -1
 
     @staticmethod

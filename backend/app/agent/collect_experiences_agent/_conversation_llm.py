@@ -103,6 +103,54 @@ def _get_incomplete_experiences_instructions(collected_data: list[CollectedData]
                                             incomplete_experiences_list=incomplete_experiences_text)
 
 
+_RECAP_SUMMARY_PLACEHOLDER = "\x00summary\x00"
+
+
+def _normalize_for_match(text: str) -> str:
+    """Lowercase and collapse whitespace, so that a rewrapped or re-indented message still matches."""
+    return " ".join(text.lower().split())
+
+
+def _get_recap_prefix() -> str:
+    """The localized opening of the recap message, i.e. everything before the list of experiences."""
+    rendered = t("messages", "collectExperiences.recapTemplate", summary=_RECAP_SUMMARY_PLACEHOLDER)
+    return rendered.split(_RECAP_SUMMARY_PLACEHOLDER)[0].strip()
+
+
+def _is_recap_message(message: str, collected_data: list[CollectedData]) -> bool:
+    """Whether a message is the recap of all the collected work experiences.
+
+    The recap is rendered from the localized 'recapTemplate' and the model is instructed to send it
+    verbatim, so its opening line identifies it. Should the model rephrase that opening, fall back to
+    the shape of the recap itself: it is the only message that lists every collected work experience.
+    """
+    normalized_message = _normalize_for_match(message)
+    if not normalized_message:
+        return False
+
+    recap_prefix = _normalize_for_match(_get_recap_prefix())
+    if recap_prefix and recap_prefix in normalized_message:
+        return True
+
+    if not collected_data or "•" not in message:
+        return False
+    return all(_normalize_for_match(line) in normalized_message
+               for line in _get_summary_of_experiences(collected_data).splitlines() if line.strip())
+
+
+def was_recap_presented(*, context: ConversationContext, collected_data: list[CollectedData]) -> bool:
+    """Whether the last thing this agent said to the user was the recap of the collected experiences.
+
+    Derived from the conversation history rather than kept in the agent state, and deliberately
+    limited to the *last* message: it answers "is the user replying to the recap right now?".
+    """
+    for turn in reversed(context.all_history.turns):
+        if turn.output.agent_type != AgentType.COLLECT_EXPERIENCES_AGENT:
+            continue
+        return _is_recap_message(turn.output.message_for_user, collected_data)
+    return False
+
+
 def _no_experience_collected_text() -> str:
     """Return translated text for 'no experience collected yet' with safe fallback."""
     try:
@@ -145,7 +193,8 @@ class _ConversationLLM:
                       unexplored_types: list[WorkType],
                       explored_types: list[WorkType],
                       last_referenced_experience_index: int,
-                      logger: logging.Logger) -> ConversationLLMAgentOutput:
+                      logger: logging.Logger,
+                      recap_presented: bool = False) -> ConversationLLMAgentOutput:
         async def _callback(attempt: int, max_retries: int) -> tuple[ConversationLLMAgentOutput, float, BaseException | None]:
             # Call the LLM to get the next message for the user
             # Add some temperature and top_p variation to prompt the LLM to return different results on each retry.
@@ -167,7 +216,8 @@ class _ConversationLLM:
                 unexplored_types=unexplored_types,
                 explored_types=explored_types,
                 last_referenced_experience_index=last_referenced_experience_index,
-                logger=logger
+                logger=logger,
+                recap_presented=recap_presented
             )
 
         result, _result_penalty, _error = await Retry[ConversationLLMAgentOutput].call_with_penalty(callback=_callback, logger=logger)
@@ -185,7 +235,8 @@ class _ConversationLLM:
                                 unexplored_types: list[WorkType],
                                 explored_types: list[WorkType],
                                 last_referenced_experience_index: int,
-                                logger: logging.Logger) -> tuple[ConversationLLMAgentOutput, float, BaseException | None]:
+                                logger: logging.Logger,
+                                recap_presented: bool = False) -> tuple[ConversationLLMAgentOutput, float, BaseException | None]:
         """
         Converses with the user and asks probing questions to collect experiences.
         :param first_time_visit: If this is the first time the user is visiting the agent.
@@ -198,6 +249,7 @@ class _ConversationLLM:
         :param explored_types: The types of work experience that have been explored.
         :param last_referenced_experience_index: The index of the last referenced experience in the collected data.
         :param logger: The logger.
+        :param recap_presented: Whether the recap of all collected experiences has already been presented to the user.
         :return: The agent output with the next message for the user and finished flag
                  set to True if the conversation is
         finished.
@@ -233,6 +285,7 @@ class _ConversationLLM:
                                                                             unexplored_types=unexplored_types,
                                                                             explored_types=explored_types,
                                                                             last_referenced_experience_index=last_referenced_experience_index,
+                                                                            recap_presented=recap_presented,
                                                                             )
             llm = GeminiGenerativeLLM(
                 system_instructions=system_instructions,
@@ -312,6 +365,7 @@ class _ConversationLLM:
                                  unexplored_types: list[WorkType],
                                  explored_types: list[WorkType],
                                  last_referenced_experience_index: int,
+                                 recap_presented: bool = False,
                                  ) -> str:
         system_instructions_template = dedent("""\
         <system_instructions>
@@ -484,6 +538,7 @@ class _ConversationLLM:
                                                     collected_data=collected_data,
                                                     exploring_type=exploring_type,
                                                     unexplored_types=unexplored_types,
+                                                    recap_presented=recap_presented,
                                                 ),
                                                 last_referenced_experience=_get_last_referenced_experience(collected_data, last_referenced_experience_index),
                                                 example_summary=_get_example_summary(),
@@ -526,6 +581,7 @@ def _transition_instructions(*,
                              collected_data: list[CollectedData],
                              exploring_type: WorkType | None,
                              unexplored_types: list[WorkType],
+                             recap_presented: bool = False,
                              ):
     if len(unexplored_types) > 0:  # need to collect more experiences
         _instructions = dedent("""\
@@ -540,7 +596,53 @@ def _transition_instructions(*,
                                                 exploring_type=_get_experience_type(exploring_type))
 
     # All work types explored: present the recap once, then let me correct or confirm it.
+    # Whether the recap was already presented is tracked in the agent state and passed in here,
+    # instead of letting the model infer it from the conversation history.
     user_language = get_i18n_manager().get_locale().value
+
+    if recap_presented:
+        # The recap is on the screen and I have replied to it: either correct the list or confirm it.
+        after_recap = dedent("""
+            You have already presented the recap of the work experiences you collected. Do not present it again.
+
+            {language_style}
+
+            - If I mention a work experience that is missing from the recap, or provide new or corrected information
+              about any of the work experiences, treat it as a work experience to collect and follow
+              the '#Gather Details' instructions to gather its missing information.
+            - If I ask you to remove a work experience, confirm that it was removed.
+            - If I confirm that I have nothing to add or change, thank me briefly and tell me that we will move on to the next step.
+
+            You will not ask any questions or make any suggestions regarding the next step.
+            It is not your responsibility to conduct the next step.
+
+            YOU MUST ALWAYS: All the responses must be in {user_language} language.
+            """)
+        return replace_placeholders_with_indent(after_recap,
+                                                language_style=get_language_style(),
+                                                user_language=user_language)
+
+    if _find_incomplete_experiences(collected_data):
+        # A work experience is still missing information (typically one I just added or corrected).
+        # Collect it before laying out the recap, otherwise the recap would show an incomplete list.
+        gather_before_recap = dedent("""
+            Some of the work experiences you collected are still missing information,
+            see the '#Incomplete Experiences Priority' section.
+
+            {language_style}
+
+            Ask me for the missing information following the '#Gather Details' instructions.
+            Do not summarize all the work experiences you collected yet.
+
+            You will not ask any questions or make any suggestions regarding the next step.
+            It is not your responsibility to conduct the next step.
+
+            YOU MUST ALWAYS: All the responses must be in {user_language} language.
+            """)
+        return replace_placeholders_with_indent(gather_before_recap,
+                                                language_style=get_language_style(),
+                                                user_language=user_language)
+
     duplicate_hint = ""
     if len(collected_data) > 1:
         duplicate_hint = "Also, with the above question inform me that if one of the work experiences seems to be duplicated, I can ask you to remove it.\n"
@@ -550,22 +652,18 @@ def _transition_instructions(*,
     recap_message = t("messages", "collectExperiences.recapTemplate",
                       summary=_get_summary_of_experiences(collected_data).rstrip("\n"))
     summarize_and_confirm = dedent("""
-        Review the <Conversation History> carefully.
-
-        If you have NOT yet presented a recap of the collected work experiences, explicitly summarize all the work experiences
-        you collected and explicitly ask me if I would like to add or change anything in the information you collected
-        before moving forward to the next step.
+        Explicitly summarize all the work experiences you collected and explicitly ask me if I would like to add
+        or change anything in the information you collected before moving forward to the next step.
 
         {language_style}
 
-        If you have not yet presented the recap, send me exactly the following text
+        Send me exactly the following text
         (it is already written in {user_language}; do not translate it into any other language):
             "{recap_message}"
         The summary is plain prose in the message field (no Markdown or other text formatting).
         {duplicate_hint}
-        If you have ALREADY presented the recap, do not repeat it:
-        - If I provide new or corrected information, follow the '#Gather Details' instructions.
-        - If I confirm that I have nothing to add or change, thank me briefly and tell me that we will move on to the next step.
+        Then stop and wait for my answer. Do not assume that I agree with the recap, do not thank me for confirming it
+        and do not announce or start the next step in the same message.
 
         You will not ask any questions or make any suggestions regarding the next step.
         It is not your responsibility to conduct the next step.
