@@ -286,8 +286,7 @@ Answer two boolean questions:
    - true: All work types explored AND user confirmed satisfied with recap
    - false: More work types remain or user wants changes
    - false: The recap was just presented and the user has not answered it yet
-   - false: The user'   - false: The user mentions a work experience that is missing from the recap, or adds, corrects or
-     removes any work experience (e.g. "you forgot X", "I also worked at Y", "delete Z")
+   - false: The user mentions a work experience that is missing from the recap, or adds, corrects or removes any work experience (e.g. "you forgot X", "I also worked at Y", "delete Z")
 s last input is empty, "(silence)" or is not an answer to the recap
 
 #Constraints
