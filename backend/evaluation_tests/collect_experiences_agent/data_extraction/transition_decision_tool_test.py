@@ -590,6 +590,86 @@ test_cases: list[TransitionDecisionToolTestCase] = [
         ],
         expected_transition_decision=TransitionDecision.END_CONVERSATION
     ),
+    # Common expressions that describe what someone did at a job should NOT trigger a premature
+    # transition. The user is naming their experience, not listing detailed responsibilities.
+    TransitionDecisionToolTestCase(
+        name="es_ar_llevar_a_cabo_should_continue",
+        locale=Locale.ES_AR,
+        turns=[
+            (SILENCE_MESSAGE, "¿Trabajaste alguna vez en una empresa o para otra persona a cambio de un pago?"),
+            ("Sí, me dedicaba a llevar a cabo tareas de limpieza en un hotel",
+             "¡Genial! ¿Cómo se llamaba el hotel?"),
+        ],
+        users_last_input="Hotel Sol",
+        collected_data=[
+            CollectedData(
+                index=0,
+                uuid="test-uuid-1",
+                experience_title="Limpieza en hotel",
+                company="Hotel Sol",
+                start_date=None,
+                end_date=None,
+                paid_work=True,
+                work_type=WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT.name
+            )
+        ],
+        exploring_type=WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT,
+        unexplored_types=[WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT, WorkType.SELF_EMPLOYMENT],
+        explored_types=[],
+        expected_transition_decision=TransitionDecision.CONTINUE
+    ),
+    TransitionDecisionToolTestCase(
+        name="es_ar_hacia_tareas_de_should_continue",
+        locale=Locale.ES_AR,
+        turns=[
+            (SILENCE_MESSAGE, "¿Trabajaste alguna vez en una empresa o para otra persona a cambio de un pago?"),
+            ("Sí, hacía tareas de cocina en un restaurante",
+             "¡Genial! ¿Cómo se llamaba el restaurante?"),
+        ],
+        users_last_input="Se llamaba La Esquina",
+        collected_data=[
+            CollectedData(
+                index=0,
+                uuid="test-uuid-1",
+                experience_title="Cocina en restaurante",
+                company="La Esquina",
+                start_date=None,
+                end_date=None,
+                paid_work=True,
+                work_type=WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT.name
+            )
+        ],
+        exploring_type=WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT,
+        unexplored_types=[WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT, WorkType.SELF_EMPLOYMENT],
+        explored_types=[],
+        expected_transition_decision=TransitionDecision.CONTINUE
+    ),
+    TransitionDecisionToolTestCase(
+        name="es_ar_mis_funciones_eran_should_continue",
+        locale=Locale.ES_AR,
+        turns=[
+            (SILENCE_MESSAGE, "¿Trabajaste alguna vez en una empresa o para otra persona a cambio de un pago?"),
+            ("Sí, mis funciones eran de mantenimiento en una fábrica",
+             "¡Genial! ¿Cómo se llamaba la fábrica?"),
+        ],
+        users_last_input="Fábrica Don Pedro",
+        collected_data=[
+            CollectedData(
+                index=0,
+                uuid="test-uuid-1",
+                experience_title="Mantenimiento en fábrica",
+                company="Fábrica Don Pedro",
+                start_date=None,
+                end_date=None,
+                paid_work=True,
+                work_type=WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT.name
+            )
+        ],
+        exploring_type=WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT,
+        unexplored_types=[WorkType.FORMAL_SECTOR_WAGED_EMPLOYMENT, WorkType.SELF_EMPLOYMENT],
+        explored_types=[],
+        expected_transition_decision=TransitionDecision.CONTINUE
+    ),
     # The tool legitimately answers END_WORKTYPE here (no current type to continue, recap not
     # confirmed). The agent wiring must NOT end the conversation on recap-phase END_WORKTYPE —
     # only END_CONVERSATION ends it. This case pins the decision NOT being END_CONVERSATION.

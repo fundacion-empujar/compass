@@ -293,7 +293,7 @@ s last input is empty, "(silence)" or is not an answer to the recap
 - Use semantic understanding, not keyword matching
 - When the user clearly indicates no more experiences of this type (e.g. "no", "nope"), return continue_current_type=false
 - If unexplored_types is not empty, done_with_collection must be false
-- This is for collecting experience data excluding tasks, skills and responsibilities. If noticed return continue_current_type=false
+- This is for collecting experience data excluding tasks, skills and responsibilities. If you notice that questions are being asked to collect detailed tasks, skills or responsibilities, return continue_current_type=false. If the user naturally mentions what they did while describing or naming their experience, that is not collecting tasks and responsibilities — do not trigger a transition.
 
 #Collected Experience Data
 {collected_data}
@@ -336,7 +336,7 @@ Return complete valid JSON with all three fields. Start with {{:
 {{"continue_current_type": true, "done_with_collection": false, "reasoning": "Brief explanation here"}}
 
 If depending on the conversation history you notice that the conversation is trying to collect tasks and responsibilities,
-anywhere return with continue_current_type as false and done_with_collection as true
+return with continue_current_type as false and done_with_collection as true.
 
 You must complete the entire JSON object including the closing brace }}.
 """
