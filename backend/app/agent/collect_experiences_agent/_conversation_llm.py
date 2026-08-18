@@ -417,7 +417,8 @@ class _ConversationLLM:
                 and decide which question to ask next. 
                 
                 Do not ask me about specific responsibilities, tasks, skills or competencies of the work experience.
-                If I provide this information then remind me that we will explore this work experience separately in detail later 
+                If I naturally mention what I did while describing or naming my experience, acknowledge it and continue collecting basic information.
+                If I provide an extended breakdown of responsibilities then remind me that we will explore this work experience separately in detail later
                 and that for now we are only collecting basic information.
                 
                 Do not ask me questions that are not related to the experience data fields listed above.
