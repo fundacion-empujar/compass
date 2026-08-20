@@ -4,7 +4,7 @@ from http import HTTPStatus
 import pytest
 from fastapi import HTTPException
 
-from app.app_config import ApplicationConfig, set_application_config
+from app.app_config import ApplicationConfig, get_application_config, set_application_config
 from app.countries import Country
 from app.i18n.types import Locale
 from app.invitations.repository import UserInvitationRepository
@@ -257,3 +257,83 @@ async def test_secure_link_requires_report_token(monkeypatch, in_memory_applicat
 
     assert excinfo.value.status_code == HTTPStatus.UNAUTHORIZED
     assert "Security token required" in str(excinfo.value.detail)
+
+@pytest.mark.asyncio
+async def test_secure_link_skips_report_token_when_registration_code_disabled(monkeypatch, in_memory_application_database):
+    """With GLOBAL_DISABLE_REGISTRATION_CODE on, the frontend hides the code input and sends no report token,
+    so a secure-link registration must not be rejected with "Security token required"."""
+    db = await in_memory_application_database
+    invitations_repo = UserInvitationRepository(db)
+    user_repo = UserPreferenceRepository(db)
+    metrics = _NoopMetricsService()
+
+    monkeypatch.setenv("SEC_TOKEN", "token-abc")
+    set_application_config(get_application_config().model_copy(update={"disable_registration_code": True}))
+
+    request = CreateUserPreferencesRequest(
+        user_id="user-bypass",
+        language="en",
+        registration_code="reg-bypass",
+        report_token=None,
+        client_id="client-bypass",
+    )
+    authed_user = UserInfo(
+        user_id="user-bypass",
+        name="User Bypass",
+        email="bypass@example.com",
+        token="fake",
+        sign_in_provider=SignInProvider.GOOGLE,
+    )
+
+    created = await _create_user_preferences(invitations_repo, user_repo, request, authed_user, metrics)
+
+    assert created.registration_code == "reg-bypass"
+    claim = await invitations_repo.get_claim_by_registration_code("reg-bypass")
+    assert claim is not None and claim.claimed_user_id == "user-bypass"
+
+
+@pytest.mark.asyncio
+async def test_secure_link_still_rejects_duplicate_code_when_registration_code_disabled(monkeypatch, in_memory_application_database):
+    """Skipping the security token must not weaken the one-registration-per-code guarantee."""
+    db = await in_memory_application_database
+    invitations_repo = UserInvitationRepository(db)
+    user_repo = UserPreferenceRepository(db)
+    metrics = _NoopMetricsService()
+
+    monkeypatch.setenv("SEC_TOKEN", "token-abc")
+    set_application_config(get_application_config().model_copy(update={"disable_registration_code": True}))
+
+    first_request = CreateUserPreferencesRequest(
+        user_id="user-bypass-1",
+        language="en",
+        registration_code="reg-bypass-dup",
+        client_id="client-bypass-1",
+    )
+    first_user = UserInfo(
+        user_id="user-bypass-1",
+        name="User Bypass One",
+        email="bypass-one@example.com",
+        token="fake",
+        sign_in_provider=SignInProvider.GOOGLE,
+    )
+    await _create_user_preferences(invitations_repo, user_repo, first_request, first_user, metrics)
+
+    second_request = CreateUserPreferencesRequest(
+        user_id="user-bypass-2",
+        language="en",
+        registration_code="reg-bypass-dup",
+        client_id="client-bypass-2",
+    )
+    second_user = UserInfo(
+        user_id="user-bypass-2",
+        name="User Bypass Two",
+        email="bypass-two@example.com",
+        token="fake",
+        sign_in_provider=SignInProvider.GOOGLE,
+    )
+
+    with pytest.raises(HTTPException) as excinfo:
+        await _create_user_preferences(invitations_repo, user_repo, second_request, second_user, metrics)
+
+    assert excinfo.value.status_code == HTTPStatus.BAD_REQUEST
+    assert INVALID_INVITATION_CODE_MESSAGE in str(excinfo.value.detail)

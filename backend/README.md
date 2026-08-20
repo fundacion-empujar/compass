@@ -177,6 +177,7 @@ The backend uses the following environment variables:
 - `BACKEND_EXPERIENCE_PIPELINE_CONFIG`: (optional) The configuration for the experience pipeline as a JSON like dictionary. See `class ExperiencePipelineConfig`.
 - `SEC_TOKEN`: Token used to validate secure registration links and report lookups.
 - `GLOBAL_DISABLE_REGISTRATION_CODE`: (optional) Set to `True` to bypass registration code validation for authenticated user registration. When enabled, authenticated users can create user preferences without providing an invitation code. Defaults to `False`.
+  > When enabled, creating user preferences also skips the `SEC_TOKEN` (`report_token`) check on the secure-link flow, so a registration started from a link without a report token succeeds instead of failing with `Security token required`. Other endpoints (eg. `/user-invitations/check-status`) still validate the token, and duplicate registration codes are still rejected.
   > **Security Note:** This should only be enabled in controlled environments (testing, demos, or deployments with external access control).
   > **Coordination:** When enabling this setting, also set the corresponding frontend variable `GLOBAL_DISABLE_REGISTRATION_CODE` to hide the registration code input from users. Mismatched configuration (frontend hides input but backend requires code, or vice versa) will lead to confusing user errors.
 

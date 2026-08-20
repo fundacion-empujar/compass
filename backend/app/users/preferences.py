@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import os
 from http import HTTPStatus
 
 from fastapi import APIRouter, HTTPException, Depends
@@ -15,7 +14,7 @@ from app.invitations.types import ClaimSource, SecureLinkCodeClaim
 from app.metrics.services.get_metrics_service import get_metrics_service
 from app.metrics.services.service import IMetricsService
 from app.metrics.types import UserAccountCreatedEvent
-from app.security_token import normalize_security_token
+from app.security_token import validate_report_token
 from app.server_dependencies.db_dependencies import CompassDBProvider
 from app.users.auth import Authentication, UserInfo, SignInProvider
 from app.users.validators import AnonymousUserValidator, RegisteredUserValidator
@@ -109,12 +108,8 @@ async def _create_user_preferences(
 
         invitation = None
         if secure_link_flow:
-            normalized_report_token = normalize_security_token(preferences.report_token)
-            normalized_sec_token = normalize_security_token(os.getenv("SEC_TOKEN"))
-            if not normalized_report_token or not normalized_sec_token:
-                raise HTTPException(status_code=HTTPStatus.UNAUTHORIZED, detail="Security token required")
-            if normalized_report_token != normalized_sec_token:
-                raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="Invalid security token")
+            # No-op when GLOBAL_DISABLE_REGISTRATION_CODE is enabled.
+            validate_report_token(preferences.report_token)
 
             # enforce uniqueness by checking claims and user data
             existing_claim = await user_invitation_repository.get_claim_by_registration_code(preferences.registration_code)
