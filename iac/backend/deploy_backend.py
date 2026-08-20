@@ -58,6 +58,7 @@ class BackendServiceConfig:
     cv_rate_limit_per_minute: Optional[str]
     sec_token: Optional[str]
     default_locale: str
+    disable_registration_code: Optional[str]
 
 
 """
@@ -423,7 +424,10 @@ def _deploy_cloud_run_service(
                             value=backend_service_cfg.default_locale),
                         gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
                             name="BACKEND_SUPPORTED_LANGUAGES",
-                            value=backend_service_cfg.supported_languages)
+                            value=backend_service_cfg.supported_languages),
+                        gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
+                            name="GLOBAL_DISABLE_REGISTRATION_CODE",
+                            value=backend_service_cfg.disable_registration_code)
                         # Add more environment variables here
                     ],
                 )
