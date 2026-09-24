@@ -20,9 +20,9 @@ user_language_ctx_var = contextvars.ContextVar("user_language")
 agent_type_ctx_var = contextvars.ContextVar("agent_type", default=":none:")
 
 # Current conversation phase; updated when the AgentDirector transitions phases.
-# Typed as str | int because ConversationPhase is an int-valued Enum, so .set()
-# receives either the enum's int value during transitions or the ":none:" sentinel.
-phase_ctx_var: contextvars.ContextVar[str | int] = contextvars.ContextVar("phase", default=":none:")
+# Holds the ConversationPhase name ("COUNSELING"), so logs and traces carry a readable label,
+# or the ":none:" sentinel.
+phase_ctx_var: contextvars.ContextVar[str] = contextvars.ContextVar("phase", default=":none:")
 
 # The Compass suite area (module) the current work belongs to.
 # Holds the *value* of an app.observability.TraceModule, e.g. "Build your Profile".
@@ -33,3 +33,8 @@ module_ctx_var = contextvars.ContextVar("module", default=":none:")
 # Build Your Profile turn.
 # Set at the service entry points and used to group LLM traces one level below the module.
 sub_module_ctx_var = contextvars.ContextVar("sub_module", default=":none:")
+
+# The RCT treatment group the current user is assigned to ("T1", "T2", ...), read from
+# `user_preferences.experiments.treatment_group`. Set by the routes that open a trace, and used to
+# tag LLM traces so they can be split by treatment group.
+treatment_group_ctx_var = contextvars.ContextVar("treatment_group", default=":none:")

@@ -107,6 +107,9 @@ def in_memory_tracing(config: Optional[TracingConfig] = None) -> Iterator[Record
     :return: An accessor over the spans recorded inside the block.
     """
     client, exporter = _get_or_create_client()
+    # The Langfuse processor batches, so a span a previous block never read can still be buffered.
+    # Drain it before clearing, or it is exported into this block's spans.
+    client.flush()
     exporter.clear()
 
     previous_client = tracing_module._client  # pylint: disable=protected-access

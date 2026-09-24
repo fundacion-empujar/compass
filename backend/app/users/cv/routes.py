@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, Fas
 from fastapi.responses import StreamingResponse
 
 from app.constants.errors import HTTPErrorResponse
+from app.observability.treatment_group import bind_treatment_group
 from app.users.auth import Authentication, UserInfo, require_super_admin
 from app.users.cv.constants import (
     MAX_CV_SIZE_BYTES,
@@ -150,6 +151,7 @@ def add_user_cv_routes(users_router: APIRouter, auth: Authentication):
             user_id: str = Path(description="the unique identifier of the user", examples=["1"]),
             user_info: UserInfo = Depends(auth.get_user_info()),
             service: ICVUploadService = Depends(_get_cv_service),
+            user_preferences_repository: IUserPreferenceRepository = Depends(get_user_preferences_repository),
     ) -> dict:
         # Validate size early using Content-Length (no multipart overhead for raw)
         _validate_request_size_header(request)
@@ -219,6 +221,9 @@ def add_user_cv_routes(users_router: APIRouter, auth: Authentication):
 
         try:
             logger.info("Processing CV {filename='%s', size_bytes=%s}", filename, len(file_bytes))
+            # Tag the extraction trace with the user's treatment group. The extraction runs in a
+            # background task, which inherits the request context, and so the treatment group too.
+            await bind_treatment_group(user_id, user_preferences_repository)
             upload_id = await service.parse_cv(
                 user_id=user_id,
                 file_bytes=file_bytes,
