@@ -21,6 +21,7 @@ from pydantic import BaseModel
 # the real producer used by the collect agent (Path B); the director (Path A) uses an
 # equivalent selector over the same pipeline cluster_results
 from app.agent.collect_experiences_agent.collect_experiences_agent import _select_normalized_title
+from app.agent.config import AgentsConfig
 from app.agent.experience._display_title_localizer import localize_display_title
 from app.agent.experience.work_type import WorkType
 from app.agent.linking_and_ranking_pipeline.infer_occupation_tool import InferOccupationTool
@@ -105,7 +106,7 @@ async def test_normalized_title_is_natural_spanish_es_ar(setup_infer_tool: Await
         assert normalized_title, "Expected a localized normalized title"
 
         # AND an LLM judge confirms it is natural rioplatense Spanish (not English / Euro-centric)
-        judge = GeminiGenerativeLLM(config=LLMConfig(language_model_name="gemini-2.5-pro"))
+        judge = GeminiGenerativeLLM(config=LLMConfig(language_model_name=AgentsConfig.ultra_high_reasoning_model))
         judged = await judge.generate_content(
             _JUDGE_PROMPT.format(raw_title=raw_title, normalized_title=normalized_title)
         )

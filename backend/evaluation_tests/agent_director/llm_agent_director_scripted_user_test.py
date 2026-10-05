@@ -103,7 +103,7 @@ async def setup_agent_director(setup_search_services: Awaitable[SearchServices])
 
 @_skip_non_es_ar
 @pytest.mark.asyncio
-@pytest.mark.evaluation_test("gemini-2.5-flash-lite/")
+@pytest.mark.evaluation_test("gemini-3.5-flash-lite/")
 @pytest.mark.repeat(3)
 async def test_user_says_all_the_time_yes(caplog: LogCaptureFixture,
                                           setup_agent_director: Awaitable[tuple[ConversationMemoryManager, Callable[
@@ -140,7 +140,7 @@ async def test_user_says_all_the_time_yes(caplog: LogCaptureFixture,
 
 @_skip_non_es_ar
 @pytest.mark.asyncio
-@pytest.mark.evaluation_test("gemini-2.5-flash-lite/")
+@pytest.mark.evaluation_test("gemini-3.5-flash-lite/")
 @pytest.mark.repeat(3)
 async def test_user_talks_about_occupations(caplog: LogCaptureFixture,
                                             setup_agent_director: Awaitable[tuple[ConversationMemoryManager, Callable[
@@ -203,7 +203,7 @@ async def test_user_talks_about_occupations(caplog: LogCaptureFixture,
 
 
 @pytest.mark.asyncio
-@pytest.mark.evaluation_test("gemini-2.5-flash-lite/")
+@pytest.mark.evaluation_test("gemini-3.5-flash-lite/")
 @pytest.mark.repeat(3)
 async def test_argentina_counseling_flow(caplog: LogCaptureFixture,
                                          setup_agent_director: Awaitable[tuple[ConversationMemoryManager, Callable[
