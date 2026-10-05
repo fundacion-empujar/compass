@@ -547,7 +547,7 @@ The script `export_feedback.py` is used to export the feedback data from the dat
 ### AI & Embeddings
 
 - `VERTEX_API_EMBEDDINGS_REGION` - Vertex AI region for embedding models (must be a regional location, e.g. `us-central1`)
-- `VERTEX_API_GEN_AI_REGION` - Vertex AI region for generative-AI calls (regional or `global`, default: `us-central1`)
+- `VERTEX_API_GEN_AI_REGION` - Vertex AI region for generative-AI calls (regional or `global`, default: `global`). The default and reasoning Gemini 3.x models are only available in `global`
 - `EMBEDDINGS_SERVICE_NAME` - Embeddings service provider
 - `EMBEDDINGS_MODEL_NAME` - Model for generating embeddings
 
