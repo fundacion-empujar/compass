@@ -38,20 +38,16 @@ class DataExtractionReferences(BaseModel):
     The keys are typed (rather than a free-form dict) because an untyped object in the response schema makes
     the Gemini 3.x models intermittently return null for every extracted field.
     """
-    experience_title_references: Optional[str] = Field(default=None, description=_REFERENCES_DESCRIPTION.format(field="experience_title"))
-    company_references: Optional[str] = Field(default=None, description=_REFERENCES_DESCRIPTION.format(field="company"))
-    location_references: Optional[str] = Field(default=None, description=_REFERENCES_DESCRIPTION.format(field="location"))
+    # No defaults: a field with a default is not in the schema's `required` list, and the model then skips it.
+    experience_title_references: str = Field(description=_REFERENCES_DESCRIPTION.format(field="experience_title"))
+    company_references: str = Field(description=_REFERENCES_DESCRIPTION.format(field="company"))
+    location_references: str = Field(description=_REFERENCES_DESCRIPTION.format(field="location"))
 
 
 class ExtractedData(BaseModel):
     """
     Extract data per an experience from the EntityExtractionTool.
     """
-
-    # References and Reasoning.
-    data_extraction_references: Optional[DataExtractionReferences] = Field(
-        default=None,
-        description="Where you found the information for the experience details, see the '#Extract data instructions'.")
 
     # Experience Details
     experience_title: Optional[str] = Field(default=None, description="A title for the experience, see the \"##'experience_title' instructions\".")
@@ -61,6 +57,24 @@ class ExtractedData(BaseModel):
 
 # Empty/Default extracted data.
 _EMPTY_EXTRACTED_DATA = ExtractedData()
+
+
+class _LLMExtractedData(BaseModel):
+    """
+    The experience details in the LLM output.
+    Every field is required (no defaults, `null` stays a valid value): a field with a default is left out of the
+    schema's `required` list, and the model then skips it so it silently takes the default value.
+    The references come first, so that the model explains where it found the values before giving them.
+    """
+
+    # References and Reasoning.
+    data_extraction_references: DataExtractionReferences = Field(
+        description="Where you found the information for the experience details, see the '#Extract data instructions'.")
+
+    # Experience Details
+    experience_title: Optional[str] = Field(description="A title for the experience, see the \"##'experience_title' instructions\".")
+    company: Optional[str] = Field(description="The name of the company or its type, see the \"##'company' instructions\".")
+    location: Optional[str] = Field(description="The location in which the job was performed, see the \"##'location' instructions\".")
 
 
 class _LLMOutput(BaseModel):
@@ -76,7 +90,7 @@ class _LLMOutput(BaseModel):
                     "Once you reach the Previously Extracted Experience Data, do not follow the associations anymore. "
                     "e.g. \"user(<answer>) -> model(<question>) -> ... -> user(<answer>) -> model(<question>) -> Previously Extracted Experience Data(...)\". "
                     "Each step is a summarized version of the actual user or model turn, and the chain has at most 10 steps to avoid circular references.")
-    experience_details: ExtractedData = Field(
+    experience_details: _LLMExtractedData = Field(
         description="The experience details you extracted from the user's statement and the conversation history.")
 
 
@@ -106,8 +120,10 @@ class EntityExtractionTool:
             system_instructions=_SYSTEM_INSTRUCTIONS.format(language_style=get_language_style()),
             config=LLMConfig(
                 generation_config=ZERO_TEMPERATURE_GENERATION_CONFIG | JSON_GENERATION_CONFIG | {
-                    "max_output_tokens": 3000
-                    # Limit the output to 3000 tokens to avoid the "reasoning recursion issues"
+                    "max_output_tokens": 8192
+                    # Limit the output to avoid the "reasoning recursion issues".
+                    # The limit includes the thinking tokens of the Gemini 3.x models (often 1000-1500, more on long
+                    # conversations): with a lower limit, the thinking used it up and the JSON answer got cut off.
                 } | temperature_config | with_response_schema(_LLMOutput)
             ))
 
@@ -204,7 +220,11 @@ _SYSTEM_INSTRUCTIONS = """
         Extract the title of the experience from the '<User's Last Input>', but do not alter it.
         For unpaid work, use the kind of work done (e.g. "Helping Neighbors", "Volunteering" etc).
         Make sure that the user is actually referring to an experience they have have.
-        When summarizing a user-stated action (e.g., "I sell tomatoes"), convert it directly into a gerund-phrase experience title (e.g., "Selling Tomatoes"). 
+        When summarizing a user-stated action (e.g., "I sell tomatoes"), convert it directly into a gerund-phrase experience title (e.g., "Selling Tomatoes").
+        Follow the wording the user used, do not switch between a role and an activity:
+        - a stated job title or role stays as stated (e.g. "I was a Project Manager" is "Project Manager", not "Managing Projects"),
+        - a stated activity stays an activity (e.g. "I started teaching graphic design" is "Teaching Graphic Design",
+          "my consulting work" is "Consulting", not "Consultant").
         Return a string value containing the title of the experience.
         
         Use `null`: If the user has not mentioned their `experience title` and has not yet been asked to provide it.
@@ -215,10 +235,13 @@ _SYSTEM_INSTRUCTIONS = """
         Use specific company names (eg: Acme inc) not generic ones (eg: 'company', 'online, 'organization', 'freelance' or 'self') in the output.
         When the work was at or through a business owned by or associated with a relative, the business's own name is the company (eg: "Acme inc"), not a description of the relationship (eg: "my uncle's business").
         If I describe the workplace only by my relationship to the relative (eg: "el negocio de mi tío", "el local de mi viejo") and have not yet been asked the business's name, use `null` so I am asked for it once. After I have been asked, record the name if I give one; if I decline, don't know it, or just repeat the relationship, record the relationship description I gave (eg: "el negocio de mi tío") as the company.
+        If the user does not name the company but says the kind of business or place they work at
+        (e.g. "at the market", "at a hotel", "at my father's shop"), use it in the user's own words, keeping what qualifies it
+        (e.g. "Market", "Hotel", "My father's shop", "Local market"), in the language of the user.
         For unpaid work, use the receiver of the work (e.g. "My Family", "My Community" etc) but not the generic name, in the language being used of the conversation.
         Keep every value entirely in the detected language.
         Return a string value containing the type, or name of the company, or the receiver of the work.
-        
+
           Use `null`: If the user has not mentioned their `company name` and has not yet been asked to provide it.
           Use "": If the user explicitly declines to provide their `company name` when asked, or requests that previously stored `company name` data be deleted.
 </System Instructions>

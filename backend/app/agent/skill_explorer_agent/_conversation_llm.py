@@ -145,13 +145,12 @@ class _ConversationLLM:
                 agent_response_time_in_sec=round(llm_end_time - llm_start_time, 2),
                 llm_stats=[llm_stats]), 100, ValueError("LLM response is empty")
 
-        if llm_response.text == "<END_OF_CONVERSATION>":
-            llm_response.text = t("messages", "exploreSkills.finalMessage")
-            finished = True
         if llm_response.text.find("<END_OF_CONVERSATION>") != -1:
-            llm_response.text = t("messages", "exploreSkills.finalMessage")
+            if llm_response.text != "<END_OF_CONVERSATION>":
+                # The models often add a closing remark to the token, it is replaced by the final message anyway.
+                logger.info("The response contains '<END_OF_CONVERSATION>' and additional text: %s", llm_response.text)
+            llm_response.text = t("messages", _FINAL_MESSAGE_KEY)
             finished = True
-            logger.warning("The response contains '<END_OF_CONVERSATION>' and additional text: %s", llm_response.text)
 
         return AgentOutput(
             message_for_user=llm_response.text,
@@ -254,11 +253,11 @@ class _ConversationLLM:
             Also respond with exactly <END_OF_CONVERSATION> if continuing would be redundant, i.e.
             you would repeat a question already in <question_asked_until_now> (or one substantively
             similar), or I am giving disengagement signals (see #Disengagement signals above).
-            
+
             Do not add any text before or after <END_OF_CONVERSATION>.
             Do not say things like "we've covered all questions" - just output <END_OF_CONVERSATION>.
-            
-            If I have not shared any information about my experience as {experience_title}{work_type}, 
+
+            If I have not shared any information about my experience as {experience_title}{work_type},
             explicitly ask me if I really want to stop exploring the specific experience.
             Explain that I will not be able to revisit the experience, if I decide to stop sharing information,
             and wait for my response before deciding to end the conversation.
@@ -305,7 +304,7 @@ class _ConversationLLM:
                 
                 Add new line to separate the above from the following question.
                 
-                Ask me to describe a typical day as {experience_title}.
+                Ask me to describe a typical day as {experience_title}, using the words "typical day" (or their direct translation in the language of the conversation).
             
         {language_style}
         """)

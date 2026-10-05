@@ -227,16 +227,15 @@ class OperationsProcessor:
                                       collected: list[CollectedData]) -> int:
         """Index of an existing experience the ADD is a re-mention of, else -1.
 
-        A re-mention has the same work_type and the exact (case-insensitive) title. Exact (not
-        substring) match avoids merging distinct experiences that share a title prefix.
-        An experience whose details were already fully collected is never merged into: the same
-        job title at two different employers is two experiences, and merging the second one would
-        silently overwrite the first (e.g. "Cashier at A" followed by "Cashier at B").
+        Only merges when both work_type AND title match exactly (case-insensitive).
+        Substring matching is intentionally avoided to prevent merging distinct experiences
+        that share a common title prefix (e.g. two different 'Retail Sales Assistant' roles).
+        Experiences with the same title whose company or dates conflict are distinct
+        (e.g. a 'Research Assistant' job at two different labs), so they are not merged either.
         """
         new_title = (add_payload.experience_title or "").strip().lower()
         if not new_title:
             return -1
-        new_company = (add_payload.company or "").strip().lower()
         for i, existing in enumerate(collected):
             if (existing.work_type or "").strip() != (work_type_str or "").strip():
                 continue
@@ -248,12 +247,21 @@ class OperationsProcessor:
             if not CollectedData.is_incomplete(existing):
                 # Its details are already collected and confirmed - this ADD is a different experience.
                 continue
-            existing_company = (existing.company or "").strip().lower()
-            if new_company and existing_company and new_company != existing_company:
-                # Same title, different employer - a different experience.
+            if OperationsProcessor._has_conflicting_details(add_payload, existing):
+                # Same title, different employer or dates - a different experience.
                 continue
             return i
         return -1
+
+    @staticmethod
+    def _has_conflicting_details(add_payload: CollectedData, existing: CollectedData) -> bool:
+        """True if the ADD and the existing experience have different non-empty company or dates."""
+        for field in ("company", "start_date", "end_date"):
+            new_value = (getattr(add_payload, field) or "").strip().lower()
+            existing_value = (getattr(existing, field) or "").strip().lower()
+            if new_value and existing_value and new_value != existing_value:
+                return True
+        return False
 
     @staticmethod
     def _merge_add_into_existing(add_payload: CollectedData, work_type_str: str | None, existing: CollectedData):
