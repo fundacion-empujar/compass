@@ -4,7 +4,7 @@ import time
 from datetime import datetime
 from textwrap import dedent
 
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from app.agent.agent_types import AgentInput, AgentOutput, AgentType, LLMStats, LLMQuickReplyOption
 from app.agent.collect_experiences_agent._types import CollectedData
@@ -169,11 +169,11 @@ def _translate_field(field_key: str) -> str:
 
 class _ConversationLLMResponse(BaseModel):
     """Structured response from the conversation LLM: the user-facing message plus optional quick-reply options."""
-    message: str
-    quick_reply_options: list[LLMQuickReplyOption] | None = None
-
-    class Config:
-        extra = "forbid"
+    message: str = Field(description="The conversational message for the user")
+    quick_reply_options: list[LLMQuickReplyOption] | None = Field(
+        default=None,
+        description="The quick-reply options for the message, see the '#Quick Reply Options' instructions. null when there are none.")
+    model_config = ConfigDict(extra="forbid")
 
 
 class ConversationLLMAgentOutput(AgentOutput):

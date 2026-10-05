@@ -53,5 +53,5 @@ STD_LANGUAGE_STYLE = dedent("""\
 ///        "I'm curious, ..."
 ///        "So, ..."
 ///        "I'd love to know, ..."
-///        "I'm interested in, ..."       
+///        "I'm interested in, ..."
 """)
