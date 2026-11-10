@@ -55,7 +55,7 @@
     "webpack": "^5.91.0"
   },
   "resolutions": {
-    "@storybook/test-runner/playwright": "^1.49.1"
+    "@storybook/test-runner/playwright": "^1.65.0"
   },
   "dependencies": {
     "@emotion/react": "^11.11.0",

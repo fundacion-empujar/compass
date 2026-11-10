@@ -178,7 +178,7 @@ async def main(*, do_skills: bool = False, do_occupations: bool = False):
     tasks = []
     if do_occupations:
         async def evaluate_occupations_task():
-            occupation_dataset = load_dataset(OCCUPATION_REPO_ID, data_files=[OCCUPATION_FILENAME],
+            occupation_dataset = load_dataset(OCCUPATION_REPO_ID, data_files=[OCCUPATION_FILENAME],  # nosec B615 - internal Tabiya-owned dataset, not arbitrary third-party content
                                               token=hf_access_token).get("train")
             occupation_queries: list[str] = occupation_dataset["synthetic_query"]
             occupation_ground_truth: list[str] = occupation_dataset["esco_code"]
@@ -207,7 +207,7 @@ async def main(*, do_skills: bool = False, do_occupations: bool = False):
         # Load the skill dataset. The columns are not consistent with the definition in the dataset so we need to override
         # it and disable verification.
         async def evaluate_skills_task():
-            skill_dataset = load_dataset(SKILL_REPO_ID, data_files=[SKILL_FILENAME], token=hf_access_token,
+            skill_dataset = load_dataset(SKILL_REPO_ID, data_files=[SKILL_FILENAME], token=hf_access_token,  # nosec B615 - internal Tabiya-owned dataset, not arbitrary third-party content
                                          features=Features(
                                              {
                                                  "label": Value(dtype="string"),
