@@ -550,6 +550,13 @@ The script `export_feedback.py` is used to export the feedback data from the dat
 - `VERTEX_API_GEN_AI_REGION` - Vertex AI region for generative-AI calls (regional or `global`, default: `global`). The default and reasoning Gemini 3.x models are only available in `global`
 - `EMBEDDINGS_SERVICE_NAME` - Embeddings service provider
 - `EMBEDDINGS_MODEL_NAME` - Model for generating embeddings
+- `LLM_PROVIDER` - LLM backend for all agents: `gemini` (default), `anthropic` or `ollama`
+- `LLM_DEFAULT_MODEL` - Model for the default tier (gemini default: `gemini-3.5-flash-lite`)
+- `LLM_REASONING_MODEL` - Model for the reasoning tier (gemini default: `gemini-3.8-flash`)
+- `LLM_DEEP_REASONING_MODEL` - Model for the deep reasoning tier (gemini default: `gemini-3.1-pro-preview`)
+  - For `anthropic` and `ollama`, an unset tier falls back to the next tier down that is set (`LLM_DEEP_REASONING_MODEL` → `LLM_REASONING_MODEL` → `LLM_DEFAULT_MODEL`), then to the provider default (`claude-sonnet-4-6` / `qwen2.5:7b`)
+- `ANTHROPIC_API_KEY` - Anthropic API key, required when `LLM_PROVIDER=anthropic`
+- `OLLAMA_BASE_URL` - Ollama server URL when `LLM_PROVIDER=ollama` (default: `http://localhost:11434`)
 
 For the source database the script uses the following environment variables:
 
