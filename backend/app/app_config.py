@@ -1,6 +1,6 @@
-from typing import Optional
+from typing import Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from app.countries import Country
 from app.users.cv.constants import DEFAULT_MAX_UPLOADS_PER_USER, DEFAULT_RATE_LIMIT_PER_MINUTE
@@ -9,6 +9,8 @@ from app.i18n.types import Locale
 from common_libs.observability.config import TracingConfig
 
 from features.types import FeatureSetupConfig
+
+LLMProvider = Literal["gemini", "anthropic", "ollama"]
 
 
 class ApplicationConfig(BaseModel):
@@ -94,6 +96,55 @@ class ApplicationConfig(BaseModel):
     The LLM tracing (Langfuse) configuration. Disabled by default; see
     `common_libs.observability.config.parse_tracing_config` for how it is loaded from the environment.
     """
+
+    llm_provider: LLMProvider = "gemini"
+    """
+    Which LLM backend to use for all agents.
+      - "gemini"     → Vertex AI / Gemini (default; requires GOOGLE_APPLICATION_CREDENTIALS)
+      - "anthropic"  → Anthropic Claude API (requires ANTHROPIC_API_KEY)
+      - "ollama"     → Local model via ollama (requires ollama running; see OLLAMA_BASE_URL)
+    Set via LLM_PROVIDER environment variable.
+    """
+
+    llm_default_model: Optional[str] = None
+    """
+    The model for the default tier (ModelTier.DEFAULT) of the selected provider.
+    When unset, each provider uses its own default (gemini: gemini-3.5-flash-lite,
+    anthropic: claude-sonnet-4-6, ollama: qwen2.5:7b).
+    Set via LLM_DEFAULT_MODEL environment variable.
+    """
+
+    llm_reasoning_model: Optional[str] = None
+    """
+    The model for the reasoning tier (ModelTier.REASONING) of the selected provider.
+    When unset, gemini uses gemini-3.8-flash; other providers fall back to llm_default_model.
+    Set via LLM_REASONING_MODEL environment variable.
+    """
+
+    llm_deep_reasoning_model: Optional[str] = None
+    """
+    The model for the deep reasoning tier (ModelTier.DEEP_REASONING) of the selected provider.
+    When unset, gemini uses gemini-3.1-pro-preview; other providers fall back to llm_reasoning_model, then llm_default_model.
+    Set via LLM_DEEP_REASONING_MODEL environment variable.
+    """
+
+    anthropic_api_key: Optional[str] = None
+    """
+    API key for the Anthropic Claude API. Required when llm_provider is "anthropic".
+    Set via ANTHROPIC_API_KEY environment variable. Treated as a secret — never logged.
+    """
+
+    ollama_base_url: str = "http://localhost:11434"
+    """
+    Base URL for the ollama server. Only used when llm_provider is "ollama".
+    Set via OLLAMA_BASE_URL environment variable.
+    """
+
+    @model_validator(mode='after')
+    def check_llm_provider_configuration(self) -> "ApplicationConfig":
+        if self.llm_provider == "anthropic" and not self.anthropic_api_key:
+            raise ValueError("ANTHROPIC_API_KEY must be set when LLM_PROVIDER=anthropic.")
+        return self
 
 
 _application_config: ApplicationConfig | None = None

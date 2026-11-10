@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 from app.agent.agent_director.abstract_agent_director import ConversationPhase
 
 from app.agent.agent_types import AgentType, AgentInput
-from app.agent.config import AgentsConfig
+from app.agent.config import ModelTier
 from app.agent.llm_caller import LLMCaller
 from app.agent.penalty import get_penalty
 from app.agent.prompt_template.agent_prompt_template import STD_LANGUAGE_STYLE, STD_AGENT_CHARACTER
@@ -140,7 +140,7 @@ class LLMRouter:
                                                       start_top_p=0.8, end_top_p=1,
                                                       attempt=attempt, max_retries=max_retries)
 
-            llm = GeminiGenerativeLLM(config=LLMConfig(language_model_name=AgentsConfig.deep_reasoning_model,
+            llm = GeminiGenerativeLLM(config=LLMConfig(model_tier=ModelTier.REASONING,
                                                        generation_config=temperature_config | with_response_schema(RouterModelResponse) | {
                                                            # Set a reasonable, but low value for the output tokens to avoid the repetition trap
                                                            "max_output_tokens": 1000,
